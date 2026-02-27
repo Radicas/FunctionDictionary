@@ -94,44 +94,12 @@ void MainWindow::onFunctionItemClicked(QListWidgetItem* item) {
 }
 
 void MainWindow::displayFunctionDetail(const FunctionData& functionData) {
-    QString html = QString("<h1>%1</h1>").arg(functionData.key);
-    html += QString("<p><small>创建时间: %1</small></p>").arg(functionData.createTime.toString("yyyy-MM-dd hh:mm:ss"));
-    html += "<hr>";
-    html += markdownToHtml(functionData.value);
+    QString content = QString("# %1\n\n").arg(functionData.key);
+    content += QString("**创建时间:** %1\n\n").arg(functionData.createTime.toString("yyyy-MM-dd hh:mm:ss"));
+    content += "---\n\n";
+    content += functionData.value;
 
-    m_detailBrowser->setHtml(html);
-}
-
-QString MainWindow::markdownToHtml(const QString& markdown) {
-    QString html = markdown;
-
-    html.replace("&", "&amp;");
-    html.replace("<", "&lt;");
-    html.replace(">", "&gt;");
-
-    QRegularExpression h3Regex("^### (.*)$", QRegularExpression::MultilineOption);
-    html.replace(h3Regex, "<h3>\\1</h3>");
-
-    QRegularExpression h2Regex("^## (.*)$", QRegularExpression::MultilineOption);
-    html.replace(h2Regex, "<h2>\\1</h2>");
-
-    QRegularExpression h1Regex("^# (.*)$", QRegularExpression::MultilineOption);
-    html.replace(h1Regex, "<h1>\\1</h1>");
-
-    QRegularExpression boldRegex("\\*\\*(.*?)\\*\\*");
-    html.replace(boldRegex, "<strong>\\1</strong>");
-
-    QRegularExpression italicRegex("\\*(.*?)\\*");
-    html.replace(italicRegex, "<em>\\1</em>");
-
-    QRegularExpression codeRegex("`(.*?)`");
-    html.replace(codeRegex, "<code>\\1</code>");
-
-    html.replace("\n\n", "</p><p>");
-    html.prepend("<p>");
-    html.append("</p>");
-
-    return html;
+    m_detailBrowser->setMarkdown(content);
 }
 
 void MainWindow::onAddButtonClicked() {
