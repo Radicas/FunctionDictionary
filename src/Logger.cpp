@@ -46,7 +46,9 @@ void Logger::init(const QString& logFilePath) {
     }
 
     m_logStream = new QTextStream(m_logFile);
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     m_logStream->setCodec("UTF-8");
+#endif
     m_initialized = true;
 
     info("日志系统初始化成功");
