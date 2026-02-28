@@ -1,5 +1,7 @@
 #include "FunctionalityWidget.h"
 #include "logger.h"
+#include <QThread>
+#include <QCoreApplication>
 
 FunctionalityWidget::FunctionalityWidget(QWidget *parent) : QWidget(parent) {
     setupUI();
@@ -83,33 +85,27 @@ void FunctionalityWidget::setupSettingsSection() {
 
 void FunctionalityWidget::onFileSelectClicked() {
     Logger::instance().info("onFileSelectClicked 方法被调用");
-    try {
-        // 使用QFileDialog的静态方法，设置一些额外的选项
-        QFileDialog dialog(this, "选择文件", QDir::homePath());
-        dialog.setNameFilters({"所有文件 (*.*)", "C/C++文件 (*.c *.cpp *.h *.hpp)", "Python文件 (*.py)", "Java文件 (*.java)", "JavaScript文件 (*.js *.ts)"});
-        dialog.setFileMode(QFileDialog::ExistingFile);
-        dialog.setViewMode(QFileDialog::Detail);
-        
-        Logger::instance().info("显示文件选择对话框");
-        
-        if (dialog.exec() == QFileDialog::Accepted) {
-            QStringList selectedFiles = dialog.selectedFiles();
-            if (!selectedFiles.isEmpty()) {
-                QString filePath = selectedFiles.first();
-                Logger::instance().info("用户选择文件: " + filePath);
-                
-                m_filePathEdit->setText(filePath);
-                m_currentFilePath = filePath;
-                showStatusMessage("已选择文件: " + QFileInfo(filePath).fileName());
-            } else {
-                Logger::instance().info("用户取消选择文件");
-            }
-        } else {
-            Logger::instance().info("用户取消选择文件");
+    Logger::instance().info("当前线程是否为主线程: " + QString(QThread::currentThread() == qApp->thread() ? "是" : "否"));
+    Logger::instance().info("window() 返回值: " + QString(window() ? "有效" : "空"));
+    
+    QFileDialog dialog(window(), "选择文件", QDir::homePath(),
+        "所有文件 (*.*);;C/C++文件 (*.c *.cpp *.h *.hpp);;Python文件 (*.py);;Java文件 (*.java);;JavaScript文件 (*.js *.ts)");
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setOption(QFileDialog::DontUseNativeDialog, true);
+    
+    Logger::instance().info("准备显示文件选择对话框");
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        QStringList selectedFiles = dialog.selectedFiles();
+        if (!selectedFiles.isEmpty()) {
+            QString filePath = selectedFiles.first();
+            Logger::instance().info("用户选择文件: " + filePath);
+            m_filePathEdit->setText(filePath);
+            m_currentFilePath = filePath;
+            showStatusMessage("已选择文件: " + QFileInfo(filePath).fileName());
         }
-    } catch (const std::exception& e) {
-        Logger::instance().error("文件选择对话框异常: " + QString(e.what()));
-        showStatusMessage("文件选择失败: " + QString(e.what()));
+    } else {
+        Logger::instance().info("用户取消选择文件");
     }
 }
 
