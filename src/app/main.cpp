@@ -4,12 +4,6 @@
 #include <QApplication>
 #include <QDir>
 #include <QStandardPaths>
-#include <QSqlDatabase>
-
-#ifdef Q_OS_WIN
-#include <QtPlugin>
-Q_IMPORT_PLUGIN(QSQLiteDriverPlugin)
-#endif
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -48,8 +42,6 @@ int main(int argc, char *argv[]) {
   QString logPath = appDataPath + "/functiondb.log";
 //   Logger::instance().init(logPath);
   Logger::instance().info("应用程序启动");
-  
-  Logger::instance().info("QSqlDatabase: available drivers: " + QSqlDatabase::drivers().join(", "));
 
   QString dbPath = appDataPath + "/functions.db";
   if (!DatabaseManager::instance().init(dbPath)) {
