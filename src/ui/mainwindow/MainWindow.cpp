@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "FunctionalityWidget.h"
 #include "../dialogs/addfunctiondialog/addfunctiondialog.h"
 #include "logger.h"
 #include <QMessageBox>
@@ -11,6 +12,7 @@ MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , m_functionList(nullptr)
     , m_detailBrowser(nullptr)
+    , m_functionalityWidget(nullptr)
     , m_addButton(nullptr)
     , m_deleteButton(nullptr)
     , m_currentFunctionId(-1) {
@@ -43,8 +45,12 @@ void MainWindow::setupUI() {
     m_detailBrowser->setOpenExternalLinks(true);
     splitter->addWidget(m_detailBrowser);
 
+    m_functionalityWidget = new FunctionalityWidget(this);
+    splitter->addWidget(m_functionalityWidget);
+
     splitter->setStretchFactor(0, 1);
     splitter->setStretchFactor(1, 2);
+    splitter->setStretchFactor(2, 1);
 
     mainLayout->addWidget(splitter);
 

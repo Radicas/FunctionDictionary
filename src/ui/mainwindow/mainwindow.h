@@ -12,6 +12,7 @@
 #include "../../core/database/databasemanager.h"
 #include "../dialogs/aiconfigdialog/aiconfigdialog.h"
 #include "../dialogs/aboutdialog/aboutdialog.h"
+#include "FunctionalityWidget.h"
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
@@ -48,6 +49,7 @@ private:
 
   QListWidget *m_functionList;
   QTextBrowser *m_detailBrowser;
+  FunctionalityWidget *m_functionalityWidget;
   QPushButton *m_addButton;
   QPushButton *m_deleteButton;
   QMap<int, FunctionData> m_functionMap;
