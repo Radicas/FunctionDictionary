@@ -25,6 +25,8 @@ void MainWindow::setupUI() {
     setWindowTitle("函数数据库管理系统");
     setMinimumSize(900, 600);
 
+    setupMenuBar();
+
     QWidget* centralWidget = new QWidget(this);
     setCentralWidget(centralWidget);
 
@@ -148,4 +150,22 @@ void MainWindow::onDeleteButtonClicked() {
             QMessageBox::critical(this, "错误", "函数删除失败：" + DatabaseManager::instance().lastError());
         }
     }
+}
+
+void MainWindow::setupMenuBar() {
+    QMenuBar* menuBar = this->menuBar();
+
+    QMenu* settingsMenu = menuBar->addMenu("设置");
+
+    QAction* aiConfigAction = new QAction("AI配置", this);
+    connect(aiConfigAction, &QAction::triggered, this, &MainWindow::onAIConfigClicked);
+    settingsMenu->addAction(aiConfigAction);
+
+    Logger::instance().info("菜单栏初始化完成");
+}
+
+void MainWindow::onAIConfigClicked() {
+    AIConfigDialog dialog(this);
+    dialog.exec();
+    Logger::instance().info("用户打开AI配置对话框");
 }

@@ -9,8 +9,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 # 支持Qt5和Qt6
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets Sql)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Sql)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets Sql Network)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets Sql Network)
 
 set(SOURCES
     src/main.cpp
@@ -18,6 +18,10 @@ set(SOURCES
     src/AddFunctionDialog.cpp
     src/DatabaseManager.cpp
     src/Logger.cpp
+    src/function_dict_c_api.cpp
+    src/AIConfigManager.cpp
+    src/AIConfigDialog.cpp
+    src/AIServiceManager.cpp
 )
 
 set(HEADERS
@@ -25,11 +29,15 @@ set(HEADERS
     src/addfunctiondialog.h
     src/databasemanager.h
     src/logger.h
+    src/function_dict_c_api.h
+    src/aiconfigmanager.h
+    src/aiconfigdialog.h
+    src/aiservicemanager.h
 )
 
 add_executable(FunctionDB ${SOURCES} ${HEADERS})
 
-target_link_libraries(FunctionDB Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Sql)
+target_link_libraries(FunctionDB Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Sql Qt${QT_VERSION_MAJOR}::Network)
 
 # Windows MSVC特定配置
 if(MSVC)

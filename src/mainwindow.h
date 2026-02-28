@@ -10,6 +10,7 @@
 #define MAINWINDOW_H
 
 #include "databasemanager.h"
+#include "aiconfigdialog.h"
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
@@ -20,65 +21,35 @@
 #include <QTextBrowser>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QMenuBar>
+#include <QMenu>
+#include <QAction>
 
-/**
- * @brief 主窗口类
- */
 class MainWindow : public QMainWindow {
   Q_OBJECT
 
 public:
-  /**
-   * @brief 构造函数
-   * @param parent 父窗口指针
-   */
   explicit MainWindow(QWidget *parent = nullptr);
-
-  /**
-   * @brief 析构函数
-   */
   ~MainWindow();
 
 private slots:
-  /**
-   * @brief 函数列表项点击槽函数
-   * @param item 列表项指针
-   */
   void onFunctionItemClicked(QListWidgetItem *item);
-
-  /**
-   * @brief 增加按钮点击槽函数
-   */
   void onAddButtonClicked();
-
-  /**
-   * @brief 删除按钮点击槽函数
-   */
   void onDeleteButtonClicked();
+  void onAIConfigClicked();
 
 private:
-  /**
-   * @brief 初始化界面
-   */
   void setupUI();
-
-  /**
-   * @brief 加载函数列表
-   */
+  void setupMenuBar();
   void loadFunctionList();
-
-  /**
-   * @brief 显示函数详情
-   * @param functionData 函数数据
-   */
   void displayFunctionDetail(const FunctionData &functionData);
 
-  QListWidget *m_functionList;           ///< 函数列表
-  QTextBrowser *m_detailBrowser;         ///< 详情显示区域
-  QPushButton *m_addButton;              ///< 增加按钮
-  QPushButton *m_deleteButton;           ///< 删除按钮
-  QMap<int, FunctionData> m_functionMap; ///< 函数数据映射（ID -> 数据）
-  int m_currentFunctionId;               ///< 当前选中的函数ID
+  QListWidget *m_functionList;
+  QTextBrowser *m_detailBrowser;
+  QPushButton *m_addButton;
+  QPushButton *m_deleteButton;
+  QMap<int, FunctionData> m_functionMap;
+  int m_currentFunctionId;
 };
 
-#endif // MAINWINDOW_H
+#endif
