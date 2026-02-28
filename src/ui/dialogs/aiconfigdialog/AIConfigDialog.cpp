@@ -62,8 +62,8 @@ void AIConfigDialog::setupUI() {
     mainLayout->addLayout(formLayout);
 
     QLabel *infoLabel = new QLabel("This key is stored locally and only used to make API requests from this extension.", this);
+    infoLabel->setObjectName("hintLabel");
     infoLabel->setWordWrap(true);
-    infoLabel->setStyleSheet("color: gray; font-size: 11px;");
     mainLayout->addWidget(infoLabel);
 
     mainLayout->addStretch();
@@ -71,16 +71,20 @@ void AIConfigDialog::setupUI() {
     QHBoxLayout *buttonLayout = new QHBoxLayout();
 
     m_testButton = new QPushButton("测试连接", this);
+    m_testButton->setObjectName("testButton");
     connect(m_testButton, &QPushButton::clicked, this, &AIConfigDialog::onTestConnectionClicked);
     buttonLayout->addWidget(m_testButton);
 
     buttonLayout->addStretch();
 
     m_cancelButton = new QPushButton("取消", this);
+    m_cancelButton->setObjectName("cancelButton");
     connect(m_cancelButton, &QPushButton::clicked, this, &AIConfigDialog::onCancelClicked);
     buttonLayout->addWidget(m_cancelButton);
 
     m_saveButton = new QPushButton("保存", this);
+    m_saveButton->setObjectName("primaryButton");
+    m_saveButton->setProperty("primary", true);
     connect(m_saveButton, &QPushButton::clicked, this, &AIConfigDialog::onSaveClicked);
     buttonLayout->addWidget(m_saveButton);
 

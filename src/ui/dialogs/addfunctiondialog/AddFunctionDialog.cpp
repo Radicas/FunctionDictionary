@@ -34,6 +34,8 @@ void AddFunctionDialog::setupUI() {
     buttonLayout->addStretch();
 
     m_acceptButton = new QPushButton("确认", this);
+    m_acceptButton->setObjectName("primaryButton");
+    m_acceptButton->setProperty("primary", true);
     connect(m_acceptButton, &QPushButton::clicked, this, &AddFunctionDialog::onAcceptClicked);
     buttonLayout->addWidget(m_acceptButton);
 

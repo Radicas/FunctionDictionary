@@ -40,31 +40,28 @@ void AboutDialog::setupUI() {
     mainLayout->setContentsMargins(20, 20, 20, 20);
     mainLayout->setSpacing(15);
 
-    // 创建项目说明部分
     QLabel *descriptionLabel = new QLabel(this);
-    descriptionLabel->setStyleSheet("font-size: 12px; color: #333;");
+    descriptionLabel->setObjectName("descriptionLabel");
     descriptionLabel->setWordWrap(true);
     descriptionLabel->setAlignment(Qt::AlignCenter);
     descriptionLabel->setText("一个专为开发者设计的工具。\n帮助开发者快速存储和检索常用函数代码，提高开发效率。");
     mainLayout->addWidget(descriptionLabel);
 
-    // 创建版本号信息
     VersionManager version(1, 0, 0);
     QLabel *versionLabel = new QLabel(QString("版本号：%1").arg(QString::fromStdString(version.toString())), this);
-    versionLabel->setStyleSheet("font-size: 12px; color: #666;");
+    versionLabel->setObjectName("versionLabel");
     versionLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(versionLabel);
 
-    // 创建作者信息
     QLabel *authorLabel = new QLabel("作者：Radica", this);
-    authorLabel->setStyleSheet("font-size: 12x; color: #666;");
+    authorLabel->setObjectName("authorLabel");
     authorLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(authorLabel);
 
     mainLayout->addStretch();
 
-    // 创建按钮部分
     QPushButton *closeButton = new QPushButton("关闭", this);
+    closeButton->setObjectName("closeButton");
     closeButton->setMinimumWidth(100);
     QHBoxLayout *buttonLayout = new QHBoxLayout();
     buttonLayout->addStretch();

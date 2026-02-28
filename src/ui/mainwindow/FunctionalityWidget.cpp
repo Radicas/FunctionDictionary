@@ -23,22 +23,19 @@ void FunctionalityWidget::setupUI() {
     setupFileParseSection();
     setupSettingsSection();
 
-    // 添加底部状态标签
     m_statusLabel = new QLabel("就绪", this);
     m_statusLabel->setAlignment(Qt::AlignCenter);
-    m_statusLabel->setStyleSheet("QLabel { font-size: 12px; color: #666; }");
+    m_statusLabel->setObjectName("statusLabel");
     m_mainLayout->addWidget(m_statusLabel);
 
     setLayout(m_mainLayout);
 }
 
 void FunctionalityWidget::setupFileParseSection() {
-    // 标题
     m_parseTitle = new QLabel("解析文件", this);
-    m_parseTitle->setStyleSheet("QLabel { font-size: 16px; font-weight: bold; margin-bottom: 10px; }");
+    m_parseTitle->setObjectName("titleLabel");
     m_mainLayout->addWidget(m_parseTitle);
 
-    // 文件路径输入和选择按钮
     QHBoxLayout *fileLayout = new QHBoxLayout();
     m_filePathEdit = new QLineEdit(this);
     m_filePathEdit->setPlaceholderText("请选择要解析的文件");
@@ -46,17 +43,17 @@ void FunctionalityWidget::setupFileParseSection() {
     fileLayout->addWidget(m_filePathEdit);
 
     m_fileSelectButton = new QPushButton("选择", this);
+    m_fileSelectButton->setObjectName("fileSelectButton");
     connect(m_fileSelectButton, &QPushButton::clicked, this, &FunctionalityWidget::onFileSelectClicked);
     fileLayout->addWidget(m_fileSelectButton);
 
     m_mainLayout->addLayout(fileLayout);
 
-    // 解析按钮
     m_parseButton = new QPushButton("开始解析", this);
+    m_parseButton->setObjectName("parseButton");
     connect(m_parseButton, &QPushButton::clicked, this, &FunctionalityWidget::onParseButtonClicked);
     m_mainLayout->addWidget(m_parseButton);
 
-    // 进度条
     m_progressBar = new QProgressBar(this);
     m_progressBar->setRange(0, 100);
     m_progressBar->setValue(0);
@@ -65,13 +62,12 @@ void FunctionalityWidget::setupFileParseSection() {
 }
 
 void FunctionalityWidget::setupSettingsSection() {
-    // 标题
     m_settingsTitle = new QLabel("配置设置", this);
-    m_settingsTitle->setStyleSheet("QLabel { font-size: 16px; font-weight: bold; margin-top: 20px; margin-bottom: 10px; }");
+    m_settingsTitle->setObjectName("titleLabel");
     m_mainLayout->addWidget(m_settingsTitle);
 
-    // AI配置按钮
     m_aiConfigButton = new QPushButton("AI配置", this);
+    m_aiConfigButton->setObjectName("aiConfigButton");
     connect(m_aiConfigButton, &QPushButton::clicked, [this]() {
         AIConfigDialog dialog(this);
         dialog.exec();
@@ -79,7 +75,6 @@ void FunctionalityWidget::setupSettingsSection() {
     });
     m_mainLayout->addWidget(m_aiConfigButton);
 
-    // 添加拉伸空间
     m_mainLayout->addStretch();
 }
 

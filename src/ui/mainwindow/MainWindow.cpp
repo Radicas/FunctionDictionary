@@ -33,15 +33,19 @@ void MainWindow::setupUI() {
     setCentralWidget(centralWidget);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(centralWidget);
+    mainLayout->setContentsMargins(12, 12, 12, 12);
+    mainLayout->setSpacing(12);
 
     QSplitter* splitter = new QSplitter(Qt::Horizontal, this);
 
     m_functionList = new QListWidget(this);
+    m_functionList->setObjectName("functionList");
     m_functionList->setSelectionMode(QAbstractItemView::SingleSelection);
     connect(m_functionList, &QListWidget::itemClicked, this, &MainWindow::onFunctionItemClicked);
     splitter->addWidget(m_functionList);
 
     m_detailBrowser = new QTextBrowser(this);
+    m_detailBrowser->setObjectName("detailBrowser");
     m_detailBrowser->setOpenExternalLinks(true);
     splitter->addWidget(m_detailBrowser);
 
@@ -58,10 +62,14 @@ void MainWindow::setupUI() {
     buttonLayout->addStretch();
 
     m_addButton = new QPushButton("增加", this);
+    m_addButton->setObjectName("primaryButton");
+    m_addButton->setProperty("primary", true);
     connect(m_addButton, &QPushButton::clicked, this, &MainWindow::onAddButtonClicked);
     buttonLayout->addWidget(m_addButton);
 
     m_deleteButton = new QPushButton("删除", this);
+    m_deleteButton->setObjectName("dangerButton");
+    m_deleteButton->setProperty("danger", true);
     connect(m_deleteButton, &QPushButton::clicked, this, &MainWindow::onDeleteButtonClicked);
     buttonLayout->addWidget(m_deleteButton);
 

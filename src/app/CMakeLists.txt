@@ -11,6 +11,7 @@ target_link_libraries(FunctionDB
     core_ai
     api
     common_logger
+    theme
 )
 
 if(MSVC)

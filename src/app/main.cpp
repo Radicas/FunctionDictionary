@@ -1,6 +1,7 @@
 #include "databasemanager.h"
 #include "logger.h"
 #include "mainwindow.h"
+#include "thememanager.h"
 #include <QApplication>
 #include <QDir>
 #include <QStandardPaths>
@@ -31,6 +32,9 @@ int main(int argc, char *argv[]) {
 
   app.setApplicationName("FunctionDB");
   app.setOrganizationName("FunctionDB");
+
+  ThemeManager::instance().init();
+  ThemeManager::instance().applyTheme(&app);
 
   QString appDataPath =
       QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
