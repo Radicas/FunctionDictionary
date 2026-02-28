@@ -1,11 +1,32 @@
-#include "../core/database/databasemanager.h"
-#include "../common/logger/logger.h"
-#include "../ui/mainwindow/mainwindow.h"
+#include "databasemanager.h"
+#include "logger.h"
+#include "mainwindow.h"
 #include <QApplication>
 #include <QDir>
 #include <QStandardPaths>
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#include <io.h>
+#include <fcntl.h>
+#endif
+
 int main(int argc, char *argv[]) {
+#ifdef Q_OS_WIN
+  SetConsoleOutputCP(CP_UTF8);
+  SetConsoleCP(CP_UTF8);
+  
+  int oldMode = _setmode(_fileno(stdout), _O_U8TEXT);
+  if (oldMode == -1) {
+    oldMode = _setmode(_fileno(stdout), _O_TEXT);
+  }
+  
+  oldMode = _setmode(_fileno(stderr), _O_U8TEXT);
+  if (oldMode == -1) {
+    oldMode = _setmode(_fileno(stderr), _O_TEXT);
+  }
+#endif
+
   QApplication app(argc, argv);
 
   app.setApplicationName("FunctionDB");

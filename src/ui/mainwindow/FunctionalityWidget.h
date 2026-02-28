@@ -24,9 +24,9 @@
 #include <QTimer>
 #include <QThread>
 #include <QApplication>
-#include "../../core/ai/aiservicemanager.h"
-#include "../../core/database/databasemanager.h"
-#include "../dialogs/aiconfigdialog/aiconfigdialog.h"
+#include "aiservicemanager.h"
+#include "databasemanager.h"
+#include "aiconfigdialog.h"
 
 class FunctionalityWidget : public QWidget {
     Q_OBJECT

@@ -4,12 +4,32 @@
 #include <QFileInfo>
 #include <QDebug>
 
+#ifdef Q_OS_WIN
+#include <windows.h>
+#include <io.h>
+#include <fcntl.h>
+#endif
+
 Logger& Logger::instance() {
     static Logger logger;
     return logger;
 }
 
 Logger::Logger() : m_logFile(nullptr), m_logStream(nullptr), m_initialized(false) {
+#ifdef Q_OS_WIN
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+    
+    int oldMode = _setmode(_fileno(stdout), _O_U8TEXT);
+    if (oldMode == -1) {
+        oldMode = _setmode(_fileno(stdout), _O_TEXT);
+    }
+    
+    oldMode = _setmode(_fileno(stderr), _O_U8TEXT);
+    if (oldMode == -1) {
+        oldMode = _setmode(_fileno(stderr), _O_TEXT);
+    }
+#endif
 }
 
 Logger::~Logger() {

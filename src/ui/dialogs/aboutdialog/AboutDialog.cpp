@@ -7,7 +7,7 @@
  */
 
 #include "aboutdialog.h"
-#include "../../../common/utils/versionmanager.h"
+#include "versionmanager.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>

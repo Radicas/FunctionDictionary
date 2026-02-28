@@ -14,4 +14,14 @@ set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
+set(PROJECT_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+set(PROJECT_COMMON_DIR ${PROJECT_SRC_DIR}/common)
+set(PROJECT_CORE_DIR ${PROJECT_SRC_DIR}/core)
+set(PROJECT_UI_DIR ${PROJECT_SRC_DIR}/ui)
+
+if(MSVC)
+    add_compile_options(/utf-8)
+    add_definitions(-D_UNICODE -DUNICODE)
+endif()
+
 add_subdirectory(src)
