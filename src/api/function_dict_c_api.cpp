@@ -7,8 +7,8 @@
  */
 
 #include "function_dict_c_api.h"
-#include "databasemanager.h"
-#include "logger.h"
+#include "../core/database/databasemanager.h"
+#include "../common/logger/logger.h"
 #include <QString>
 #include <QVector>
 #include <QMutex>

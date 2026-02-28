@@ -9,7 +9,7 @@
 #ifndef AICONFIGDIALOG_H
 #define AICONFIGDIALOG_H
 
-#include "aiconfigmanager.h"
+#include "../../../core/ai/aiconfigmanager.h"
 #include <QDialog>
 #include <QComboBox>
 #include <QLineEdit>

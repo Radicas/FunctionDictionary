@@ -16,16 +16,7 @@
 #include <QDateTime>
 #include <QVector>
 #include <QPair>
-
-/**
- * @brief 函数数据结构
- */
-struct FunctionData {
-    int id;                 ///< 函数ID
-    QString key;            ///< 函数名称（唯一标识）
-    QString value;          ///< 函数介绍（Markdown格式）
-    QDateTime createTime;   ///< 创建时间
-};
+#include "../models/functiondata.h"
 
 /**
  * @brief 数据库管理类，提供SQLite数据库操作功能

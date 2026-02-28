@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#include "addfunctiondialog.h"
+#include "../dialogs/addfunctiondialog/addfunctiondialog.h"
 #include "logger.h"
 #include <QMessageBox>
 #include <QVBoxLayout>

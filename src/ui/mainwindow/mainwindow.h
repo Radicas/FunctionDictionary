@@ -9,8 +9,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "databasemanager.h"
-#include "aiconfigdialog.h"
+#include "../../core/database/databasemanager.h"
+#include "../dialogs/aiconfigdialog/aiconfigdialog.h"
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>

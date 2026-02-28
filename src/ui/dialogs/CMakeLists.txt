@@ -1,0 +1,2 @@
+add_subdirectory(addfunctiondialog)
+add_subdirectory(aiconfigdialog)
