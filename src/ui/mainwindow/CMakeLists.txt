@@ -9,5 +9,6 @@ target_link_libraries(ui_mainwindow
     Qt${QT_VERSION_MAJOR}::Widgets
     core_database
     ui_dialogs_aiconfigdialog
+    ui_dialogs_aboutdialog
     common_logger
 )

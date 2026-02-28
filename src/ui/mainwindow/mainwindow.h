@@ -11,6 +11,7 @@
 
 #include "../../core/database/databasemanager.h"
 #include "../dialogs/aiconfigdialog/aiconfigdialog.h"
+#include "../dialogs/aboutdialog/aboutdialog.h"
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
@@ -37,6 +38,7 @@ private slots:
   void onAddButtonClicked();
   void onDeleteButtonClicked();
   void onAIConfigClicked();
+  void onAboutClicked();
 
 private:
   void setupUI();

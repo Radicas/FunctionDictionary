@@ -161,6 +161,12 @@ void MainWindow::setupMenuBar() {
     connect(aiConfigAction, &QAction::triggered, this, &MainWindow::onAIConfigClicked);
     settingsMenu->addAction(aiConfigAction);
 
+    QMenu* helpMenu = menuBar->addMenu("帮助");
+
+    QAction* aboutAction = new QAction("关于", this);
+    connect(aboutAction, &QAction::triggered, this, &MainWindow::onAboutClicked);
+    helpMenu->addAction(aboutAction);
+
     Logger::instance().info("菜单栏初始化完成");
 }
 
@@ -168,4 +174,10 @@ void MainWindow::onAIConfigClicked() {
     AIConfigDialog dialog(this);
     dialog.exec();
     Logger::instance().info("用户打开AI配置对话框");
+}
+
+void MainWindow::onAboutClicked() {
+    AboutDialog dialog(this);
+    dialog.exec();
+    Logger::instance().info("用户打开关于对话框");
 }
