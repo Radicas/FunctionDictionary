@@ -10,9 +10,11 @@ target_link_libraries(ui_mainwindow
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::Concurrent
+    Qt${QT_VERSION_MAJOR}::WebEngineWidgets
     core_ai
     core_database
     ui_dialogs_aiconfigdialog
     ui_dialogs_aboutdialog
+    ui_markdown
     common_logger
 )

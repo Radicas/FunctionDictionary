@@ -13,6 +13,7 @@
 #include "aiconfigdialog.h"
 #include "aboutdialog.h"
 #include "FunctionalityWidget.h"
+#include "markdownview.h"
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
@@ -20,7 +21,6 @@
 #include <QMap>
 #include <QPushButton>
 #include <QSplitter>
-#include <QTextBrowser>
 #include <QVBoxLayout>
 #include <QWidget>
 #include <QMenuBar>
@@ -48,7 +48,7 @@ private:
   void displayFunctionDetail(const FunctionData &functionData);
 
   QListWidget *m_functionList;
-  QTextBrowser *m_detailBrowser;
+  MarkdownView *m_detailBrowser;
   FunctionalityWidget *m_functionalityWidget;
   QPushButton *m_addButton;
   QPushButton *m_deleteButton;

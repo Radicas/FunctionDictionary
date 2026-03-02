@@ -8,7 +8,7 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets Sql Network Concurrent)
+find_package(Qt6 REQUIRED COMPONENTS Core Widgets Sql Network Concurrent WebEngineWidgets)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
@@ -17,7 +17,7 @@ include(CPack)
 set(PROJECT_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 set(PROJECT_COMMON_DIR ${PROJECT_SRC_DIR}/common)
 set(PROJECT_CORE_DIR ${PROJECT_SRC_DIR}/core)
-set(PROJECT_UI_DIR ${PROJECT_SRC_DIR}/ui)
+set(PROJECT_UI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/ui)
 
 if(MSVC)
     add_compile_options(/utf-8)

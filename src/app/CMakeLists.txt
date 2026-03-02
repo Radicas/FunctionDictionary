@@ -5,6 +5,7 @@ add_executable(FunctionDB
 target_link_libraries(FunctionDB
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
+    Qt${QT_VERSION_MAJOR}::WebEngineWidgets
     ui_mainwindow
     ui_dialogs_addfunctiondialog
     core_database

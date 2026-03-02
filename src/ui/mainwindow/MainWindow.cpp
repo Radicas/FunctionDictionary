@@ -44,9 +44,8 @@ void MainWindow::setupUI() {
     connect(m_functionList, &QListWidget::itemClicked, this, &MainWindow::onFunctionItemClicked);
     splitter->addWidget(m_functionList);
 
-    m_detailBrowser = new QTextBrowser(this);
+    m_detailBrowser = new MarkdownView(this);
     m_detailBrowser->setObjectName("detailBrowser");
-    m_detailBrowser->setOpenExternalLinks(true);
     splitter->addWidget(m_detailBrowser);
 
     m_functionalityWidget = new FunctionalityWidget(this);

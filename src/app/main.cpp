@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QStandardPaths>
 #include <QStyleFactory>
+#include <QWebEngineView>
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -46,8 +47,6 @@ int main(int argc, char *argv[]) {
     dir.mkpath(".");
   }
 
-  QString logPath = appDataPath + "/functiondb.log";
-//   Logger::instance().init(logPath);
   Logger::instance().info("应用程序启动");
 
   QString dbPath = appDataPath + "/functions.db";

@@ -1,0 +1,11 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/markdown">
+        <file>resources/template.html</file>
+        <file>resources/css/github-markdown.css</file>
+        <file>resources/css/highlight.css</file>
+        <file>resources/js/marked.min.js</file>
+        <file>resources/js/highlight.min.js</file>
+        <file>resources/js/mermaid.min.js</file>
+    </qresource>
+</RCC>
