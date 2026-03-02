@@ -32,6 +32,9 @@ int main(int argc, char *argv[]) {
 
   QApplication app(argc, argv);
 
+  Q_INIT_RESOURCE(markdown);
+  Q_INIT_RESOURCE(theme);
+
   app.setApplicationName("FunctionDB");
   app.setOrganizationName("FunctionDB");
 

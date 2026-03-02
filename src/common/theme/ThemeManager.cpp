@@ -33,7 +33,8 @@ bool ThemeManager::init() {
         return true;
     }
 
-    m_styleSheet = loadStyleSheet(":/styles/theme-fusion.qss");
+    // 设置了Fusion风格，暂时不使用自定义qss
+    // m_styleSheet = loadStyleSheet(":/styles/theme-fusion.qss");
     if (m_styleSheet.isEmpty()) {
         Logger::instance().warning("主题管理器：无法加载Fusion样式表，使用默认样式");
         m_initialized = true;

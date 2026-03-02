@@ -1,7 +1,7 @@
 add_library(ui_markdown STATIC
     markdownview.h
     markdownview.cpp
-    resources.qrc
+    markdown.qrc
 )
 
 target_include_directories(ui_markdown PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

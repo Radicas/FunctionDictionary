@@ -2,7 +2,7 @@ add_library(theme
     STATIC
     ThemeManager.cpp
     thememanager.h
-    resources.qrc
+    theme.qrc
 )
 
 target_link_libraries(theme
