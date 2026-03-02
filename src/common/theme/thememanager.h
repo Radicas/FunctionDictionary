@@ -2,8 +2,11 @@
  * @file thememanager.h
  * @brief 主题管理器类，负责应用程序的样式管理和主题切换
  * @author Radica
- * @date 2026-02-28
- * @version 1.0.0
+ * @date 2026-03-02
+ * @version 2.0.0
+ * 
+ * 更新说明：
+ * - v2.0.0: 优化为Fusion风格支持，QPalette优先于QSS应用
  */
 
 #ifndef THEMEMANAGER_H

@@ -2,8 +2,11 @@
  * @file ThemeManager.cpp
  * @brief 主题管理器实现
  * @author Radica
- * @date 2026-02-28
- * @version 1.0.0
+ * @date 2026-03-02
+ * @version 2.0.0
+ * 
+ * 更新说明：
+ * - v2.0.0: 优化为Fusion风格支持，QPalette优先于QSS应用
  */
 
 #include "thememanager.h"
@@ -30,15 +33,15 @@ bool ThemeManager::init() {
         return true;
     }
 
-    m_styleSheet = loadStyleSheet(":/styles/theme.qss");
+    m_styleSheet = loadStyleSheet(":/styles/theme-fusion.qss");
     if (m_styleSheet.isEmpty()) {
-        Logger::instance().warning("主题管理器：无法加载样式表，使用默认样式");
+        Logger::instance().warning("主题管理器：无法加载Fusion样式表，使用默认样式");
         m_initialized = true;
         return true;
     }
 
     m_initialized = true;
-    Logger::instance().info("主题管理器初始化完成");
+    Logger::instance().info("主题管理器初始化完成（Fusion风格）");
     return true;
 }
 
@@ -52,10 +55,11 @@ void ThemeManager::applyTheme(QApplication* app) {
         init();
     }
 
-    app->setStyleSheet(m_styleSheet);
     applyColorScheme();
+    
+    app->setStyleSheet(m_styleSheet);
 
-    Logger::instance().info("主题已应用到应用程序");
+    Logger::instance().info("Fusion主题已应用到应用程序");
 }
 
 void ThemeManager::setTheme(ThemeType theme) {

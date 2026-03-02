@@ -2,5 +2,6 @@
 <RCC version="1.0">
     <qresource prefix="/styles">
         <file>styles/theme.qss</file>
+        <file>styles/theme-fusion.qss</file>
     </qresource>
 </RCC>

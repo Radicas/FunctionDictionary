@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QStandardPaths>
+#include <QStyleFactory>
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -32,6 +33,8 @@ int main(int argc, char *argv[]) {
 
   app.setApplicationName("FunctionDB");
   app.setOrganizationName("FunctionDB");
+
+  app.setStyle(QStyleFactory::create("Fusion"));
 
   ThemeManager::instance().init();
   ThemeManager::instance().applyTheme(&app);
