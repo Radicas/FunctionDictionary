@@ -5,14 +5,19 @@
 
 FunctionalityWidget::FunctionalityWidget(QWidget *parent) : QWidget(parent) {
     setupUI();
+    
+    AIServiceManager& aiService = AIServiceManager::instance();
+    connect(&aiService, &AIServiceManager::analysisComplete, 
+            this, &FunctionalityWidget::onAnalysisComplete);
+    connect(&aiService, &AIServiceManager::analysisFailed, 
+            this, &FunctionalityWidget::onAnalysisFailed);
+    connect(&aiService, &AIServiceManager::analysisProgress, 
+            this, &FunctionalityWidget::onAnalysisProgress);
+    
     Logger::instance().info("功能型widget初始化完成");
 }
 
 FunctionalityWidget::~FunctionalityWidget() {
-    if (m_parseFuture.isRunning()) {
-        m_parseFuture.cancel();
-        m_parseFuture.waitForFinished();
-    }
 }
 
 void FunctionalityWidget::setupUI() {
@@ -115,72 +120,63 @@ void FunctionalityWidget::onParseButtonClicked() {
         return;
     }
 
-    // 禁用按钮并显示进度条
     m_parseButton->setEnabled(false);
     m_fileSelectButton->setEnabled(false);
     m_progressBar->setVisible(true);
     m_progressBar->setValue(0);
     showStatusMessage("正在解析文件...");
 
-    // 异步解析文件
-    m_parseFuture = QtConcurrent::run([this]() {
-        try {
-            // 模拟解析过程
-            for (int i = 0; i <= 100; i += 10) {
-                QThread::msleep(200);
-                QMetaObject::invokeMethod(m_progressBar, "setValue", Qt::QueuedConnection, Q_ARG(int, i));
-            }
+    readFileAndAnalyze();
+}
 
-            // 调用AI服务解析文件
-            QString fileContent;
-            QFile file(m_currentFilePath);
-            if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                fileContent = file.readAll();
-                file.close();
-            }
+void FunctionalityWidget::readFileAndAnalyze() {
+    QFile file(m_currentFilePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QMessageBox::critical(this, "错误", "无法打开文件：" + file.errorString());
+        onParseFinished();
+        return;
+    }
 
-            // 调用AI服务
-            AIServiceManager& aiService = AIServiceManager::instance();
-            
-            // 由于AIServiceManager使用信号槽机制，我们需要在主线程中处理结果
-            // 这里我们使用同步方式模拟解析结果
-            QString analysisResult = "文件解析结果：\n";
-            analysisResult += "- 文件名: " + QFileInfo(m_currentFilePath).fileName() + "\n";
-            analysisResult += "- 文件大小: " + QString::number(fileContent.size()) + " 字节\n";
-            analysisResult += "- 分析状态: 完成\n";
-            analysisResult += "\nAI分析结果：\n该文件包含多个函数定义，主要功能包括...";
+    QString fileContent = file.readAll();
+    file.close();
 
-            // 保存到数据库
-            if (!analysisResult.isEmpty()) {
-                QString fileName = QFileInfo(m_currentFilePath).fileName();
-                bool success = DatabaseManager::instance().addFunction(
-                    "解析结果: " + fileName,
-                    analysisResult
-                );
+    if (fileContent.isEmpty()) {
+        QMessageBox::warning(this, "警告", "文件内容为空！");
+        onParseFinished();
+        return;
+    }
 
-                if (success) {
-                    QMetaObject::invokeMethod(this, "showStatusMessage", Qt::QueuedConnection, 
-                        Q_ARG(QString, "文件解析成功并保存到数据库"));
-                    Logger::instance().info("文件解析成功并保存到数据库: " + m_currentFilePath);
-                } else {
-                    QMetaObject::invokeMethod(this, "showStatusMessage", Qt::QueuedConnection, 
-                        Q_ARG(QString, "文件解析成功，但保存到数据库失败: " + DatabaseManager::instance().lastError()));
-                    Logger::instance().error("保存解析结果到数据库失败: " + DatabaseManager::instance().lastError());
-                }
-            } else {
-                QMetaObject::invokeMethod(this, "showStatusMessage", Qt::QueuedConnection, 
-                    Q_ARG(QString, "AI解析失败，未返回结果"));
-                Logger::instance().error("AI解析失败，未返回结果");
-            }
-        } catch (const std::exception& e) {
-            QMetaObject::invokeMethod(this, "showStatusMessage", Qt::QueuedConnection, 
-                Q_ARG(QString, "解析过程发生错误: " + QString(e.what())));
-            Logger::instance().error("解析过程发生错误: " + QString(e.what()));
-        }
+    AIServiceManager::instance().analyzeCode(fileContent);
+}
 
-        // 解析完成后恢复界面状态
-        QMetaObject::invokeMethod(this, "onParseFinished", Qt::QueuedConnection);
-    });
+void FunctionalityWidget::onAnalysisComplete(const QString& functionName, const QString& functionDescription) {
+    bool success = DatabaseManager::instance().addFunction(functionName, functionDescription);
+
+    if (success) {
+        showStatusMessage("文件解析成功并保存到数据库");
+        Logger::instance().info("文件解析成功并保存到数据库: " + m_currentFilePath);
+    } else {
+        showStatusMessage("文件解析成功，但保存到数据库失败: " + DatabaseManager::instance().lastError());
+        Logger::instance().error("保存解析结果到数据库失败: " + DatabaseManager::instance().lastError());
+    }
+
+    onParseFinished();
+}
+
+void FunctionalityWidget::onAnalysisFailed(const QString& error) {
+    QMessageBox::critical(this, "错误", "AI 分析失败：" + error);
+    Logger::instance().error("AI 分析失败: " + error);
+    
+    onParseFinished();
+}
+
+void FunctionalityWidget::onAnalysisProgress(const QString& message) {
+    showStatusMessage(message);
+    if (message.contains("发送请求")) {
+        m_progressBar->setValue(30);
+    } else if (message.contains("解析响应")) {
+        m_progressBar->setValue(70);
+    }
 }
 
 void FunctionalityWidget::onParseFinished() {
