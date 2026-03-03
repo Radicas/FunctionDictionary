@@ -49,12 +49,26 @@ void AIServiceManager::analyzeCode(const QString& code) {
 
     emit analysisProgress("正在向AI发送请求...");
 
-    QString prompt = "请分析以下代码，提取函数名称和函数描述。\n"
+    QString prompt = "请分析以下代码，提取函数详细信息。\n"
                      "请以JSON格式返回，格式如下：\n"
                      "{\n"
                      "  \"function_name\": \"函数名\",\n"
-                     "  \"function_description\": \"函数的详细描述\"\n"
+                     "  \"function_description\": \"函数的基本功能说明\",\n"
+                     "  \"parameters\": [\n"
+                     "    {\"name\": \"参数名\", \"type\": \"参数类型\", \"description\": \"参数说明\"}\n"
+                     "  ],\n"
+                     "  \"return_type\": \"返回值类型\",\n"
+                     "  \"return_description\": \"返回值说明\",\n"
+                     "  \"flowchart\": \"使用mermaid flowchart语法绘制的函数运行流程图，清晰展示函数内部执行步骤和分支逻辑\",\n"
+                     "  \"sequence_diagram\": \"使用mermaid sequenceDiagram语法绘制的函数调用时序图，明确函数与其他模块或组件的交互过程和调用顺序\",\n"
+                     "  \"structure_diagram\": \"使用mermaid graph语法绘制的函数结构关系图，直观呈现该函数在整体系统架构中的位置以及与其他函数或类的依赖关系\"\n"
                      "}\n\n"
+                     "要求：\n"
+                     "1. 所有mermaid图表语法必须正确、逻辑清晰，符合mermaid规范\n"
+                     "2. 图表内容应基于代码实际逻辑，能够直接用于文档生成或可视化展示\n"
+                     "3. 流程图应包含所有关键分支和循环结构\n"
+                     "4. 时序图应展示函数与外部组件的交互\n"
+                     "5. 结构图应清晰展示依赖关系\n\n"
                      "代码：\n" + code;
 
     QUrl url(buildRequestUrl());
