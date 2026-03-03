@@ -3,8 +3,13 @@ add_library(core_batch STATIC
     BatchProcessManager.cpp
 )
 
-target_include_directories(core_batch PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(core_batch
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
 target_link_libraries(core_batch
+    PUBLIC
     Qt${QT_VERSION_MAJOR}::Core
     core_models
     core_parser

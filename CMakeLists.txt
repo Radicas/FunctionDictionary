@@ -4,9 +4,11 @@ project(FunctionDictionary VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Qt6 REQUIRED COMPONENTS 
     Core 
@@ -20,21 +22,7 @@ find_package(Qt6 REQUIRED COMPONENTS
     WebChannel
 )
 
-# WebEngine模块单独查找（Qt 6.10.2+ WebEngine作为插件分发）
-# 需要先找到依赖模块：Positioning, Quick, Qml, WebChannel
-# 跨平台支持：Windows/macOS/Linux
-find_package(Qt6WebEngineWidgets QUIET)
-if(NOT Qt6WebEngineWidgets_FOUND)
-    # 尝试在Qt安装目录的lib/cmake下查找
-    if(WIN32)
-        set(Qt6WebEngineWidgets_DIR "${Qt6_DIR}/../Qt6WebEngineWidgets")
-    elseif(APPLE)
-        set(Qt6WebEngineWidgets_DIR "${Qt6_DIR}/../Qt6WebEngineWidgets")
-    elseif(UNIX)
-        set(Qt6WebEngineWidgets_DIR "${Qt6_DIR}/../Qt6WebEngineWidgets")
-    endif()
-    find_package(Qt6WebEngineWidgets REQUIRED)
-endif()
+find_package(Qt6WebEngineWidgets REQUIRED)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
@@ -61,38 +49,39 @@ endif()
 include(CPack)
 
 set(PROJECT_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-set(PROJECT_COMMON_DIR ${PROJECT_SRC_DIR}/common)
-set(PROJECT_CORE_DIR ${PROJECT_SRC_DIR}/core)
-set(PROJECT_UI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/ui)
 
-# 全局包含目录 - 所有源文件使用绝对路径包含头文件
-# 不允许使用相对路径如 #include "../xxx.h"
-include_directories(
-    ${PROJECT_SRC_DIR}
-    ${PROJECT_COMMON_DIR}
-    ${PROJECT_CORE_DIR}
-    ${PROJECT_UI_DIR}
-    ${PROJECT_SRC_DIR}/core/models
-    ${PROJECT_SRC_DIR}/core/database
-    ${PROJECT_SRC_DIR}/core/ai
-    ${PROJECT_SRC_DIR}/core/parser
-    ${PROJECT_SRC_DIR}/core/batch
-    ${PROJECT_SRC_DIR}/common/logger
-    ${PROJECT_SRC_DIR}/common/utils
-    ${PROJECT_SRC_DIR}/common/theme
-    ${PROJECT_SRC_DIR}/ui/mainwindow
-    ${PROJECT_SRC_DIR}/ui/dialogs
-    ${PROJECT_SRC_DIR}/ui/dialogs/addfunctiondialog
-    ${PROJECT_SRC_DIR}/ui/dialogs/aboutdialog
-    ${PROJECT_SRC_DIR}/ui/dialogs/aiconfigdialog
-    ${PROJECT_SRC_DIR}/ui/markdown
-    ${PROJECT_SRC_DIR}/api
-)
+include_directories(${PROJECT_SRC_DIR})
 
-if(MSVC)
-    add_compile_options(/utf-8)
-    add_definitions(-D_UNICODE -DUNICODE)
-endif()
+function(setup_compiler_options target)
+    if(MSVC)
+        target_compile_options(${target} PRIVATE /utf-8 /W4)
+        target_compile_definitions(${target} PRIVATE 
+            _UNICODE 
+            UNICODE 
+            NOMINMAX
+        )
+        if(CMAKE_BUILD_TYPE STREQUAL "Release")
+            set_target_properties(${target} PROPERTIES
+                WIN32_EXECUTABLE TRUE
+            )
+        endif()
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        target_compile_options(${target} PRIVATE 
+            -Wall 
+            -Wextra 
+            -Wpedantic
+            $<$<CONFIG:Release>:-O2>
+            $<$<CONFIG:Debug>:-g>
+        )
+        if(WIN32)
+            target_compile_definitions(${target} PRIVATE 
+                _UNICODE 
+                UNICODE 
+                NOMINMAX
+            )
+        endif()
+    endif()
+endfunction()
 
 add_subdirectory(src)
 

@@ -3,6 +3,7 @@ add_executable(FunctionDB
 )
 
 target_link_libraries(FunctionDB
+    PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::WebEngineWidgets
@@ -15,19 +16,10 @@ target_link_libraries(FunctionDB
     core_models
     api
     common_logger
-    theme
+    common_theme
 )
 
-if(MSVC)
-    target_compile_options(FunctionDB PRIVATE /utf-8)
-    if(CMAKE_BUILD_TYPE STREQUAL "Release")
-        set_target_properties(FunctionDB PROPERTIES
-            WIN32_EXECUTABLE TRUE
-        )
-    endif()
-    target_compile_definitions(FunctionDB PRIVATE NOMINMAX)
-    target_compile_options(FunctionDB PRIVATE /W4)
-endif()
+setup_compiler_options(FunctionDB)
 
 if(APPLE)
     set_target_properties(FunctionDB PROPERTIES

@@ -12,6 +12,13 @@ add_library(core_models STATIC
     ConcurrencyController.cpp
 )
 
-target_include_directories(core_models PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(core_models PUBLIC Qt${QT_VERSION_MAJOR}::Core)
-target_link_libraries(core_models PUBLIC common_logger)
+target_include_directories(core_models
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+target_link_libraries(core_models
+    PUBLIC
+    Qt${QT_VERSION_MAJOR}::Core
+    common_logger
+)
