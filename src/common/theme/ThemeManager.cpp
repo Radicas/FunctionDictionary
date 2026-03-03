@@ -3,9 +3,10 @@
  * @brief 主题管理器实现
  * @author Radica
  * @date 2026-03-02
- * @version 2.0.0
+ * @version 3.0.0
  * 
  * 更新说明：
+ * - v3.0.0: 新增赛博朋克和极简现代两套主题
  * - v2.0.0: 优化为Fusion风格支持，QPalette优先于QSS应用
  */
 
@@ -20,7 +21,7 @@ ThemeManager& ThemeManager::instance() {
 }
 
 ThemeManager::ThemeManager()
-    : m_currentTheme(ThemeType::Light)
+    : m_currentTheme(ThemeType::Industrial)
     , m_initialized(false) {
     initColorScheme();
 }
@@ -33,16 +34,32 @@ bool ThemeManager::init() {
         return true;
     }
 
-    // 设置了Fusion风格，暂时不使用自定义qss
-    // m_styleSheet = loadStyleSheet(":/styles/theme-fusion.qss");
+    QString themeFile;
+    QString themeName;
+    
+    switch (m_currentTheme) {
+        case ThemeType::Cyberpunk:
+            themeFile = ":/styles/theme-cyberpunk.qss";
+            themeName = "赛博朋克";
+            break;
+        case ThemeType::Modern:
+            themeFile = ":/styles/theme-modern.qss";
+            themeName = "极简现代";
+            break;
+        case ThemeType::Industrial:
+        default:
+            themeFile = ":/styles/theme-industrial.qss";
+            themeName = "工业风复古";
+            break;
+    }
+
+    m_styleSheet = loadStyleSheet(themeFile);
     if (m_styleSheet.isEmpty()) {
-        Logger::instance().warning("主题管理器：无法加载Fusion样式表，使用默认样式");
-        m_initialized = true;
-        return true;
+        Logger::instance().warning(QString("主题管理器：无法加载%1样式表，使用默认样式").arg(themeName));
     }
 
     m_initialized = true;
-    Logger::instance().info("主题管理器初始化完成（Fusion风格）");
+    Logger::instance().info("主题管理器初始化完成");
     return true;
 }
 
@@ -60,7 +77,20 @@ void ThemeManager::applyTheme(QApplication* app) {
     
     app->setStyleSheet(m_styleSheet);
 
-    Logger::instance().info("Fusion主题已应用到应用程序");
+    QString themeName;
+    switch (m_currentTheme) {
+        case ThemeType::Cyberpunk:
+            themeName = "赛博朋克";
+            break;
+        case ThemeType::Modern:
+            themeName = "极简现代";
+            break;
+        case ThemeType::Industrial:
+        default:
+            themeName = "工业风复古";
+            break;
+    }
+    Logger::instance().info(QString("%1主题已应用到应用程序").arg(themeName));
 }
 
 void ThemeManager::setTheme(ThemeType theme) {
@@ -69,11 +99,25 @@ void ThemeManager::setTheme(ThemeType theme) {
     }
 
     m_currentTheme = theme;
+    m_initialized = false;
     initColorScheme();
+    init();
     emit themeChanged(theme);
 
-    Logger::instance().info("主题已切换为: " + QString(theme == ThemeType::Light ? "浅色" : 
-                                                           theme == ThemeType::Dark ? "深色" : "系统"));
+    QString themeName;
+    switch (theme) {
+        case ThemeType::Cyberpunk:
+            themeName = "赛博朋克";
+            break;
+        case ThemeType::Modern:
+            themeName = "极简现代";
+            break;
+        case ThemeType::Industrial:
+        default:
+            themeName = "工业风复古";
+            break;
+    }
+    Logger::instance().info(QString("主题已切换为: %1").arg(themeName));
 }
 
 ThemeType ThemeManager::currentTheme() const {
@@ -104,68 +148,106 @@ QString ThemeManager::currentStyleSheet() const {
 void ThemeManager::initColorScheme() {
     m_colorScheme.clear();
 
-    if (m_currentTheme == ThemeType::Light) {
-        m_colorScheme["primary"] = QColor("#2563EB");
-        m_colorScheme["primaryHover"] = QColor("#1D4ED8");
-        m_colorScheme["primaryPressed"] = QColor("#1E40AF");
-        
-        m_colorScheme["secondary"] = QColor("#64748B");
-        m_colorScheme["secondaryHover"] = QColor("#475569");
-        
-        m_colorScheme["accent"] = QColor("#8B5CF6");
-        
-        m_colorScheme["background"] = QColor("#FFFFFF");
-        m_colorScheme["backgroundSecondary"] = QColor("#F8FAFC");
-        m_colorScheme["backgroundTertiary"] = QColor("#F1F5F9");
-        
-        m_colorScheme["surface"] = QColor("#FFFFFF");
-        m_colorScheme["surfaceHover"] = QColor("#F1F5F9");
-        
-        m_colorScheme["textPrimary"] = QColor("#1E293B");
-        m_colorScheme["textSecondary"] = QColor("#64748B");
-        m_colorScheme["textMuted"] = QColor("#94A3B8");
-        m_colorScheme["textOnPrimary"] = QColor("#FFFFFF");
-        
-        m_colorScheme["border"] = QColor("#E2E8F0");
-        m_colorScheme["borderFocus"] = QColor("#2563EB");
-        
-        m_colorScheme["success"] = QColor("#10B981");
-        m_colorScheme["warning"] = QColor("#F59E0B");
-        m_colorScheme["error"] = QColor("#EF4444");
-        m_colorScheme["info"] = QColor("#3B82F6");
-        
-        m_colorScheme["shadow"] = QColor(0, 0, 0, 25);
-    } else {
-        m_colorScheme["primary"] = QColor("#3B82F6");
-        m_colorScheme["primaryHover"] = QColor("#60A5FA");
-        m_colorScheme["primaryPressed"] = QColor("#2563EB");
-        
-        m_colorScheme["secondary"] = QColor("#94A3B8");
-        m_colorScheme["secondaryHover"] = QColor("#CBD5E1");
-        
-        m_colorScheme["accent"] = QColor("#A78BFA");
-        
-        m_colorScheme["background"] = QColor("#0F172A");
-        m_colorScheme["backgroundSecondary"] = QColor("#1E293B");
-        m_colorScheme["backgroundTertiary"] = QColor("#334155");
-        
-        m_colorScheme["surface"] = QColor("#1E293B");
-        m_colorScheme["surfaceHover"] = QColor("#334155");
-        
-        m_colorScheme["textPrimary"] = QColor("#F1F5F9");
-        m_colorScheme["textSecondary"] = QColor("#94A3B8");
-        m_colorScheme["textMuted"] = QColor("#64748B");
-        m_colorScheme["textOnPrimary"] = QColor("#FFFFFF");
-        
-        m_colorScheme["border"] = QColor("#334155");
-        m_colorScheme["borderFocus"] = QColor("#3B82F6");
-        
-        m_colorScheme["success"] = QColor("#34D399");
-        m_colorScheme["warning"] = QColor("#FBBF24");
-        m_colorScheme["error"] = QColor("#F87171");
-        m_colorScheme["info"] = QColor("#60A5FA");
-        
-        m_colorScheme["shadow"] = QColor(0, 0, 0, 50);
+    switch (m_currentTheme) {
+        case ThemeType::Cyberpunk:
+            m_colorScheme["primary"] = QColor("#00F5FF");
+            m_colorScheme["primaryHover"] = QColor("#00D4FF");
+            m_colorScheme["primaryPressed"] = QColor("#00A8B8");
+            
+            m_colorScheme["secondary"] = QColor("#9D00FF");
+            m_colorScheme["secondaryHover"] = QColor("#B400FF");
+            
+            m_colorScheme["accent"] = QColor("#FF00FF");
+            
+            m_colorScheme["background"] = QColor("#12121A");
+            m_colorScheme["backgroundSecondary"] = QColor("#1A1A2E");
+            m_colorScheme["backgroundTertiary"] = QColor("#252540");
+            
+            m_colorScheme["surface"] = QColor("#0A0A0F");
+            m_colorScheme["surfaceHover"] = QColor("#1A1A2E");
+            
+            m_colorScheme["textPrimary"] = QColor("#FFFFFF");
+            m_colorScheme["textSecondary"] = QColor("#B8B8D0");
+            m_colorScheme["textMuted"] = QColor("#6B6B8D");
+            m_colorScheme["textOnPrimary"] = QColor("#0A0A0F");
+            
+            m_colorScheme["border"] = QColor("#252540");
+            m_colorScheme["borderFocus"] = QColor("#00F5FF");
+            
+            m_colorScheme["success"] = QColor("#05FFA1");
+            m_colorScheme["warning"] = QColor("#FFD600");
+            m_colorScheme["error"] = QColor("#FF2A6D");
+            m_colorScheme["info"] = QColor("#00D4FF");
+            
+            m_colorScheme["shadow"] = QColor(0, 0, 0, 80);
+            break;
+            
+        case ThemeType::Modern:
+            m_colorScheme["primary"] = QColor("#3B82F6");
+            m_colorScheme["primaryHover"] = QColor("#2563EB");
+            m_colorScheme["primaryPressed"] = QColor("#1D4ED8");
+            
+            m_colorScheme["secondary"] = QColor("#71717A");
+            m_colorScheme["secondaryHover"] = QColor("#52525B");
+            
+            m_colorScheme["accent"] = QColor("#8B5CF6");
+            
+            m_colorScheme["background"] = QColor("#FAFAFA");
+            m_colorScheme["backgroundSecondary"] = QColor("#FFFFFF");
+            m_colorScheme["backgroundTertiary"] = QColor("#F5F5F5");
+            
+            m_colorScheme["surface"] = QColor("#FFFFFF");
+            m_colorScheme["surfaceHover"] = QColor("#F5F5F5");
+            
+            m_colorScheme["textPrimary"] = QColor("#18181B");
+            m_colorScheme["textSecondary"] = QColor("#71717A");
+            m_colorScheme["textMuted"] = QColor("#A1A1AA");
+            m_colorScheme["textOnPrimary"] = QColor("#FFFFFF");
+            
+            m_colorScheme["border"] = QColor("#E5E5E5");
+            m_colorScheme["borderFocus"] = QColor("#3B82F6");
+            
+            m_colorScheme["success"] = QColor("#22C55E");
+            m_colorScheme["warning"] = QColor("#F59E0B");
+            m_colorScheme["error"] = QColor("#EF4444");
+            m_colorScheme["info"] = QColor("#3B82F6");
+            
+            m_colorScheme["shadow"] = QColor(0, 0, 0, 20);
+            break;
+            
+        case ThemeType::Industrial:
+        default:
+            m_colorScheme["primary"] = QColor("#B87333");
+            m_colorScheme["primaryHover"] = QColor("#C17F59");
+            m_colorScheme["primaryPressed"] = QColor("#9A612B");
+            
+            m_colorScheme["secondary"] = QColor("#636E72");
+            m_colorScheme["secondaryHover"] = QColor("#B2BEC3");
+            
+            m_colorScheme["accent"] = QColor("#B5A642");
+            
+            m_colorScheme["background"] = QColor("#2C2F31");
+            m_colorScheme["backgroundSecondary"] = QColor("#232628");
+            m_colorScheme["backgroundTertiary"] = QColor("#1A1D1E");
+            
+            m_colorScheme["surface"] = QColor("#232628");
+            m_colorScheme["surfaceHover"] = QColor("#2C2F31");
+            
+            m_colorScheme["textPrimary"] = QColor("#E8E8E8");
+            m_colorScheme["textSecondary"] = QColor("#9CA3AF");
+            m_colorScheme["textMuted"] = QColor("#6B7280");
+            m_colorScheme["textOnPrimary"] = QColor("#1A1D1E");
+            
+            m_colorScheme["border"] = QColor("#3D4042");
+            m_colorScheme["borderFocus"] = QColor("#B87333");
+            
+            m_colorScheme["success"] = QColor("#4A7C59");
+            m_colorScheme["warning"] = QColor("#C9A227");
+            m_colorScheme["error"] = QColor("#8B3A3A");
+            m_colorScheme["info"] = QColor("#4A6B8A");
+            
+            m_colorScheme["shadow"] = QColor(0, 0, 0, 50);
+            break;
     }
 }
 

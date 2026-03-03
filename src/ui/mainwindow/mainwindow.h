@@ -26,6 +26,7 @@
 #include <QMenuBar>
 #include <QMenu>
 #include <QAction>
+#include <QFrame>
 
 class MainWindow : public QMainWindow {
   Q_OBJECT
@@ -46,6 +47,8 @@ private:
   void setupMenuBar();
   void loadFunctionList();
   void displayFunctionDetail(const FunctionData &functionData);
+  
+  QFrame* createPanelFrame(const QString &title, QWidget *content, const QString &objectName);
 
   QListWidget *m_functionList;
   MarkdownView *m_detailBrowser;

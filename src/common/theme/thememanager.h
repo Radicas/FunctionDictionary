@@ -3,9 +3,10 @@
  * @brief 主题管理器类，负责应用程序的样式管理和主题切换
  * @author Radica
  * @date 2026-03-02
- * @version 2.0.0
+ * @version 3.0.0
  * 
  * 更新说明：
+ * - v3.0.0: 新增赛博朋克和极简现代两套主题
  * - v2.0.0: 优化为Fusion风格支持，QPalette优先于QSS应用
  */
 
@@ -24,9 +25,9 @@
  * @brief 主题类型枚举
  */
 enum class ThemeType {
-    Light,      ///< 浅色主题
-    Dark,       ///< 深色主题
-    System      ///< 跟随系统
+    Industrial,  ///< 工业风复古主题
+    Cyberpunk,   ///< 赛博朋克主题
+    Modern       ///< 极简现代主题
 };
 
 /**

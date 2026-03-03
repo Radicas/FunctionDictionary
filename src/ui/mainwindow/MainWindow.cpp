@@ -37,21 +37,27 @@ void MainWindow::setupUI() {
     mainLayout->setSpacing(12);
 
     QSplitter* splitter = new QSplitter(Qt::Horizontal, this);
+    splitter->setObjectName("mainSplitter");
+    splitter->setHandleWidth(1);
+    splitter->setChildrenCollapsible(false);
 
     m_functionList = new QListWidget(this);
     m_functionList->setObjectName("functionList");
     m_functionList->setSelectionMode(QAbstractItemView::SingleSelection);
     connect(m_functionList, &QListWidget::itemClicked, this, &MainWindow::onFunctionItemClicked);
-    splitter->addWidget(m_functionList);
+    QFrame* functionListPanel = createPanelFrame("函数列表", m_functionList, "functionListPanel");
+    splitter->addWidget(functionListPanel);
 
     m_detailBrowser = new MarkdownView(this);
     m_detailBrowser->setObjectName("detailBrowser");
-    splitter->addWidget(m_detailBrowser);
+    QFrame* detailPanel = createPanelFrame("详细信息", m_detailBrowser, "detailPanel");
+    splitter->addWidget(detailPanel);
 
     m_functionalityWidget = new FunctionalityWidget(this);
     connect(m_functionalityWidget, &FunctionalityWidget::batchProcessingCompleted,
             this, &MainWindow::loadFunctionList);
-    splitter->addWidget(m_functionalityWidget);
+    QFrame* functionalityPanel = createPanelFrame("功能操作", m_functionalityWidget, "functionalityPanel");
+    splitter->addWidget(functionalityPanel);
 
     splitter->setStretchFactor(0, 1);
     splitter->setStretchFactor(1, 2);
@@ -77,6 +83,36 @@ void MainWindow::setupUI() {
     mainLayout->addLayout(buttonLayout);
 
     Logger::instance().info("主窗口初始化完成");
+}
+
+QFrame* MainWindow::createPanelFrame(const QString &title, QWidget *content, const QString &objectName) {
+    QFrame* frame = new QFrame(this);
+    frame->setObjectName(objectName);
+    frame->setFrameShape(QFrame::StyledPanel);
+    
+    QVBoxLayout* layout = new QVBoxLayout(frame);
+    layout->setContentsMargins(0, 0, 0, 0);
+    layout->setSpacing(0);
+    
+    QLabel* titleLabel = new QLabel(title, frame);
+    titleLabel->setObjectName("panelTitleLabel");
+    titleLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+    layout->addWidget(titleLabel);
+    
+    QFrame* separator = new QFrame(frame);
+    separator->setObjectName("panelSeparator");
+    separator->setFrameShape(QFrame::HLine);
+    separator->setFixedHeight(1);
+    layout->addWidget(separator);
+    
+    QWidget* contentContainer = new QWidget(frame);
+    contentContainer->setObjectName("panelContent");
+    QVBoxLayout* contentLayout = new QVBoxLayout(contentContainer);
+    contentLayout->setContentsMargins(8, 8, 8, 8);
+    contentLayout->addWidget(content);
+    layout->addWidget(contentContainer);
+    
+    return frame;
 }
 
 void MainWindow::loadFunctionList() {
