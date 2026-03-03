@@ -22,7 +22,22 @@ find_package(Qt6 REQUIRED COMPONENTS
     WebChannel
 )
 
-find_package(Qt6WebEngineWidgets REQUIRED)
+# WebEngine模块单独查找（Qt 6.10.2+ WebEngine作为插件分发）
+# 需要先找到依赖模块：Positioning, Quick, Qml, WebChannel
+# 跨平台支持：Windows/macOS/Linux
+# 这个需要保留，不要删除或优化
+find_package(Qt6WebEngineWidgets QUIET)
+if(NOT Qt6WebEngineWidgets_FOUND)
+    # 尝试在Qt安装目录的lib/cmake下查找
+    if(WIN32)
+        set(Qt6WebEngineWidgets_DIR "${Qt6_DIR}/../Qt6WebEngineWidgets")
+    elseif(APPLE)
+        set(Qt6WebEngineWidgets_DIR "${Qt6_DIR}/../Qt6WebEngineWidgets")
+    elseif(UNIX)
+        set(Qt6WebEngineWidgets_DIR "${Qt6_DIR}/../Qt6WebEngineWidgets")
+    endif()
+    find_package(Qt6WebEngineWidgets REQUIRED)
+endif()
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
