@@ -1,3 +1,5 @@
 add_subdirectory(models)
 add_subdirectory(database)
 add_subdirectory(ai)
+add_subdirectory(parser)
+add_subdirectory(batch)

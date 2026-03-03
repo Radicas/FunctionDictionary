@@ -1,3 +1,17 @@
-add_library(core_models INTERFACE)
-target_include_directories(core_models INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(core_models INTERFACE Qt${QT_VERSION_MAJOR}::Core)
+add_library(core_models STATIC
+    functiondata.h
+    extractedfunction.h
+    aiconfig.h
+    batchconfig.h
+    processerror.h
+    errorhandler.h
+    ErrorHandler.cpp
+    ratelimiter.h
+    RateLimiter.cpp
+    concurrencycontroller.h
+    ConcurrencyController.cpp
+)
+
+target_include_directories(core_models PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(core_models PUBLIC Qt${QT_VERSION_MAJOR}::Core)
+target_link_libraries(core_models PUBLIC common_logger)

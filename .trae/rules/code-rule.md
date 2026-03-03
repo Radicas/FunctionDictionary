@@ -7,3 +7,4 @@
 7. 编写代码时要始终考虑跨平台兼容性。至少要支持MacOS、Windows、Linux三种操作系统。
 8. 代码编译需要同时支持MinGW和MSVC两种编译器。
 9. 设计项目时，需要考虑拓展性，能够方便地添加新的功能模块。适当使用设计模式。
+10. 不允许使用类似#include "../models/functiondata.h"的相对路径引入头文件，必须使用类似#include "core/models/functiondata.h"的绝对路径。

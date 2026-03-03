@@ -65,6 +65,30 @@ set(PROJECT_COMMON_DIR ${PROJECT_SRC_DIR}/common)
 set(PROJECT_CORE_DIR ${PROJECT_SRC_DIR}/core)
 set(PROJECT_UI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src/ui)
 
+# 全局包含目录 - 所有源文件使用绝对路径包含头文件
+# 不允许使用相对路径如 #include "../xxx.h"
+include_directories(
+    ${PROJECT_SRC_DIR}
+    ${PROJECT_COMMON_DIR}
+    ${PROJECT_CORE_DIR}
+    ${PROJECT_UI_DIR}
+    ${PROJECT_SRC_DIR}/core/models
+    ${PROJECT_SRC_DIR}/core/database
+    ${PROJECT_SRC_DIR}/core/ai
+    ${PROJECT_SRC_DIR}/core/parser
+    ${PROJECT_SRC_DIR}/core/batch
+    ${PROJECT_SRC_DIR}/common/logger
+    ${PROJECT_SRC_DIR}/common/utils
+    ${PROJECT_SRC_DIR}/common/theme
+    ${PROJECT_SRC_DIR}/ui/mainwindow
+    ${PROJECT_SRC_DIR}/ui/dialogs
+    ${PROJECT_SRC_DIR}/ui/dialogs/addfunctiondialog
+    ${PROJECT_SRC_DIR}/ui/dialogs/aboutdialog
+    ${PROJECT_SRC_DIR}/ui/dialogs/aiconfigdialog
+    ${PROJECT_SRC_DIR}/ui/markdown
+    ${PROJECT_SRC_DIR}/api
+)
+
 if(MSVC)
     add_compile_options(/utf-8)
     add_definitions(-D_UNICODE -DUNICODE)

@@ -12,7 +12,7 @@
 #include <QString>
 #include <QSettings>
 #include <QMutex>
-#include "../models/aiconfig.h"
+#include "core/models/aiconfig.h"
 
 class AIConfigManager {
 public:

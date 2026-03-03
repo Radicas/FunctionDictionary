@@ -7,7 +7,7 @@
  */
 
 #include "aiconfigdialog.h"
-#include "logger.h"
+#include "common/logger/logger.h"
 #include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>

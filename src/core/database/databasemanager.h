@@ -16,7 +16,9 @@
 #include <QDateTime>
 #include <QVector>
 #include <QPair>
-#include "../models/functiondata.h"
+#include <QSet>
+#include "core/models/functiondata.h"
+#include "core/models/batchconfig.h"
 
 /**
  * @brief 数据库管理类，提供SQLite数据库操作功能
@@ -49,6 +51,13 @@ public:
      * @return 添加是否成功
      */
     bool addFunction(const QString& key, const QString& value);
+
+    /**
+     * @brief 添加函数（扩展版本）
+     * @param func 函数数据
+     * @return 添加是否成功
+     */
+    bool addFunction(const FunctionData& func);
 
     /**
      * @brief 删除函数
@@ -96,6 +105,52 @@ public:
      * @return 错误信息
      */
     QString lastError() const;
+
+    /**
+     * @brief 批量添加函数
+     * @param functions 函数数据列表
+     * @return 成功添加的数量
+     */
+    int addFunctionsBatch(const QVector<FunctionData>& functions);
+
+    /**
+     * @brief 更新或插入函数（存在则更新，不存在则插入）
+     * @param func 函数数据
+     * @return 操作是否成功
+     */
+    bool upsertFunction(const FunctionData& func);
+
+    /**
+     * @brief 保存处理状态
+     * @param filePath 文件路径
+     * @param functionName 函数名
+     * @param status 状态
+     * @param errorMessage 错误信息
+     * @return 是否成功
+     */
+    bool saveProcessState(const QString& filePath, const QString& functionName,
+                          const QString& status, const QString& errorMessage = "");
+
+    /**
+     * @brief 获取文件的处理状态
+     * @param filePath 文件路径
+     * @return 处理状态列表
+     */
+    QVector<ProcessStateRecord> getProcessState(const QString& filePath);
+
+    /**
+     * @brief 清除文件的处理状态
+     * @param filePath 文件路径
+     * @return 是否成功
+     */
+    bool clearProcessState(const QString& filePath);
+
+    /**
+     * @brief 获取文件中已处理的函数列表
+     * @param filePath 文件路径
+     * @return 已处理的函数名集合
+     */
+    QSet<QString> getProcessedFunctions(const QString& filePath);
 
 private:
     DatabaseManager();

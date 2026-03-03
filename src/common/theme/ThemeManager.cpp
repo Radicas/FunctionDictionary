@@ -10,7 +10,7 @@
  */
 
 #include "thememanager.h"
-#include "logger.h"
+#include "common/logger/logger.h"
 #include <QFile>
 #include <QDebug>
 

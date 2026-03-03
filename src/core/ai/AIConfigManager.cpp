@@ -7,7 +7,7 @@
  */
 
 #include "aiconfigmanager.h"
-#include "logger.h"
+#include "common/logger/logger.h"
 #include <QCoreApplication>
 
 AIConfigManager::AIConfigManager()

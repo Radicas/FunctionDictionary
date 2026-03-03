@@ -1,5 +1,5 @@
 #include "addfunctiondialog.h"
-#include "logger.h"
+#include "common/logger/logger.h"
 #include <QMessageBox>
 
 AddFunctionDialog::AddFunctionDialog(QWidget* parent)

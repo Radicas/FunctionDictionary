@@ -1,5 +1,5 @@
 #include "markdownview.h"
-#include "logger.h"
+#include "common/logger/logger.h"
 #include <QFile>
 #include <QUrl>
 #include <QRegularExpression>

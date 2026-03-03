@@ -10,6 +10,9 @@ target_link_libraries(FunctionDB
     ui_dialogs_addfunctiondialog
     core_database
     core_ai
+    core_parser
+    core_batch
+    core_models
     api
     common_logger
     theme

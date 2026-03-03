@@ -1,7 +1,7 @@
-#include "databasemanager.h"
-#include "logger.h"
-#include "mainwindow.h"
-#include "thememanager.h"
+#include "core/database/databasemanager.h"
+#include "common/logger/logger.h"
+#include "ui/mainwindow/mainwindow.h"
+#include "common/theme/thememanager.h"
 #include <QApplication>
 #include <QDir>
 #include <QStandardPaths>

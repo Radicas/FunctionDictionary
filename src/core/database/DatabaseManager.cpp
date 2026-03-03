@@ -1,5 +1,5 @@
 #include "databasemanager.h"
-#include "logger.h"
+#include "common/logger/logger.h"
 #include <QDir>
 #include <QFileInfo>
 #include <QSqlQuery>
@@ -60,18 +60,58 @@ bool DatabaseManager::isInitialized() const {
 
 bool DatabaseManager::createTables() {
     QSqlQuery query;
-    QString createTableSql = "CREATE TABLE IF NOT EXISTS functions ("
-                              "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                              "key TEXT NOT NULL UNIQUE, "
-                              "value TEXT NOT NULL, "
-                              "create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"
-                              ")";
+    
+    QString createFunctionsSql = "CREATE TABLE IF NOT EXISTS functions ("
+                                  "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                                  "key TEXT NOT NULL UNIQUE, "
+                                  "value TEXT NOT NULL, "
+                                  "signature TEXT, "
+                                  "return_type TEXT, "
+                                  "parameters TEXT, "
+                                  "file_path TEXT, "
+                                  "start_line INTEGER, "
+                                  "end_line INTEGER, "
+                                  "language TEXT, "
+                                  "flowchart TEXT, "
+                                  "sequence_diagram TEXT, "
+                                  "structure_diagram TEXT, "
+                                  "ai_model TEXT, "
+                                  "create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+                                  "analyze_time DATETIME"
+                                  ")";
 
-    if (!query.exec(createTableSql)) {
-        m_lastError = "创建表失败: " + query.lastError().text();
+    if (!query.exec(createFunctionsSql)) {
+        m_lastError = "创建functions表失败: " + query.lastError().text();
         Logger::instance().error(m_lastError);
         return false;
     }
+    
+    QString createProcessStateSql = "CREATE TABLE IF NOT EXISTS process_state ("
+                                      "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                                      "file_path TEXT NOT NULL, "
+                                      "function_name TEXT NOT NULL, "
+                                      "status TEXT NOT NULL, "
+                                      "retry_count INTEGER DEFAULT 0, "
+                                      "error_message TEXT, "
+                                      "create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+                                      "update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+                                      "UNIQUE(file_path, function_name)"
+                                      ")";
+    
+    if (!query.exec(createProcessStateSql)) {
+        m_lastError = "创建process_state表失败: " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+    
+    QString createIndexKeySql = "CREATE INDEX IF NOT EXISTS idx_functions_key ON functions(key)";
+    query.exec(createIndexKeySql);
+    
+    QString createIndexFilePathSql = "CREATE INDEX IF NOT EXISTS idx_functions_file_path ON functions(file_path)";
+    query.exec(createIndexFilePathSql);
+    
+    QString createIndexLanguageSql = "CREATE INDEX IF NOT EXISTS idx_functions_language ON functions(language)";
+    query.exec(createIndexLanguageSql);
 
     return true;
 }
@@ -271,4 +311,182 @@ bool DatabaseManager::functionExists(const QString& key) {
 
 QString DatabaseManager::lastError() const {
     return m_lastError;
+}
+
+bool DatabaseManager::addFunction(const FunctionData& func) {
+    if (!m_initialized) {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    if (func.key.trimmed().isEmpty()) {
+        m_lastError = "函数名称不能为空";
+        Logger::instance().warning(m_lastError);
+        return false;
+    }
+
+    QSqlQuery query;
+    query.prepare("INSERT OR REPLACE INTO functions (key, value, signature, return_type, parameters, "
+                  "file_path, start_line, end_line, language, flowchart, sequence_diagram, "
+                  "structure_diagram, ai_model, create_time, analyze_time) "
+                  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    query.addBindValue(func.key);
+    query.addBindValue(func.value);
+    query.addBindValue(func.signature);
+    query.addBindValue(func.returnType);
+    query.addBindValue(func.parameters);
+    query.addBindValue(func.filePath);
+    query.addBindValue(func.startLine);
+    query.addBindValue(func.endLine);
+    query.addBindValue(func.language);
+    query.addBindValue(func.flowchart);
+    query.addBindValue(func.sequenceDiagram);
+    query.addBindValue(func.structureDiagram);
+    query.addBindValue(func.aiModel);
+    query.addBindValue(func.createTime);
+    query.addBindValue(func.analyzeTime);
+
+    if (!query.exec()) {
+        m_lastError = "添加函数失败: " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    Logger::instance().info("添加函数成功: " + func.key);
+    return true;
+}
+
+int DatabaseManager::addFunctionsBatch(const QVector<FunctionData>& functions) {
+    if (!m_initialized) {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return 0;
+    }
+
+    if (functions.isEmpty()) {
+        return 0;
+    }
+
+    int successCount = 0;
+    m_db.transaction();
+
+    for (const auto& func : functions) {
+        if (addFunction(func)) {
+            successCount++;
+        }
+    }
+
+    m_db.commit();
+    Logger::instance().info(QString("批量添加函数完成，成功 %1/%2").arg(successCount).arg(functions.size()));
+    return successCount;
+}
+
+bool DatabaseManager::upsertFunction(const FunctionData& func) {
+    return addFunction(func);
+}
+
+bool DatabaseManager::saveProcessState(const QString& filePath, const QString& functionName,
+                                         const QString& status, const QString& errorMessage) {
+    if (!m_initialized) {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    QSqlQuery query;
+    query.prepare("INSERT OR REPLACE INTO process_state (file_path, function_name, status, error_message, update_time) "
+                  "VALUES (?, ?, ?, ?, ?)");
+    query.addBindValue(filePath);
+    query.addBindValue(functionName);
+    query.addBindValue(status);
+    query.addBindValue(errorMessage);
+    query.addBindValue(QDateTime::currentDateTime());
+
+    if (!query.exec()) {
+        m_lastError = "保存处理状态失败: " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    return true;
+}
+
+QVector<ProcessStateRecord> DatabaseManager::getProcessState(const QString& filePath) {
+    QVector<ProcessStateRecord> records;
+
+    if (!m_initialized) {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return records;
+    }
+
+    QSqlQuery query;
+    query.prepare("SELECT file_path, function_name, status, retry_count, error_message, create_time, update_time "
+                  "FROM process_state WHERE file_path = ? ORDER BY create_time ASC");
+    query.addBindValue(filePath);
+
+    if (query.exec()) {
+        while (query.next()) {
+            ProcessStateRecord record;
+            record.filePath = query.value(0).toString();
+            record.functionName = query.value(1).toString();
+            record.status = query.value(2).toString();
+            record.retryCount = query.value(3).toInt();
+            record.errorMessage = query.value(4).toString();
+            record.createTime = query.value(5).toDateTime();
+            record.updateTime = query.value(6).toDateTime();
+            records.append(record);
+        }
+    } else {
+        m_lastError = "获取处理状态失败: " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+    }
+
+    return records;
+}
+
+bool DatabaseManager::clearProcessState(const QString& filePath) {
+    if (!m_initialized) {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    QSqlQuery query;
+    query.prepare("DELETE FROM process_state WHERE file_path = ?");
+    query.addBindValue(filePath);
+
+    if (!query.exec()) {
+        m_lastError = "清除处理状态失败: " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    return true;
+}
+
+QSet<QString> DatabaseManager::getProcessedFunctions(const QString& filePath) {
+    QSet<QString> functions;
+
+    if (!m_initialized) {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return functions;
+    }
+
+    QSqlQuery query;
+    query.prepare("SELECT function_name FROM process_state WHERE file_path = ? AND status = 'completed'");
+    query.addBindValue(filePath);
+
+    if (query.exec()) {
+        while (query.next()) {
+            functions.insert(query.value(0).toString());
+        }
+    } else {
+        m_lastError = "获取已处理函数列表失败: " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+    }
+
+    return functions;
 }

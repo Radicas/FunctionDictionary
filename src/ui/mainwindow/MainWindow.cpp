@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "FunctionalityWidget.h"
-#include "../dialogs/addfunctiondialog/addfunctiondialog.h"
-#include "logger.h"
+#include "ui/dialogs/addfunctiondialog/addfunctiondialog.h"
+#include "common/logger/logger.h"
 #include <QMessageBox>
 #include <QVBoxLayout>
 #include <QSplitter>
