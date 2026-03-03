@@ -54,7 +54,7 @@ void MainWindow::setupUI() {
 
     m_detailBrowser = new MarkdownView(this);
     m_detailBrowser->setObjectName("detailBrowser");
-    QFrame* detailPanel = createPanelFrame("详细信息", m_detailBrowser, "detailPanel");
+    QFrame* detailPanel = createPanelFrame("", m_detailBrowser, "detailPanel");
     splitter->addWidget(detailPanel);
 
     m_functionalityWidget = new FunctionalityWidget(this);
@@ -98,16 +98,18 @@ QFrame* MainWindow::createPanelFrame(const QString &title, QWidget *content, con
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
     
-    QLabel* titleLabel = new QLabel(title, frame);
-    titleLabel->setObjectName("panelTitleLabel");
-    titleLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-    layout->addWidget(titleLabel);
-    
-    QFrame* separator = new QFrame(frame);
-    separator->setObjectName("panelSeparator");
-    separator->setFrameShape(QFrame::HLine);
-    separator->setFixedHeight(1);
-    layout->addWidget(separator);
+    if (!title.isEmpty()) {
+        QLabel* titleLabel = new QLabel(title, frame);
+        titleLabel->setObjectName("panelTitleLabel");
+        titleLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        layout->addWidget(titleLabel);
+        
+        QFrame* separator = new QFrame(frame);
+        separator->setObjectName("panelSeparator");
+        separator->setFrameShape(QFrame::HLine);
+        separator->setFixedHeight(1);
+        layout->addWidget(separator);
+    }
     
     QWidget* contentContainer = new QWidget(frame);
     contentContainer->setObjectName("panelContent");
