@@ -288,6 +288,8 @@ void FunctionalityWidget::onBatchCompleted(int successCount, int failedCount, in
     showStatusMessage(message);
     Logger::instance().info(message);
     
+    emit batchProcessingCompleted();
+    
     onParseFinished();
 }
 

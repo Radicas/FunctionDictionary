@@ -37,6 +37,9 @@ public:
     explicit FunctionalityWidget(QWidget *parent = nullptr);
     ~FunctionalityWidget();
 
+signals:
+    void batchProcessingCompleted();
+
 private slots:
     /**
      * @brief 文件选择按钮点击槽函数

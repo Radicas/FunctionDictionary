@@ -49,6 +49,8 @@ void MainWindow::setupUI() {
     splitter->addWidget(m_detailBrowser);
 
     m_functionalityWidget = new FunctionalityWidget(this);
+    connect(m_functionalityWidget, &FunctionalityWidget::batchProcessingCompleted,
+            this, &MainWindow::loadFunctionList);
     splitter->addWidget(m_functionalityWidget);
 
     splitter->setStretchFactor(0, 1);
