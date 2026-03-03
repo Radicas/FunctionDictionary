@@ -1,9 +1,15 @@
 /**
  * @file logger.h
- * @brief 日志系统模块，用于记录程序运行日志
- * @author Developer
- * @date 2026-02-27
- * @version 1.0
+ * @brief 日志系统模块，提供跨平台彩色日志输出功能
+ * @author FunctionDB Team
+ * @date 2026-03-03
+ * @version 2.0
+ * 
+ * @details 该日志系统支持：
+ * - 跨平台彩色输出（Windows/Linux/macOS）
+ * - 日志分级（Debug/Info/Warning/Error）
+ * - 文件日志记录
+ * - 线程安全
  */
 
 #ifndef LOGGER_H
@@ -15,19 +21,28 @@
 #include <QMutex>
 #include <QDateTime>
 #include <QMutexLocker>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 /**
  * @brief 日志级别枚举
  */
 enum LogLevel {
-    Debug,   ///< 调试信息
-    Info,    ///< 一般信息
-    Warning, ///< 警告信息
-    Error    ///< 错误信息
+    Debug,   ///< 调试信息 - 青色
+    Info,    ///< 一般信息 - 绿色
+    Warning, ///< 警告信息 - 黄色
+    Error    ///< 错误信息 - 红色
 };
 
 /**
- * @brief 日志系统类，提供日志记录功能
+ * @brief 日志系统类，提供跨平台彩色日志记录功能
+ * 
+ * @details 该类采用单例模式，支持：
+ * - 控制台彩色输出（使用std::cout/std::cerr）
+ * - 文件日志记录
+ * - 多线程安全
+ * - 跨平台兼容（Windows/Linux/macOS）
  */
 class Logger {
 public:
@@ -39,9 +54,27 @@ public:
 
     /**
      * @brief 初始化日志系统
-     * @param logFilePath 日志文件路径
+     * @param logFilePath 日志文件路径，如果为空则不记录到文件
      */
     void init(const QString& logFilePath);
+
+    /**
+     * @brief 设置控制台日志输出开关
+     * @param enabled 是否启用控制台输出，默认为true
+     */
+    void setConsoleEnabled(bool enabled);
+
+    /**
+     * @brief 设置文件日志输出开关
+     * @param enabled 是否启用文件输出，默认为true
+     */
+    void setFileEnabled(bool enabled);
+
+    /**
+     * @brief 设置最低日志级别
+     * @param level 低于此级别的日志将不被输出
+     */
+    void setMinLevel(LogLevel level);
 
     /**
      * @brief 记录日志
@@ -87,10 +120,47 @@ private:
      */
     QString levelToString(LogLevel level);
 
-    QFile* m_logFile;         ///< 日志文件指针
-    QTextStream* m_logStream; ///< 日志文件流
-    QMutex m_mutex;           ///< 互斥锁，保证线程安全
-    bool m_initialized;       ///< 初始化标志
+    /**
+     * @brief 获取当前时间戳字符串
+     * @return 格式化的时间戳字符串
+     */
+    QString getTimestamp();
+
+    /**
+     * @brief 初始化控制台颜色支持
+     */
+    void initConsoleColor();
+
+    /**
+     * @brief 设置控制台输出颜色
+     * @param level 日志级别，根据级别设置不同颜色
+     */
+    void setConsoleColor(LogLevel level);
+
+    /**
+     * @brief 重置控制台颜色为默认
+     */
+    void resetConsoleColor();
+
+    /**
+     * @brief 输出彩色日志到控制台
+     * @param level 日志级别
+     * @param message 格式化的日志消息
+     */
+    void printColoredLog(LogLevel level, const QString& message);
+
+    QFile* m_logFile;           ///< 日志文件指针
+    QTextStream* m_logStream;   ///< 日志文件流
+    QMutex m_mutex;             ///< 互斥锁，保证线程安全
+    bool m_initialized;         ///< 初始化标志
+    bool m_consoleEnabled;      ///< 控制台输出开关
+    bool m_fileEnabled;         ///< 文件输出开关
+    LogLevel m_minLevel;        ///< 最低日志级别
+    bool m_colorSupported;      ///< 是否支持彩色输出
+
+#ifdef Q_OS_WIN
+    void* m_hConsole;           ///< Windows控制台句柄
+#endif
 };
 
 #endif // LOGGER_H

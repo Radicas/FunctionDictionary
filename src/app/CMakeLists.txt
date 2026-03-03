@@ -17,9 +17,11 @@ target_link_libraries(FunctionDB
 
 if(MSVC)
     target_compile_options(FunctionDB PRIVATE /utf-8)
-    set_target_properties(FunctionDB PROPERTIES
-        WIN32_EXECUTABLE TRUE
-    )
+    if(CMAKE_BUILD_TYPE STREQUAL "Release")
+        set_target_properties(FunctionDB PROPERTIES
+            WIN32_EXECUTABLE TRUE
+        )
+    endif()
     target_compile_definitions(FunctionDB PRIVATE NOMINMAX)
     target_compile_options(FunctionDB PRIVATE /W4)
 endif()
