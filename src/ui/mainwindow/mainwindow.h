@@ -3,7 +3,10 @@
  * @brief 主窗口类，函数数据库管理系统的主界面
  * @author Developer
  * @date 2026-02-27
- * @version 1.0
+ * @version 1.1
+ * 
+ * 更新说明：
+ * - v1.1: 新增主题切换功能
  */
 
 #ifndef MAINWINDOW_H
@@ -14,6 +17,7 @@
 #include "ui/dialogs/aboutdialog/aboutdialog.h"
 #include "FunctionalityWidget.h"
 #include "ui/markdown/markdownview.h"
+#include "common/theme/thememanager.h"
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QListWidget>
@@ -27,6 +31,7 @@
 #include <QMenu>
 #include <QAction>
 #include <QFrame>
+#include <QActionGroup>
 
 class MainWindow : public QMainWindow {
   Q_OBJECT
@@ -41,12 +46,15 @@ private slots:
   void onDeleteButtonClicked();
   void onAIConfigClicked();
   void onAboutClicked();
+  void onThemeChanged(QAction* action);
+  void onThemeChangedSignal(ThemeType theme);
 
 private:
   void setupUI();
   void setupMenuBar();
   void loadFunctionList();
   void displayFunctionDetail(const FunctionData &functionData);
+  void updateThemeMenuSelection(ThemeType theme);
   
   QFrame* createPanelFrame(const QString &title, QWidget *content, const QString &objectName);
 
@@ -57,6 +65,8 @@ private:
   QPushButton *m_deleteButton;
   QMap<int, FunctionData> m_functionMap;
   int m_currentFunctionId;
+  QActionGroup *m_themeActionGroup;
+  QMap<ThemeType, QAction*> m_themeActions;
 };
 
 #endif

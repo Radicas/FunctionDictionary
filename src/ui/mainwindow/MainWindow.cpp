@@ -15,9 +15,13 @@ MainWindow::MainWindow(QWidget* parent)
     , m_functionalityWidget(nullptr)
     , m_addButton(nullptr)
     , m_deleteButton(nullptr)
-    , m_currentFunctionId(-1) {
+    , m_currentFunctionId(-1)
+    , m_themeActionGroup(nullptr) {
     setupUI();
     loadFunctionList();
+    
+    connect(&ThemeManager::instance(), &ThemeManager::themeChanged,
+            this, &MainWindow::onThemeChangedSignal);
 }
 
 MainWindow::~MainWindow() {
@@ -212,6 +216,37 @@ void MainWindow::setupMenuBar() {
     connect(aiConfigAction, &QAction::triggered, this, &MainWindow::onAIConfigClicked);
     settingsMenu->addAction(aiConfigAction);
 
+    QMenu* themeMenu = settingsMenu->addMenu("主题切换");
+    
+    m_themeActionGroup = new QActionGroup(this);
+    m_themeActionGroup->setExclusive(true);
+
+    QAction* industrialAction = new QAction("工业风复古", this);
+    industrialAction->setCheckable(true);
+    industrialAction->setData(static_cast<int>(ThemeType::Industrial));
+    m_themeActionGroup->addAction(industrialAction);
+    themeMenu->addAction(industrialAction);
+    m_themeActions[ThemeType::Industrial] = industrialAction;
+
+    QAction* cyberpunkAction = new QAction("赛博朋克", this);
+    cyberpunkAction->setCheckable(true);
+    cyberpunkAction->setData(static_cast<int>(ThemeType::Cyberpunk));
+    m_themeActionGroup->addAction(cyberpunkAction);
+    themeMenu->addAction(cyberpunkAction);
+    m_themeActions[ThemeType::Cyberpunk] = cyberpunkAction;
+
+    QAction* modernAction = new QAction("极简现代", this);
+    modernAction->setCheckable(true);
+    modernAction->setData(static_cast<int>(ThemeType::Modern));
+    m_themeActionGroup->addAction(modernAction);
+    themeMenu->addAction(modernAction);
+    m_themeActions[ThemeType::Modern] = modernAction;
+
+    connect(m_themeActionGroup, &QActionGroup::triggered,
+            this, &MainWindow::onThemeChanged);
+
+    updateThemeMenuSelection(ThemeManager::instance().currentTheme());
+
     QMenu* helpMenu = menuBar->addMenu("帮助");
 
     QAction* aboutAction = new QAction("关于", this);
@@ -231,4 +266,26 @@ void MainWindow::onAboutClicked() {
     AboutDialog dialog(this);
     dialog.exec();
     Logger::instance().info("用户打开关于对话框");
+}
+
+void MainWindow::onThemeChanged(QAction* action) {
+    if (!action) {
+        return;
+    }
+
+    ThemeType theme = static_cast<ThemeType>(action->data().toInt());
+    ThemeManager::instance().setTheme(theme);
+    ThemeManager::instance().applyTheme(qApp);
+    
+    Logger::instance().info("用户切换主题");
+}
+
+void MainWindow::onThemeChangedSignal(ThemeType theme) {
+    updateThemeMenuSelection(theme);
+}
+
+void MainWindow::updateThemeMenuSelection(ThemeType theme) {
+    if (m_themeActions.contains(theme)) {
+        m_themeActions[theme]->setChecked(true);
+    }
 }

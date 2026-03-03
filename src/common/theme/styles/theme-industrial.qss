@@ -1023,9 +1023,9 @@ QFrame#functionalityPanel:hover {
 QLabel#panelTitleLabel {
     background-color: #2D3436;
     color: #B87333;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    padding: 12px 16px;
+    padding: 6px 12px;
     text-transform: uppercase;
     letter-spacing: 1px;
     border-bottom: 2px solid #3D4042;

@@ -211,10 +211,10 @@ QToolButton:disabled {
 QPushButton {
     background-color: #1A1A2E;
     border: 2px solid #252540;
-    border-radius: 8px;
-    padding: 10px 24px;
-    min-width: 80px;
-    min-height: 36px;
+    border-radius: 6px;
+    padding: 6px 16px;
+    min-width: 60px;
+    min-height: 26px;
     color: #FFFFFF;
     font-weight: 500;
 }
@@ -668,7 +668,7 @@ QDialog {
 }
 
 QDialog QPushButton {
-    min-width: 90px;
+    min-width: 65px;
 }
 
 /* ============================================
@@ -687,8 +687,8 @@ QMessageBox QLabel {
 }
 
 QMessageBox QPushButton {
-    min-width: 80px;
-    padding: 10px 20px;
+    min-width: 60px;
+    padding: 6px 16px;
 }
 
 /* ============================================
@@ -1016,9 +1016,9 @@ QFrame#functionalityPanel:hover {
 QLabel#panelTitleLabel {
     background-color: #1A1A2E;
     color: #00F5FF;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    padding: 14px 18px;
+    padding: 6px 12px;
     border-bottom: 1px solid #252540;
 }
 
@@ -1080,16 +1080,16 @@ QPushButton#testButton:disabled {
 }
 
 QPushButton#fileSelectButton {
-    min-width: 60px;
-    padding: 10px 16px;
+    min-width: 50px;
+    padding: 6px 12px;
 }
 
 QPushButton#closeButton {
-    min-width: 100px;
+    min-width: 70px;
 }
 
 QPushButton#cancelButton {
-    min-width: 80px;
+    min-width: 60px;
 }
 
 QPushButton#pauseResumeButton {
@@ -1108,25 +1108,25 @@ QPushButton#pauseResumeButton:hover {
    ============================================ */
 
 QWidget[compact="true"] QPushButton {
-    padding: 8px 16px;
-    min-height: 32px;
+    padding: 5px 12px;
+    min-height: 22px;
 }
 
 QWidget[compact="true"] QLineEdit,
 QWidget[compact="true"] QComboBox {
-    padding: 8px 12px;
-    min-height: 32px;
+    padding: 6px 10px;
+    min-height: 26px;
 }
 
 QWidget[large="true"] QPushButton {
-    padding: 14px 32px;
-    min-height: 44px;
+    padding: 10px 24px;
+    min-height: 36px;
     font-size: 14px;
 }
 
 QWidget[large="true"] QLineEdit,
 QWidget[large="true"] QComboBox {
-    padding: 14px 18px;
-    min-height: 44px;
+    padding: 10px 14px;
+    min-height: 36px;
     font-size: 14px;
 }
