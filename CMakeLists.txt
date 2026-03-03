@@ -38,6 +38,26 @@ endif()
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_DESCRIPTION "函数数据库管理系统")
+set(CPACK_PACKAGE_VENDOR "FunctionDictionary Team")
+set(CPACK_PACKAGE_CONTACT "support@example.com")
+
+if(WIN32)
+    set(CPACK_GENERATOR "ZIP")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "FunctionDictionary")
+    set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-Windows")
+endif()
+
+if(APPLE)
+    set(CPACK_GENERATOR "DragNDrop")
+    set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-macOS")
+endif()
+
+if(UNIX AND NOT APPLE)
+    set(CPACK_GENERATOR "TGZ")
+    set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-Linux")
+endif()
+
 include(CPack)
 
 set(PROJECT_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -51,3 +71,27 @@ if(MSVC)
 endif()
 
 add_subdirectory(src)
+
+install(TARGETS FunctionDB
+    RUNTIME DESTINATION bin
+    BUNDLE DESTINATION .
+)
+
+if(WIN32)
+    install(FILES
+        $<TARGET_FILE:Qt6::Core>
+        $<TARGET_FILE:Qt6::Gui>
+        $<TARGET_FILE:Qt6::Widgets>
+        $<TARGET_FILE:Qt6::Sql>
+        $<TARGET_FILE:Qt6::Network>
+        $<TARGET_FILE:Qt6::Concurrent>
+        $<TARGET_FILE:Qt6::WebEngineWidgets>
+        $<TARGET_FILE:Qt6::WebEngineCore>
+        $<TARGET_FILE:Qt6::WebChannel>
+        $<TARGET_FILE:Qt6::Positioning>
+        $<TARGET_FILE:Qt6::Quick>
+        $<TARGET_FILE:Qt6::Qml>
+        DESTINATION bin
+        OPTIONAL
+    )
+endif()

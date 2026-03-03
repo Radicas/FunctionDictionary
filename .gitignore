@@ -7,3 +7,5 @@ local
 .vs
 CMakeSettings.json
 
+## 分发打包
+dist
