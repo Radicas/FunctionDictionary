@@ -10,41 +10,39 @@
 #include "common/logger/logger.h"
 #include <QThread>
 #include <QCoreApplication>
-#include <QJsonDocument>
-#include <QJsonObject>
 
-FunctionalityWidget::FunctionalityWidget(QWidget *parent) : QWidget(parent) {
+FunctionalityWidget::FunctionalityWidget(QWidget *parent)
+    : QWidget(parent), m_currentMode(ParseMode::SingleFile), m_successCount(0), m_failedCount(0)
+{
     setupUI();
-    
-    AIServiceManager& aiService = AIServiceManager::instance();
-    connect(&aiService, &AIServiceManager::analysisComplete, 
-            this, &FunctionalityWidget::onAnalysisComplete);
-    connect(&aiService, &AIServiceManager::analysisFailed, 
-            this, &FunctionalityWidget::onAnalysisFailed);
-    connect(&aiService, &AIServiceManager::analysisProgress, 
-            this, &FunctionalityWidget::onAnalysisProgress);
-    
-    FunctionParser& parser = FunctionParser::instance();
-    connect(&parser, &FunctionParser::extractionProgress, 
-            this, &FunctionalityWidget::onExtractionProgress);
-    
-    BatchProcessManager& batchManager = BatchProcessManager::instance();
-    connect(&batchManager, &BatchProcessManager::batchProgress, 
+
+    AICodeParser &aiParser = AICodeParser::instance();
+    connect(&aiParser, &AICodeParser::parseComplete,
+            this, &FunctionalityWidget::onAIParseComplete);
+    connect(&aiParser, &AICodeParser::parseFailed,
+            this, &FunctionalityWidget::onAIParseFailed);
+    connect(&aiParser, &AICodeParser::parseProgress,
+            this, &FunctionalityWidget::onAIParseProgress);
+
+    BatchCodeParser &batchParser = BatchCodeParser::instance();
+    connect(&batchParser, &BatchCodeParser::batchProgress,
             this, &FunctionalityWidget::onBatchProgress);
-    connect(&batchManager, &BatchProcessManager::functionProcessed, 
-            this, &FunctionalityWidget::onFunctionProcessed);
-    connect(&batchManager, &BatchProcessManager::batchCompleted, 
-            this, &FunctionalityWidget::onBatchCompleted);
-    connect(&batchManager, &BatchProcessManager::stateChanged, 
-            this, &FunctionalityWidget::onStateChanged);
-    
+    connect(&batchParser, &BatchCodeParser::fileParsed,
+            this, &FunctionalityWidget::onFileParsed);
+    connect(&batchParser, &BatchCodeParser::batchComplete,
+            this, &FunctionalityWidget::onBatchComplete);
+    connect(&batchParser, &BatchCodeParser::batchFailed,
+            this, &FunctionalityWidget::onBatchFailed);
+
     Logger::instance().info("功能型widget初始化完成");
 }
 
-FunctionalityWidget::~FunctionalityWidget() {
+FunctionalityWidget::~FunctionalityWidget()
+{
 }
 
-void FunctionalityWidget::setupUI() {
+void FunctionalityWidget::setupUI()
+{
     m_mainLayout = new QVBoxLayout(this);
     m_mainLayout->setSpacing(15);
     m_mainLayout->setContentsMargins(10, 10, 10, 10);
@@ -60,12 +58,24 @@ void FunctionalityWidget::setupUI() {
     setLayout(m_mainLayout);
 }
 
-void FunctionalityWidget::setupFileParseSection() {
-    m_parseTitle = new QLabel("解析文件", this);
-    m_parseTitle->setObjectName("titleLabel");
-    m_mainLayout->addWidget(m_parseTitle);
+void FunctionalityWidget::setupFileParseSection()
+{
+    m_modeLabel = new QLabel("解析模式", this);
+    m_modeLabel->setObjectName("titleLabel");
+    m_mainLayout->addWidget(m_modeLabel);
 
-    m_fileInfoLabel = new QLabel("未选择文件", this);
+    m_modeComboBox = new QComboBox(this);
+    m_modeComboBox->addItem("单文件", static_cast<int>(ParseMode::SingleFile));
+    m_modeComboBox->addItem("文件夹", static_cast<int>(ParseMode::Folder));
+    connect(m_modeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &FunctionalityWidget::onModeChanged);
+    m_mainLayout->addWidget(m_modeComboBox);
+
+    m_pathLabel = new QLabel("解析文件", this);
+    m_pathLabel->setObjectName("titleLabel");
+    m_mainLayout->addWidget(m_pathLabel);
+
+    m_fileInfoLabel = new QLabel("未选择", this);
     m_fileInfoLabel->setObjectName("fileInfoLabel");
     m_mainLayout->addWidget(m_fileInfoLabel);
 
@@ -73,31 +83,25 @@ void FunctionalityWidget::setupFileParseSection() {
     m_functionCountLabel->setObjectName("functionCountLabel");
     m_mainLayout->addWidget(m_functionCountLabel);
 
-    QHBoxLayout *fileLayout = new QHBoxLayout();
-    m_filePathEdit = new QLineEdit(this);
-    m_filePathEdit->setPlaceholderText("请选择要解析的文件");
-    m_filePathEdit->setReadOnly(true);
-    fileLayout->addWidget(m_filePathEdit);
+    QHBoxLayout *pathLayout = new QHBoxLayout();
+    m_pathEdit = new QLineEdit(this);
+    m_pathEdit->setPlaceholderText("请选择要解析的文件或文件夹");
+    m_pathEdit->setReadOnly(true);
+    pathLayout->addWidget(m_pathEdit);
 
-    m_fileSelectButton = new QPushButton("选择", this);
-    m_fileSelectButton->setObjectName("fileSelectButton");
-    connect(m_fileSelectButton, &QPushButton::clicked, this, &FunctionalityWidget::onFileSelectClicked);
-    fileLayout->addWidget(m_fileSelectButton);
+    m_selectButton = new QPushButton("选择", this);
+    m_selectButton->setObjectName("fileSelectButton");
+    connect(m_selectButton, &QPushButton::clicked, this, &FunctionalityWidget::onSelectClicked);
+    pathLayout->addWidget(m_selectButton);
 
-    m_mainLayout->addLayout(fileLayout);
+    m_mainLayout->addLayout(pathLayout);
 
     QHBoxLayout *buttonLayout = new QHBoxLayout();
-    
+
     m_parseButton = new QPushButton("开始解析", this);
     m_parseButton->setObjectName("parseButton");
     connect(m_parseButton, &QPushButton::clicked, this, &FunctionalityWidget::onParseButtonClicked);
     buttonLayout->addWidget(m_parseButton);
-
-    m_pauseResumeButton = new QPushButton("暂停", this);
-    m_pauseResumeButton->setObjectName("pauseResumeButton");
-    m_pauseResumeButton->setVisible(false);
-    connect(m_pauseResumeButton, &QPushButton::clicked, this, &FunctionalityWidget::onPauseResumeClicked);
-    buttonLayout->addWidget(m_pauseResumeButton);
 
     m_cancelButton = new QPushButton("取消", this);
     m_cancelButton->setObjectName("cancelButton");
@@ -129,239 +133,355 @@ void FunctionalityWidget::setupFileParseSection() {
     m_mainLayout->addWidget(m_logView);
 }
 
-void FunctionalityWidget::setupSettingsSection() {
+void FunctionalityWidget::setupSettingsSection()
+{
     m_settingsTitle = new QLabel("配置设置", this);
     m_settingsTitle->setObjectName("titleLabel");
     m_mainLayout->addWidget(m_settingsTitle);
 
+    m_recursiveCheckBox = new QCheckBox("递归扫描子文件夹", this);
+    m_recursiveCheckBox->setChecked(true);
+    m_recursiveCheckBox->setEnabled(false);
+    m_mainLayout->addWidget(m_recursiveCheckBox);
+
+    m_skipExistingCheckBox = new QCheckBox("跳过已存在的函数", this);
+    m_skipExistingCheckBox->setChecked(true);
+    m_mainLayout->addWidget(m_skipExistingCheckBox);
+
     m_aiConfigButton = new QPushButton("AI配置", this);
     m_aiConfigButton->setObjectName("aiConfigButton");
-    connect(m_aiConfigButton, &QPushButton::clicked, [this]() {
+    connect(m_aiConfigButton, &QPushButton::clicked, [this]()
+            {
         AIConfigDialog dialog(this);
         dialog.exec();
-        Logger::instance().info("用户打开AI配置对话框");
-    });
+        Logger::instance().info("用户打开AI配置对话框"); });
     m_mainLayout->addWidget(m_aiConfigButton);
 
     m_mainLayout->addStretch();
 }
 
-void FunctionalityWidget::onFileSelectClicked() {
-    Logger::instance().info("onFileSelectClicked 方法被调用");
-    Logger::instance().info("当前线程是否为主线程: " + QString(QThread::currentThread() == qApp->thread() ? "是" : "否"));
-    Logger::instance().info("window() 返回值: " + QString(window() ? "有效" : "空"));
-    
-    QFileDialog dialog(window(), "选择文件", QDir::homePath(),
-        "所有文件 (*.*);;C/C++文件 (*.c *.cpp *.h *.hpp);;Python文件 (*.py);;Java文件 (*.java);;JavaScript文件 (*.js *.ts)");
-    dialog.setFileMode(QFileDialog::ExistingFile);
-    dialog.setOption(QFileDialog::DontUseNativeDialog, true);
-    
-    Logger::instance().info("准备显示文件选择对话框");
-    
-    if (dialog.exec() == QDialog::Accepted) {
-        QStringList selectedFiles = dialog.selectedFiles();
-        if (!selectedFiles.isEmpty()) {
-            QString filePath = selectedFiles.first();
-            Logger::instance().info("用户选择文件: " + filePath);
-            m_filePathEdit->setText(filePath);
-            m_currentFilePath = filePath;
-            
-            QFileInfo fileInfo(filePath);
-            m_fileInfoLabel->setText(QString("文件: %1, 大小: %2 KB")
-                .arg(fileInfo.fileName())
-                .arg(fileInfo.size() / 1024.0, 0, 'f', 2));
-            
-            showStatusMessage("已选择文件: " + fileInfo.fileName());
+void FunctionalityWidget::onModeChanged(int index)
+{
+    m_currentMode = static_cast<ParseMode>(m_modeComboBox->itemData(index).toInt());
+
+    if (m_currentMode == ParseMode::SingleFile)
+    {
+        m_pathLabel->setText("解析文件");
+        m_recursiveCheckBox->setEnabled(false);
+    }
+    else
+    {
+        m_pathLabel->setText("解析文件夹");
+        m_recursiveCheckBox->setEnabled(true);
+    }
+
+    m_pathEdit->clear();
+    m_fileInfoLabel->setText("未选择");
+    m_functionCountLabel->setText("");
+    m_currentPath.clear();
+
+    Logger::instance().info(QString("切换解析模式: %1").arg(m_currentMode == ParseMode::SingleFile ? "单文件" : "文件夹"));
+}
+
+void FunctionalityWidget::onSelectClicked()
+{
+    Logger::instance().info("onSelectClicked 方法被调用");
+
+    if (m_currentMode == ParseMode::SingleFile)
+    {
+        QFileDialog dialog(window(), "选择文件", QDir::homePath(),
+                           "所有文件 (*.*);;C/C++文件;;Python文件;;Java文件;;JavaScript文件");
+        dialog.setFileMode(QFileDialog::ExistingFile);
+        dialog.setOption(QFileDialog::DontUseNativeDialog, true);
+
+        if (dialog.exec() == QDialog::Accepted)
+        {
+            QStringList selectedFiles = dialog.selectedFiles();
+            if (!selectedFiles.isEmpty())
+            {
+                QString filePath = selectedFiles.first();
+                Logger::instance().info("用户选择文件: " + filePath);
+                m_pathEdit->setText(filePath);
+                m_currentPath = filePath;
+
+                QFileInfo fileInfo(filePath);
+                m_fileInfoLabel->setText(QString("文件: %1, 大小: %2 KB")
+                                             .arg(fileInfo.fileName())
+                                             .arg(fileInfo.size() / 1024.0, 0, 'f', 2));
+
+                showStatusMessage("已选择文件: " + fileInfo.fileName());
+            }
         }
-    } else {
-        Logger::instance().info("用户取消选择文件");
+    }
+    else
+    {
+        QFileDialog dialog(window(), "选择文件夹", QDir::homePath());
+        dialog.setFileMode(QFileDialog::Directory);
+        dialog.setOption(QFileDialog::ShowDirsOnly, true);
+        dialog.setOption(QFileDialog::DontUseNativeDialog, true);
+
+        if (dialog.exec() == QDialog::Accepted)
+        {
+            QStringList selectedDirs = dialog.selectedFiles();
+            if (!selectedDirs.isEmpty())
+            {
+                QString folderPath = selectedDirs.first();
+                Logger::instance().info("用户选择文件夹: " + folderPath);
+                m_pathEdit->setText(folderPath);
+                m_currentPath = folderPath;
+
+                QDir dir(folderPath);
+                m_fileInfoLabel->setText(QString("文件夹: %1").arg(dir.dirName()));
+
+                showStatusMessage("已选择文件夹: " + dir.dirName());
+            }
+        }
     }
 }
 
-void FunctionalityWidget::onParseButtonClicked() {
-    if (m_currentFilePath.isEmpty()) {
-        QMessageBox::warning(this, "警告", "请先选择要解析的文件！");
+void FunctionalityWidget::onParseButtonClicked()
+{
+    if (m_currentPath.isEmpty())
+    {
+        QMessageBox::warning(this, "警告", "请先选择要解析的文件或文件夹！");
         return;
     }
 
-    if (!validateFile(m_currentFilePath)) {
-        QMessageBox::critical(this, "错误", "所选文件无效或无法访问！");
+    if (!validatePath(m_currentPath))
+    {
+        QMessageBox::critical(this, "错误", "所选路径无效或无法访问！");
         return;
     }
 
-    startFileAnalysis();
+    startParsing();
 }
 
-void FunctionalityWidget::onPauseResumeClicked() {
-    BatchProcessManager& batchManager = BatchProcessManager::instance();
-    if (batchManager.getState() == BatchProcessState::Running) {
-        batchManager.pauseProcessing();
-    } else if (batchManager.getState() == BatchProcessState::Paused) {
-        batchManager.resumeProcessing();
+void FunctionalityWidget::onCancelClicked()
+{
+    if (m_currentMode == ParseMode::SingleFile)
+    {
+        AICodeParser::instance().cancelParsing();
     }
+    else
+    {
+        BatchCodeParser::instance().cancelParsing();
+    }
+    showStatusMessage("已取消解析");
+    onParseFinished();
 }
 
-void FunctionalityWidget::onCancelClicked() {
-    BatchProcessManager& batchManager = BatchProcessManager::instance();
-    batchManager.cancelProcessing();
-}
-
-void FunctionalityWidget::onParseFinished() {
+void FunctionalityWidget::onParseFinished()
+{
     updateUIState(false);
 }
 
-void FunctionalityWidget::onAnalysisComplete(const QString& functionName, const QString& functionDescription) {
-    bool success = DatabaseManager::instance().addFunction(functionName, functionDescription);
+void FunctionalityWidget::onAIParseComplete(const AIParseResult &result)
+{
+    m_logView->append(QString("解析完成，找到 %1 个函数").arg(result.functions.size()));
+    m_progressBar->setValue(90);
 
-    if (success) {
-        showStatusMessage("文件解析成功并保存到数据库");
-        Logger::instance().info("文件解析成功并保存到数据库: " + m_currentFilePath);
-    } else {
-        showStatusMessage("文件解析成功，但保存到数据库失败: " + DatabaseManager::instance().lastError());
-        Logger::instance().error("保存解析结果到数据库失败: " + DatabaseManager::instance().lastError());
+    m_successCount = 0;
+    m_failedCount = 0;
+    int skippedCount = 0;
+    bool skipExisting = m_skipExistingCheckBox->isChecked();
+
+    for (const FunctionData &funcData : result.functions)
+    {
+        if (skipExisting && DatabaseManager::instance().functionExists(funcData.key))
+        {
+            skippedCount++;
+            m_logView->append(QString("[跳过] %1 - 已存在").arg(funcData.key));
+        }
+        else
+        {
+            FunctionData data = funcData;
+            data.createTime = QDateTime::currentDateTime();
+            data.analyzeTime = QDateTime::currentDateTime();
+
+            if (DatabaseManager::instance().addFunction(data))
+            {
+                m_successCount++;
+                m_logView->append(QString("[成功] %1").arg(funcData.key));
+            }
+            else
+            {
+                m_failedCount++;
+                m_logView->append(QString("[失败] %1 - %2").arg(funcData.key).arg(DatabaseManager::instance().lastError()));
+            }
+        }
     }
 
-    onParseFinished();
-}
+    m_successCountLabel->setText(QString("成功: %1").arg(m_successCount));
+    m_failedCountLabel->setText(QString("失败: %1").arg(m_failedCount));
+    m_skippedCountLabel->setText(QString("跳过: %1").arg(skippedCount));
 
-void FunctionalityWidget::onAnalysisFailed(const QString& error) {
-    QMessageBox::critical(this, "错误", "AI 分析失败：" + error);
-    Logger::instance().error("AI 分析失败: " + error);
-    
-    onParseFinished();
-}
+    m_progressBar->setValue(100);
 
-void FunctionalityWidget::onAnalysisProgress(const QString& message) {
+    QString message = QString("解析完成！成功: %1, 失败: %2, 跳过: %3")
+                          .arg(m_successCount)
+                          .arg(m_failedCount)
+                          .arg(skippedCount);
+    QMessageBox::information(this, "完成", message);
     showStatusMessage(message);
-    if (message.contains("发送请求")) {
+    Logger::instance().info(message);
+
+    emit batchProcessingCompleted();
+    onParseFinished();
+}
+
+void FunctionalityWidget::onAIParseFailed(const QString &error)
+{
+    QMessageBox::critical(this, "错误", "AI 解析失败：" + error);
+    Logger::instance().error("AI 解析失败: " + error);
+    m_logView->append(QString("[错误] %1").arg(error));
+    onParseFinished();
+}
+
+void FunctionalityWidget::onAIParseProgress(const QString &stage, const QString &message)
+{
+    QString logMsg = QString("[%1] %2").arg(stage).arg(message);
+    showStatusMessage(message);
+    m_logView->append(logMsg);
+
+    if (stage == "读取文件")
+    {
+        m_progressBar->setValue(10);
+    }
+    else if (stage == "构建请求")
+    {
+        m_progressBar->setValue(20);
+    }
+    else if (stage == "发送请求")
+    {
         m_progressBar->setValue(30);
-    } else if (message.contains("解析响应")) {
+    }
+    else if (stage == "解析响应")
+    {
         m_progressBar->setValue(70);
     }
 }
 
-void FunctionalityWidget::onExtractionProgress(int current, int total, const QString& message) {
-    showStatusMessage(message);
-    m_logView->append(message);
-    
-    if (total > 0) {
-        m_progressBar->setValue((current * 50) / total);
-    }
-}
+void FunctionalityWidget::onBatchProgress(const BatchParseProgress &progress)
+{
+    QString logMsg = QString("[%1/%2] %3: %4")
+                         .arg(progress.processedFiles)
+                         .arg(progress.totalFiles)
+                         .arg(progress.currentStage)
+                         .arg(progress.currentMessage);
 
-void FunctionalityWidget::onBatchProgress(int current, int total, const QString& functionName) {
-    m_progressBar->setValue(50 + (current * 50) / total);
-    showStatusMessage(QString("正在分析: %1 (%2/%3)").arg(functionName).arg(current).arg(total));
-}
-
-void FunctionalityWidget::onFunctionProcessed(const ExtractedFunction& func, bool success, const QString& message) {
-    QString logMsg = QString("[%1] %2: %3")
-        .arg(success ? "成功" : "失败")
-        .arg(func.name)
-        .arg(message);
+    showStatusMessage(progress.currentMessage);
     m_logView->append(logMsg);
-    
-    if (success) {
-        FunctionData data;
-        data.key = func.name;
-        data.value = "";
-        data.signature = func.signature;
-        data.returnType = func.returnType;
-        data.filePath = func.filePath;
-        data.startLine = func.startLine;
-        data.endLine = func.endLine;
-        data.language = func.language;
-        DatabaseManager::instance().addFunction(data);
-        
-        m_successCountLabel->setText(QString("成功: %1").arg(BatchProcessManager::instance().getSuccessCount()));
-    } else {
-        m_failedCountLabel->setText(QString("失败: %1").arg(BatchProcessManager::instance().getFailedCount()));
+
+    int progressValue = 0;
+    if (progress.totalFiles > 0)
+    {
+        progressValue = (progress.processedFiles * 100) / progress.totalFiles;
     }
-    
-    m_skippedCountLabel->setText(QString("跳过: %1").arg(BatchProcessManager::instance().getSkippedCount()));
+    m_progressBar->setValue(progressValue);
+
+    m_successCountLabel->setText(QString("成功: %1").arg(progress.successCount));
+    m_failedCountLabel->setText(QString("失败: %1").arg(progress.failedCount));
+    m_skippedCountLabel->setText(QString("跳过: %1").arg(progress.skippedCount));
 }
 
-void FunctionalityWidget::onBatchCompleted(int successCount, int failedCount, int skippedCount) {
-    QString message = QString("批量处理完成！成功: %1, 失败: %2, 跳过: %3")
-        .arg(successCount).arg(failedCount).arg(skippedCount);
+void FunctionalityWidget::onFileParsed(const QString &filePath, const AIParseResult &result)
+{
+    QFileInfo fileInfo(filePath);
+    QString logMsg = QString("[完成] %1: 提取 %2 个函数")
+                         .arg(fileInfo.fileName())
+                         .arg(result.functions.size());
+    m_logView->append(logMsg);
+}
+
+void FunctionalityWidget::onBatchComplete(const BatchParseResult &result)
+{
+    QString message = QString("批量解析完成！\n总计: %1 个文件\n成功: %2\n失败: %3\n跳过: %4\n提取函数: %5 个")
+                          .arg(result.totalFiles)
+                          .arg(result.successCount)
+                          .arg(result.failedCount)
+                          .arg(result.skippedCount)
+                          .arg(result.allFunctions.size());
+
+    if (!result.failedFiles.isEmpty())
+    {
+        message += "\n\n失败的文件:\n" + result.failedFiles.join("\n");
+    }
+
     QMessageBox::information(this, "完成", message);
-    showStatusMessage(message);
+    showStatusMessage(QString("批量解析完成，共处理 %1 个文件").arg(result.totalFiles));
     Logger::instance().info(message);
-    
+
     emit batchProcessingCompleted();
-    
     onParseFinished();
 }
 
-void FunctionalityWidget::onStateChanged(BatchProcessState newState) {
-    switch (newState) {
-        case BatchProcessState::Running:
-            m_pauseResumeButton->setText("暂停");
-            break;
-        case BatchProcessState::Paused:
-            m_pauseResumeButton->setText("恢复");
-            break;
-        default:
-            break;
-    }
+void FunctionalityWidget::onBatchFailed(const QString &error)
+{
+    QMessageBox::critical(this, "错误", "批量解析失败：" + error);
+    Logger::instance().error("批量解析失败: " + error);
+    m_logView->append(QString("[错误] %1").arg(error));
+    onParseFinished();
 }
 
-bool FunctionalityWidget::validateFile(const QString &filePath) {
-    QFileInfo fileInfo(filePath);
-    return fileInfo.exists() && fileInfo.isFile() && fileInfo.isReadable();
+bool FunctionalityWidget::validatePath(const QString &path)
+{
+    QFileInfo fileInfo(path);
+    return fileInfo.exists() && (fileInfo.isFile() || fileInfo.isDir());
 }
 
-void FunctionalityWidget::showStatusMessage(const QString &message, int duration) {
+void FunctionalityWidget::showStatusMessage(const QString &message, int duration)
+{
     m_statusLabel->setText(message);
-    if (duration > 0) {
-        QTimer::singleShot(duration, [this]() {
-            m_statusLabel->setText("就绪");
-        });
+    if (duration > 0)
+    {
+        QTimer::singleShot(duration, [this]()
+                           { m_statusLabel->setText("就绪"); });
     }
 }
 
-void FunctionalityWidget::startFileAnalysis() {
+void FunctionalityWidget::startParsing()
+{
     updateUIState(true);
     m_logView->clear();
-    m_logView->append("开始解析文件...");
     m_progressBar->setValue(0);
-    
+
+    m_successCount = 0;
+    m_failedCount = 0;
+
     m_successCountLabel->setText("成功: 0");
     m_failedCountLabel->setText("失败: 0");
     m_skippedCountLabel->setText("跳过: 0");
-    
-    Logger::instance().info("开始解析文件: " + m_currentFilePath);
-    
-    FunctionParser& parser = FunctionParser::instance();
-    m_extractionResult = parser.extractFunctions(m_currentFilePath);
-    
-    if (!m_extractionResult.success) {
-        QMessageBox::critical(this, "错误", "解析文件失败: " + m_extractionResult.errorMessage);
-        Logger::instance().error("解析文件失败: " + m_extractionResult.errorMessage);
-        updateUIState(false);
-        return;
+
+    bool skipExisting = m_skipExistingCheckBox->isChecked();
+
+    if (m_currentMode == ParseMode::SingleFile)
+    {
+        m_logView->append("开始解析文件...");
+        Logger::instance().info("开始AI解析文件: " + m_currentPath);
+        AICodeParser::instance().parseFile(m_currentPath);
     }
-    
-    if (m_extractionResult.functions.isEmpty()) {
-        QMessageBox::warning(this, "警告", "未在文件中找到任何函数！");
-        Logger::instance().warning("未在文件中找到任何函数");
-        updateUIState(false);
-        return;
+    else
+    {
+        bool recursive = m_recursiveCheckBox->isChecked();
+        m_logView->append(QString("开始批量解析文件夹%1...")
+                              .arg(recursive ? "（递归）" : ""));
+        Logger::instance().info(QString("开始批量解析文件夹: %1, 递归: %2")
+                                    .arg(m_currentPath)
+                                    .arg(recursive));
+
+        BatchCodeParser::instance().setSkipExisting(skipExisting);
+        BatchCodeParser::instance().parseFolder(m_currentPath, recursive);
     }
-    
-    m_functionCountLabel->setText(QString("找到 %1 个函数").arg(m_extractionResult.functions.size()));
-    m_logView->append(QString("解析完成，找到 %1 个函数").arg(m_extractionResult.functions.size()));
-    
-    BatchProcessManager& batchManager = BatchProcessManager::instance();
-    batchManager.startBatchProcessing(m_extractionResult.functions);
 }
 
-void FunctionalityWidget::updateUIState(bool isProcessing) {
+void FunctionalityWidget::updateUIState(bool isProcessing)
+{
     m_parseButton->setEnabled(!isProcessing);
-    m_fileSelectButton->setEnabled(!isProcessing);
-    m_pauseResumeButton->setVisible(isProcessing);
+    m_selectButton->setEnabled(!isProcessing);
+    m_modeComboBox->setEnabled(!isProcessing);
+    m_recursiveCheckBox->setEnabled(!isProcessing && m_currentMode == ParseMode::Folder);
+    m_skipExistingCheckBox->setEnabled(!isProcessing);
     m_cancelButton->setVisible(isProcessing);
     m_progressBar->setVisible(isProcessing);
     m_logView->setVisible(isProcessing);
 }
-

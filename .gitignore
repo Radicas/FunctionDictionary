@@ -5,6 +5,7 @@ local
 
 ## Visual Studio
 .vs
+out
 CMakeSettings.json
 
 ## 分发打包
