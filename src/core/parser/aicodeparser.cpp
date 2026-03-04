@@ -22,9 +22,16 @@ AICodeParser::AICodeParser(QObject* parent)
     : QObject(parent)
     , m_networkManager(nullptr)
     , m_currentReply(nullptr)
-    , m_isParsing(false) {
+    , m_timeoutTimer(nullptr)
+    , m_isParsing(false)
+    , m_timeoutMs(120000) {
     
     m_networkManager = new QNetworkAccessManager(this);
+    m_timeoutTimer = new QTimer(this);
+    m_timeoutTimer->setSingleShot(true);
+    
+    connect(m_timeoutTimer, &QTimer::timeout, this, &AICodeParser::onTimeout);
+    
     Logger::instance().info("AI代码解析器初始化完成");
 }
 
@@ -60,6 +67,8 @@ void AICodeParser::parseFile(const QString& filePath) {
     }
     
     QString language = detectLanguage(filePath);
+    Logger::instance().info(QString("检测到语言类型: %1, 文件大小: %2 字节").arg(language).arg(code.size()));
+    
     parseCode(code, language, filePath);
 }
 
@@ -83,27 +92,39 @@ void AICodeParser::parseCode(const QString& code, const QString& language, const
     emit parseProgress("构建请求", "正在构建AI分析请求...");
     
     QString prompt = buildParsePrompt(code, language, filePath);
+    Logger::instance().info(QString("构建Prompt完成, 长度: %1 字符").arg(prompt.size()));
     
-    QUrl url(buildRequestUrl());
-    QNetworkRequest request(url);
+    QString urlStr = buildRequestUrl();
+    Logger::instance().info("请求URL: " + urlStr);
+    Logger::instance().info("使用模型: " + config.modelId);
+    
+    QUrl requestUrl(urlStr);
+    QNetworkRequest request(requestUrl);
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
     request.setRawHeader("Authorization", QString("Bearer %1").arg(config.apiKey).toUtf8());
+    request.setRawHeader("Accept", "application/json");
     
     QJsonObject jsonObj = buildRequestJson(prompt);
     QJsonDocument jsonDoc(jsonObj);
     QByteArray jsonData = jsonDoc.toJson();
     
+    Logger::instance().info(QString("请求JSON大小: %1 字节").arg(jsonData.size()));
+    
     m_currentReply = m_networkManager->post(request, jsonData);
     
-    connect(m_currentReply, &QNetworkReply::finished, this, [this]() {
-        onReplyFinished(m_currentReply);
-    });
+    connect(m_currentReply, &QNetworkReply::finished, this, &AICodeParser::onReplyFinished);
+    connect(m_currentReply, QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::errorOccurred),
+            this, &AICodeParser::onNetworkError);
+    
+    m_timeoutTimer->start(m_timeoutMs);
     
     emit parseProgress("发送请求", "已发送AI分析请求，等待响应...");
     Logger::instance().info("已发送AI代码解析请求，文件: " + filePath);
 }
 
 void AICodeParser::cancelParsing() {
+    m_timeoutTimer->stop();
+    
     if (m_currentReply) {
         m_currentReply->abort();
         m_currentReply->deleteLater();
@@ -143,35 +164,53 @@ QString AICodeParser::detectLanguage(const QString& filePath) const {
     return extensionMap.value(suffix, "generic");
 }
 
-void AICodeParser::onReplyFinished(QNetworkReply* reply) {
+void AICodeParser::setTimeout(int timeoutMs) {
+    m_timeoutMs = timeoutMs;
+}
+
+void AICodeParser::onReplyFinished() {
+    m_timeoutTimer->stop();
     m_isParsing = false;
     
-    if (reply != m_currentReply) {
+    if (!m_currentReply) {
+        Logger::instance().error("onReplyFinished: m_currentReply 为空");
+        return;
+    }
+    
+    QNetworkReply* reply = m_currentReply;
+    m_currentReply = nullptr;
+    
+    Logger::instance().info("收到AI响应");
+    
+    if (reply->error() != QNetworkReply::NoError) {
+        QString error = "网络请求失败: " + reply->errorString() + " (错误码: " + QString::number(reply->error()) + ")";
+        Logger::instance().error(error);
+        emit parseFailed(error);
         reply->deleteLater();
         return;
     }
     
-    m_currentReply = nullptr;
+    QByteArray responseData = reply->readAll();
     reply->deleteLater();
     
-    if (reply->error() != QNetworkReply::NoError) {
-        QString error = "网络请求失败: " + reply->errorString();
-        emit parseFailed(error);
-        Logger::instance().error(error);
+    Logger::instance().info(QString("响应数据大小: %1 字节").arg(responseData.size()));
+    
+    if (responseData.isEmpty()) {
+        emit parseFailed("AI响应为空");
+        Logger::instance().error("AI响应为空");
         return;
     }
     
     emit parseProgress("解析响应", "正在解析AI响应...");
     
-    QByteArray responseData = reply->readAll();
+    QJsonParseError parseError;
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData, &parseError);
     
-    QJsonParseError error;
-    QJsonDocument jsonDoc = QJsonDocument::fromJson(responseData, &error);
-    
-    if (error.error != QJsonParseError::NoError) {
-        QString errMsg = "解析响应JSON失败: " + error.errorString();
-        emit parseFailed(errMsg);
+    if (parseError.error != QJsonParseError::NoError) {
+        QString errMsg = "解析响应JSON失败: " + parseError.errorString() + " (位置: " + QString::number(parseError.offset) + ")";
         Logger::instance().error(errMsg);
+        Logger::instance().error("响应内容前500字符: " + QString(responseData.left(500)));
+        emit parseFailed(errMsg);
         return;
     }
     
@@ -179,6 +218,17 @@ void AICodeParser::onReplyFinished(QNetworkReply* reply) {
     
     if (jsonDoc.isObject()) {
         QJsonObject rootObj = jsonDoc.object();
+        
+        if (rootObj.contains("error")) {
+            QString errorMsg = rootObj["error"].toObject()["message"].toString();
+            if (errorMsg.isEmpty()) {
+                errorMsg = rootObj["error"].toString();
+            }
+            emit parseFailed("API错误: " + errorMsg);
+            Logger::instance().error("API错误: " + errorMsg);
+            return;
+        }
+        
         if (rootObj.contains("choices")) {
             QJsonArray choicesArray = rootObj["choices"].toArray();
             if (!choicesArray.isEmpty()) {
@@ -192,10 +242,13 @@ void AICodeParser::onReplyFinished(QNetworkReply* reply) {
     }
     
     if (aiResponse.isEmpty()) {
-        emit parseFailed("AI响应格式错误");
-        Logger::instance().error("AI响应格式错误");
+        emit parseFailed("AI响应格式错误或内容为空");
+        Logger::instance().error("AI响应格式错误或内容为空");
+        Logger::instance().error("响应JSON: " + QString(jsonDoc.toJson(QJsonDocument::Compact).left(1000)));
         return;
     }
+    
+    Logger::instance().info(QString("AI响应内容长度: %1 字符").arg(aiResponse.size()));
     
     AIParseResult result = parseAIResponse(aiResponse, m_currentFilePath, m_currentLanguage);
     
@@ -209,6 +262,23 @@ void AICodeParser::onReplyFinished(QNetworkReply* reply) {
         emit parseFailed(result.errorMessage);
         Logger::instance().error("AI代码解析失败: " + result.errorMessage);
     }
+}
+
+void AICodeParser::onNetworkError(QNetworkReply::NetworkError error) {
+    Logger::instance().error(QString("网络错误: %1 (错误码: %2)").arg(m_currentReply ? m_currentReply->errorString() : "未知").arg(error));
+}
+
+void AICodeParser::onTimeout() {
+    Logger::instance().error(QString("请求超时 (%1 ms)").arg(m_timeoutMs));
+    
+    if (m_currentReply) {
+        m_currentReply->abort();
+        m_currentReply->deleteLater();
+        m_currentReply = nullptr;
+    }
+    m_isParsing = false;
+    
+    emit parseFailed(QString("请求超时 (%1 秒)，请检查网络连接或增加超时时间").arg(m_timeoutMs / 1000));
 }
 
 QString AICodeParser::buildRequestUrl() const {
@@ -235,6 +305,7 @@ QJsonObject AICodeParser::buildRequestJson(const QString& prompt) const {
     jsonObj["model"] = config.modelId;
     jsonObj["messages"] = messagesArray;
     jsonObj["temperature"] = 0.3;
+    jsonObj["max_tokens"] = 16000;
 
     return jsonObj;
 }
@@ -317,6 +388,8 @@ AIParseResult AICodeParser::parseAIResponse(const QString& aiResponse, const QSt
     
     if (jsonStart == -1 || jsonEnd == -1 || jsonEnd <= jsonStart) {
         result.errorMessage = "无法从AI响应中提取JSON数据";
+        Logger::instance().error(result.errorMessage);
+        Logger::instance().error("AI响应前500字符: " + aiResponse.left(500));
         return result;
     }
     
@@ -326,7 +399,7 @@ AIParseResult AICodeParser::parseAIResponse(const QString& aiResponse, const QSt
     QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonStr.toUtf8(), &error);
     
     if (error.error != QJsonParseError::NoError) {
-        result.errorMessage = "解析JSON失败: " + error.errorString();
+        result.errorMessage = "解析JSON失败: " + error.errorString() + " (位置: " + QString::number(error.offset) + ")";
         Logger::instance().error(result.errorMessage);
         return result;
     }
@@ -398,6 +471,7 @@ bool AICodeParser::readFileContent(const QString& filePath, QString& content) co
     }
     
     QTextStream in(&file);
+    in.setEncoding(QStringConverter::Utf8);
     content = in.readAll();
     file.close();
     

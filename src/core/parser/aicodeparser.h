@@ -23,6 +23,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QJsonObject>
+#include <QTimer>
 
 /**
  * @brief AI代码解析结果结构体
@@ -91,6 +92,12 @@ public:
      */
     QString detectLanguage(const QString& filePath) const;
 
+    /**
+     * @brief 设置请求超时时间
+     * @param timeoutMs 超时时间（毫秒）
+     */
+    void setTimeout(int timeoutMs);
+
 signals:
     /**
      * @brief 解析完成信号
@@ -114,9 +121,19 @@ signals:
 private slots:
     /**
      * @brief 网络请求完成槽函数
-     * @param reply 网络回复对象
      */
-    void onReplyFinished(QNetworkReply* reply);
+    void onReplyFinished();
+
+    /**
+     * @brief 网络错误槽函数
+     * @param error 网络错误
+     */
+    void onNetworkError(QNetworkReply::NetworkError error);
+
+    /**
+     * @brief 超时槽函数
+     */
+    void onTimeout();
 
 private:
     /**
@@ -187,9 +204,11 @@ private:
 
     QNetworkAccessManager* m_networkManager;    ///< 网络访问管理器
     QNetworkReply* m_currentReply;               ///< 当前网络回复
+    QTimer* m_timeoutTimer;                      ///< 超时定时器
     QString m_currentFilePath;                   ///< 当前解析的文件路径
     QString m_currentLanguage;                   ///< 当前解析的语言类型
     bool m_isParsing;                            ///< 是否正在解析
+    int m_timeoutMs;                             ///< 超时时间（毫秒）
 };
 
 #endif // AICODEPARSER_H
