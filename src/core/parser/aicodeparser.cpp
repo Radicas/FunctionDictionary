@@ -24,7 +24,8 @@ AICodeParser::AICodeParser(QObject* parent)
     , m_currentReply(nullptr)
     , m_timeoutTimer(nullptr)
     , m_isParsing(false)
-    , m_timeoutMs(120000) {
+    , m_timeoutMs(120000)
+    , m_receivedTokens(0) {
     
     m_networkManager = new QNetworkAccessManager(this);
     m_timeoutTimer = new QTimer(this);
@@ -115,8 +116,11 @@ void AICodeParser::parseCode(const QString& code, const QString& language, const
     connect(m_currentReply, &QNetworkReply::finished, this, &AICodeParser::onReplyFinished);
     connect(m_currentReply, QOverload<QNetworkReply::NetworkError>::of(&QNetworkReply::errorOccurred),
             this, &AICodeParser::onNetworkError);
+    connect(m_currentReply, &QNetworkReply::readyRead, this, &AICodeParser::onReadyRead);
     
     m_timeoutTimer->start(m_timeoutMs);
+    m_streamBuffer.clear();
+    m_receivedTokens = 0;
     
     emit parseProgress("发送请求", "已发送AI分析请求，等待响应...");
     Logger::instance().info("已发送AI代码解析请求，文件: " + filePath);
@@ -270,6 +274,76 @@ void AICodeParser::onNetworkError(QNetworkReply::NetworkError error) {
     Logger::instance().error(QString("网络错误: %1 (错误码: %2)").arg(m_currentReply ? m_currentReply->errorString() : "未知").arg(error));
 }
 
+void AICodeParser::onReadyRead() {
+    if (!m_currentReply) {
+        return;
+    }
+    
+    m_timeoutTimer->stop();
+    m_timeoutTimer->start(m_timeoutMs);
+    
+    QByteArray data = m_currentReply->readAll();
+    m_streamBuffer += QString::fromUtf8(data);
+    
+    QStringList lines = m_streamBuffer.split('\n');
+    m_streamBuffer = lines.takeLast();
+    
+    for (const QString& line : lines) {
+        if (line.trimmed().isEmpty()) {
+            continue;
+        }
+        
+        parseSSELine(line);
+    }
+}
+
+bool AICodeParser::parseSSELine(const QString& line) {
+    if (!line.startsWith("data: ")) {
+        return false;
+    }
+    
+    QString data = line.mid(6).trimmed();
+    
+    if (data == "[DONE]") {
+        return true;
+    }
+    
+    QJsonParseError parseError;
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(data.toUtf8(), &parseError);
+    
+    if (parseError.error != QJsonParseError::NoError) {
+        Logger::instance().warning("解析SSE数据失败: " + parseError.errorString());
+        return false;
+    }
+    
+    if (!jsonDoc.isObject()) {
+        return false;
+    }
+    
+    QJsonObject rootObj = jsonDoc.object();
+    
+    if (rootObj.contains("choices")) {
+        QJsonArray choicesArray = rootObj["choices"].toArray();
+        if (!choicesArray.isEmpty()) {
+            QJsonObject choiceObj = choicesArray[0].toObject();
+            if (choiceObj.contains("delta")) {
+                QJsonObject deltaObj = choiceObj["delta"].toObject();
+                if (deltaObj.contains("content")) {
+                    QString content = deltaObj["content"].toString();
+                    m_receivedTokens++;
+                    
+                    if (m_receivedTokens % 10 == 0) {
+                        emit parseProgress("AI处理中", 
+                            QString("正在分析代码... 已接收 %1 个token").arg(m_receivedTokens));
+                    }
+                }
+            }
+        }
+    }
+    
+    return true;
+}
+
 void AICodeParser::onTimeout() {
     Logger::instance().error(QString("请求超时 (%1 ms)").arg(m_timeoutMs));
     
@@ -308,6 +382,7 @@ QJsonObject AICodeParser::buildRequestJson(const QString& prompt) const {
     jsonObj["messages"] = messagesArray;
     jsonObj["temperature"] = 0.3;
     jsonObj["max_tokens"] = 16000;
+    jsonObj["stream"] = true;
 
     return jsonObj;
 }

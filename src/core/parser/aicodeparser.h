@@ -207,6 +207,18 @@ private:
      */
     bool readFileContent(const QString& filePath, QString& content) const;
 
+    /**
+     * @brief 处理流式响应数据
+     */
+    void onReadyRead();
+
+    /**
+     * @brief 解析SSE数据行
+     * @param line 数据行
+     * @return 是否成功解析
+     */
+    bool parseSSELine(const QString& line);
+
     QNetworkAccessManager* m_networkManager;    ///< 网络访问管理器
     QNetworkReply* m_currentReply;               ///< 当前网络回复
     QTimer* m_timeoutTimer;                      ///< 超时定时器
@@ -214,6 +226,8 @@ private:
     QString m_currentLanguage;                   ///< 当前解析的语言类型
     bool m_isParsing;                            ///< 是否正在解析
     int m_timeoutMs;                             ///< 超时时间（毫秒）
+    QString m_streamBuffer;                      ///< 流式响应缓冲区
+    int m_receivedTokens;                        ///< 已接收的token数
 };
 
 #endif // AICODEPARSER_H

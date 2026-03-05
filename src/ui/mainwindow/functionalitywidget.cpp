@@ -10,9 +10,10 @@
 #include "common/logger/logger.h"
 #include <QThread>
 #include <QCoreApplication>
+#include <QElapsedTimer>
 
 FunctionalityWidget::FunctionalityWidget(QWidget *parent)
-    : QWidget(parent), m_currentMode(ParseMode::SingleFile), m_successCount(0), m_failedCount(0), m_skippedCount(0)
+    : QWidget(parent), m_currentMode(ParseMode::SingleFile), m_successCount(0), m_failedCount(0), m_skippedCount(0), m_waitingTimer(nullptr), m_waitingDots(0)
 {
     setupUI();
 
@@ -38,6 +39,9 @@ FunctionalityWidget::FunctionalityWidget(QWidget *parent)
 
     connect(&aiParser, &AICodeParser::parseCancelled,
             this, &FunctionalityWidget::onAIParseCancelled);
+
+    m_waitingTimer = new QTimer(this);
+    connect(m_waitingTimer, &QTimer::timeout, this, &FunctionalityWidget::updateWaitingAnimation);
 
     Logger::instance().info("功能型widget初始化完成");
 }
@@ -529,4 +533,33 @@ void FunctionalityWidget::updateUIState(bool isProcessing)
     m_cancelButton->setVisible(isProcessing);
     m_progressBar->setVisible(isProcessing);
     m_logView->setVisible(isProcessing);
+    
+    if (isProcessing) {
+        m_waitingDots = 0;
+        m_elapsedTimer.start();
+        m_waitingTimer->start(500);
+    } else {
+        m_waitingTimer->stop();
+    }
+}
+
+void FunctionalityWidget::updateWaitingAnimation()
+{
+    if (!AICodeParser::instance().isParsing() && !BatchCodeParser::instance().isParsing()) {
+        return;
+    }
+    
+    m_waitingDots = (m_waitingDots % 3) + 1;
+    QString dots = QString(".").repeated(m_waitingDots);
+    
+    qint64 elapsed = m_elapsedTimer.elapsed() / 1000;
+    QString timeStr;
+    if (elapsed < 60) {
+        timeStr = QString("%1秒").arg(elapsed);
+    } else {
+        timeStr = QString("%1分%2秒").arg(elapsed / 60).arg(elapsed % 60);
+    }
+    
+    QString message = QString("AI正在分析代码%1 已用时: %2").arg(dots).arg(timeStr);
+    m_statusLabel->setText(message);
 }

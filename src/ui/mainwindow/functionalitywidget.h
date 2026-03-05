@@ -25,6 +25,7 @@
 #include <QTextEdit>
 #include <QComboBox>
 #include <QCheckBox>
+#include <QElapsedTimer>
 #include "core/ai/aiservicemanager.h"
 #include "core/database/databasemanager.h"
 #include "ui/dialogs/aiconfigdialog/aiconfigdialog.h"
@@ -171,6 +172,11 @@ private:
      */
     void updateUIState(bool isProcessing);
 
+    /**
+     * @brief 更新等待动画
+     */
+    void updateWaitingAnimation();
+
     QLabel *m_modeLabel;               ///< 模式标签
     QComboBox *m_modeComboBox;         ///< 模式选择下拉框
     QLabel *m_pathLabel;               ///< 路径标签
@@ -199,6 +205,10 @@ private:
     int m_successCount;                ///< 成功计数
     int m_failedCount;                 ///< 失败计数
     int m_skippedCount;                ///< 跳过计数
+    
+    QTimer *m_waitingTimer;            ///< 等待动画定时器
+    int m_waitingDots;                 ///< 等待动画点数
+    QElapsedTimer m_elapsedTimer;      ///< 计时器
 };
 
 #endif // FUNCTIONALITYWIDGET_H
