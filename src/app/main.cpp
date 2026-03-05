@@ -3,8 +3,8 @@
 #include "ui/mainwindow/mainwindow.h"
 #include "common/theme/thememanager.h"
 #include <QApplication>
+#include <QCoreApplication>
 #include <QDir>
-#include <QStandardPaths>
 #include <QStyleFactory>
 #include <QWebEngineView>
 
@@ -22,16 +22,22 @@ int main(int argc, char *argv[]) {
   ThemeManager::instance().init();
   ThemeManager::instance().applyTheme(&app);
 
-  QString appDataPath =
-      QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-  QDir dir(appDataPath);
-  if (!dir.exists()) {
-    dir.mkpath(".");
+  QString exeDir = QCoreApplication::applicationDirPath();
+  QString dbDirPath = exeDir + "/database";
+  QDir dbDir(dbDirPath);
+  if (!dbDir.exists()) {
+    if (!dbDir.mkpath(".")) {
+      Logger::instance().error("无法创建数据库目录: " + dbDirPath);
+      return -1;
+    }
+    Logger::instance().info("成功创建数据库目录: " + dbDirPath);
   }
 
   Logger::instance().info("应用程序启动");
+  Logger::instance().info("可执行文件目录: " + exeDir);
+  Logger::instance().info("数据库目录: " + dbDirPath);
 
-  QString dbPath = appDataPath + "/functions.db";
+  QString dbPath = dbDirPath + "/functions.db";
   if (!DatabaseManager::instance().init(dbPath)) {
     Logger::instance().error("数据库初始化失败，程序退出");
     return -1;
