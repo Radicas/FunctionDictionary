@@ -227,6 +227,7 @@ private:
     bool m_isParsing;                            ///< 是否正在解析
     int m_timeoutMs;                             ///< 超时时间（毫秒）
     QString m_streamBuffer;                      ///< 流式响应缓冲区
+    QString m_streamContent;                     ///< 流式响应完整内容
     int m_receivedTokens;                        ///< 已接收的token数
 };
 

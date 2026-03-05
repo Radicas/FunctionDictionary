@@ -49,6 +49,11 @@ bool DatabaseManager::init(const QString& dbPath) {
         return false;
     }
 
+    if (!migrateTables()) {
+        m_db.close();
+        return false;
+    }
+
     m_initialized = true;
     Logger::instance().info("数据库初始化成功: " + dbPath);
     return true;
@@ -113,6 +118,60 @@ bool DatabaseManager::createTables() {
     QString createIndexLanguageSql = "CREATE INDEX IF NOT EXISTS idx_functions_language ON functions(language)";
     query.exec(createIndexLanguageSql);
 
+    return true;
+}
+
+bool DatabaseManager::migrateTables() {
+    return checkAndAddMissingColumns();
+}
+
+bool DatabaseManager::checkAndAddMissingColumns() {
+    QSqlQuery query;
+    
+    QStringList requiredColumns = {
+        "signature TEXT",
+        "return_type TEXT",
+        "parameters TEXT",
+        "file_path TEXT",
+        "start_line INTEGER",
+        "end_line INTEGER",
+        "language TEXT",
+        "flowchart TEXT",
+        "sequence_diagram TEXT",
+        "structure_diagram TEXT",
+        "ai_model TEXT",
+        "analyze_time DATETIME"
+    };
+    
+    for (const QString& columnDef : requiredColumns) {
+        QString columnName = columnDef.split(" ").first();
+        
+        query.prepare("PRAGMA table_info(functions)");
+        if (!query.exec()) {
+            m_lastError = "检查表结构失败: " + query.lastError().text();
+            Logger::instance().error(m_lastError);
+            return false;
+        }
+        
+        bool columnExists = false;
+        while (query.next()) {
+            if (query.value(1).toString() == columnName) {
+                columnExists = true;
+                break;
+            }
+        }
+        
+        if (!columnExists) {
+            QString alterSql = QString("ALTER TABLE functions ADD COLUMN %1").arg(columnDef);
+            if (!query.exec(alterSql)) {
+                m_lastError = QString("添加列 %1 失败: %2").arg(columnName).arg(query.lastError().text());
+                Logger::instance().error(m_lastError);
+                return false;
+            }
+            Logger::instance().info(QString("成功添加列: %1").arg(columnName));
+        }
+    }
+    
     return true;
 }
 

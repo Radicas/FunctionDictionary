@@ -164,6 +164,18 @@ private:
      */
     bool createTables();
 
+    /**
+     * @brief 迁移数据库表结构
+     * @return 迁移是否成功
+     */
+    bool migrateTables();
+
+    /**
+     * @brief 检查并添加缺失的列
+     * @return 是否成功
+     */
+    bool checkAndAddMissingColumns();
+
     QSqlDatabase m_db;       ///< 数据库连接
     bool m_initialized;       ///< 初始化标志
     QString m_lastError;      ///< 最后一次错误信息
