@@ -256,23 +256,32 @@
             var mermaidInitialized = false;
             
             function initMermaid() {
+                console.log('初始化 Mermaid, mermaid 对象类型: ' + typeof mermaid + ', 已初始化: ' + mermaidInitialized);
+                
                 if (typeof mermaid !== 'undefined' && !mermaidInitialized) {
-                    mermaid.initialize({
-                        startOnLoad: false,
-                        theme: currentTheme === 'dark' ? 'dark' : 'default',
-                        securityLevel: 'loose',
-                        flowchart: {
-                            useMaxWidth: true,
-                            htmlLabels: true
-                        },
-                        sequence: {
-                            useMaxWidth: true
-                        },
-                        gantt: {
-                            useMaxWidth: true
-                        }
-                    });
-                    mermaidInitialized = true;
+                    try {
+                        mermaid.initialize({
+                            startOnLoad: false,
+                            theme: currentTheme === 'dark' ? 'dark' : 'default',
+                            securityLevel: 'loose',
+                            flowchart: {
+                                useMaxWidth: true,
+                                htmlLabels: true
+                            },
+                            sequence: {
+                                useMaxWidth: true
+                            },
+                            gantt: {
+                                useMaxWidth: true
+                            }
+                        });
+                        mermaidInitialized = true;
+                        console.log('Mermaid 初始化成功');
+                    } catch (e) {
+                        console.error('Mermaid 初始化失败:', e);
+                    }
+                } else if (typeof mermaid === 'undefined') {
+                    console.error('Mermaid 库未定义，无法初始化');
                 }
             }
             
@@ -280,6 +289,9 @@
                 if (typeof marked !== 'undefined' && typeof hljs !== 'undefined') {
                     marked.setOptions({
                         highlight: function(code, lang) {
+                            if (lang === 'mermaid') {
+                                return code;
+                            }
                             if (lang && hljs.getLanguage(lang)) {
                                 try {
                                     return hljs.highlight(code, { language: lang }).value;
@@ -309,8 +321,13 @@
                 tempDiv.innerHTML = html;
                 
                 var codeBlocks = tempDiv.querySelectorAll('pre code.language-mermaid');
+                console.log('找到 ' + codeBlocks.length + ' 个 mermaid 代码块');
+                
                 codeBlocks.forEach(function(block, index) {
                     var mermaidCode = block.textContent;
+                    console.log('处理 mermaid 代码块 #' + index + ', 长度: ' + mermaidCode.length);
+                    console.log('Mermaid 代码预览: ' + mermaidCode.substring(0, 100));
+                    
                     var mermaidDiv = document.createElement('div');
                     mermaidDiv.className = 'mermaid';
                     mermaidDiv.setAttribute('data-mermaid', mermaidCode);
@@ -322,23 +339,36 @@
             }
             
             function renderMermaid() {
+                console.log('开始渲染 Mermaid 图表, mermaid 对象类型: ' + typeof mermaid);
+                
                 if (typeof mermaid !== 'undefined') {
                     var mermaidDivs = document.querySelectorAll('.mermaid');
-                    mermaidDivs.forEach(function(div) {
+                    console.log('找到 ' + mermaidDivs.length + ' 个待渲染的 mermaid 元素');
+                    
+                    mermaidDivs.forEach(function(div, index) {
                         var code = div.getAttribute('data-mermaid') || div.textContent;
+                        console.log('渲染 mermaid 图表 #' + index);
+                        console.log('代码内容: ' + code.substring(0, 100));
+                        
                         try {
-                            mermaid.render('mermaid-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9), code, function(svg) {
+                            var id = 'mermaid-' + Date.now() + '-' + index + '-' + Math.random().toString(36).substr(2, 9);
+                            mermaid.render(id, code, function(svg) {
+                                console.log('Mermaid 图表 #' + index + ' 渲染成功');
                                 div.innerHTML = svg;
                             });
                         } catch (e) {
-                            console.error('Mermaid render error:', e);
-                            div.innerHTML = '<pre style="color: red;">Mermaid 图表渲染错误: ' + escapeHtml(e.message || e) + '</pre>';
+                            console.error('Mermaid render error for #' + index + ':', e);
+                            console.error('错误代码: ' + code);
+                            div.innerHTML = '<pre style="color: red; background: #fee; padding: 10px; border-radius: 4px;">Mermaid 图表渲染错误: ' + escapeHtml(e.message || e) + '\n\n代码:\n' + escapeHtml(code) + '</pre>';
                         }
                     });
+                } else {
+                    console.error('Mermaid 库未加载');
                 }
             }
             
             window.renderMarkdown = function(content) {
+                console.log('renderMarkdown 被调用，内容长度: ' + (content ? content.length : 0));
                 var contentDiv = document.getElementById('content');
                 
                 if (!content || content.trim() === '') {
@@ -352,7 +382,9 @@
                     var html;
                     if (typeof marked !== 'undefined') {
                         html = marked.parse(content);
+                        console.log('Markdown 解析完成，HTML 长度: ' + html.length);
                     } else {
+                        console.warn('marked 库未定义，使用原始文本');
                         html = '<pre>' + escapeHtml(content) + '</pre>';
                     }
                     
@@ -362,11 +394,12 @@
                     setTimeout(function() {
                         initMermaid();
                         renderMermaid();
-                    }, 50);
+                    }, 100);
                     
                 } catch (e) {
                     console.error('Render error:', e);
-                    contentDiv.innerHTML = '<pre style="color: red;">渲染错误: ' + escapeHtml(e.message || e) + '</pre>';
+                    console.error('错误堆栈:', e.stack);
+                    contentDiv.innerHTML = '<pre style="color: red; background: #fee; padding: 10px; border-radius: 4px;">渲染错误: ' + escapeHtml(e.message || e) + '\n\n堆栈:\n' + escapeHtml(e.stack || '') + '</pre>';
                 }
             };
             
