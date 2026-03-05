@@ -1,5 +1,5 @@
 /**
- * @file FunctionalityWidget.h
+ * @file functionalitywidget.h
  * @brief 功能型widget组件，集成设置、配置加载及文件解析等功能
  * @author Developer
  * @date 2026-02-28

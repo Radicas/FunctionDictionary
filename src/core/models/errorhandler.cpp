@@ -1,12 +1,12 @@
 /**
- * @file ErrorHandler.cpp
+ * @file errorhandler.cpp
  * @brief 错误处理器实现
  * @author Developer
  * @date 2026-03-03
  * @version 1.0
  */
 
-#include "errorhandler.h"
+#include "core/models/errorhandler.h"
 
 ErrorHandler& ErrorHandler::instance() {
     static ErrorHandler handler;

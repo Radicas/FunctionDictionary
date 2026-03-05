@@ -1,4 +1,4 @@
-#include "addfunctiondialog.h"
+#include "ui/dialogs/addfunctiondialog/addfunctiondialog.h"
 #include "common/logger/logger.h"
 #include <QMessageBox>
 

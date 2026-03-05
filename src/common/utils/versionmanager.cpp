@@ -1,12 +1,12 @@
 /**
- * @file VersionManager.cpp
+ * @file versionmanager.cpp
  * @brief 版本号管理类实现
  * @author Radica
  * @date 2026-02-28
  * @version 1.0.0
  */
 
-#include "versionmanager.h"
+#include "common/utils/versionmanager.h"
 #include <sstream>
 #include <stdexcept>
 

@@ -1,5 +1,5 @@
 /**
- * @file ThemeManager.cpp
+ * @file thememanager.cpp
  * @brief 主题管理器实现
  * @author Radica
  * @date 2026-03-02
@@ -10,7 +10,7 @@
  * - v2.0.0: 优化为Fusion风格支持，QPalette优先于QSS应用
  */
 
-#include "thememanager.h"
+#include "common/theme/thememanager.h"
 #include "common/logger/logger.h"
 #include <QFile>
 #include <QDebug>

@@ -39,9 +39,9 @@ struct FunctionData {
      */
     FunctionData()
         : id(0)
+        , createTime(QDateTime::currentDateTime())
         , startLine(0)
         , endLine(0)
-        , createTime(QDateTime::currentDateTime())
         , analyzeTime(QDateTime::currentDateTime())
     {}
 };

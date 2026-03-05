@@ -9,7 +9,7 @@
 #ifndef AISERVICEMANAGER_H
 #define AISERVICEMANAGER_H
 
-#include "aiconfigmanager.h"
+#include "core/ai/aiconfigmanager.h"
 #include "core/models/extractedfunction.h"
 #include "core/models/batchconfig.h"
 #include <QObject>

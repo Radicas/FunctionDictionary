@@ -15,7 +15,7 @@
 #ifndef BATCHCODEPARSER_H
 #define BATCHCODEPARSER_H
 
-#include "aicodeparser.h"
+#include "core/parser/aicodeparser.h"
 #include <QObject>
 #include <QString>
 #include <QStringList>

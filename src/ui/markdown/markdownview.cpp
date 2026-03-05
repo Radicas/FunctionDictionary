@@ -1,4 +1,4 @@
-#include "markdownview.h"
+#include "ui/markdown/markdownview.h"
 #include "common/logger/logger.h"
 #include <QFile>
 #include <QUrl>

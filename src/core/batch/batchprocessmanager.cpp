@@ -1,12 +1,12 @@
 /**
- * @file BatchProcessManager.cpp
+ * @file batchprocessmanager.cpp
  * @brief 批量处理管理器实现
  * @author Developer
  * @date 2026-03-03
  * @version 1.0
  */
 
-#include "batchprocessmanager.h"
+#include "core/batch/batchprocessmanager.h"
 #include "common/logger/logger.h"
 #include "core/database/databasemanager.h"
 #include "core/ai/aiservicemanager.h"

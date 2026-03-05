@@ -1,12 +1,12 @@
 /**
- * @file AIConfigDialog.cpp
+ * @file aiconfigdialog.cpp
  * @brief AI配置对话框实现
  * @author Developer
  * @date 2026-02-28
  * @version 1.0
  */
 
-#include "aiconfigdialog.h"
+#include "ui/dialogs/aiconfigdialog/aiconfigdialog.h"
 #include "common/logger/logger.h"
 #include <QMessageBox>
 #include <QNetworkAccessManager>

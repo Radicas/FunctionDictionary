@@ -1,12 +1,12 @@
 /**
- * @file AIConfigManager.cpp
+ * @file aiconfigmanager.cpp
  * @brief AI配置管理器实现
  * @author Developer
  * @date 2026-02-28
  * @version 1.0
  */
 
-#include "aiconfigmanager.h"
+#include "core/ai/aiconfigmanager.h"
 #include "common/logger/logger.h"
 #include <QCoreApplication>
 

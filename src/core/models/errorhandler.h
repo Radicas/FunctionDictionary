@@ -11,7 +11,7 @@
 
 #include <QObject>
 #include <QMutex>
-#include "processerror.h"
+#include "core/models/processerror.h"
 #include "common/logger/logger.h"
 
 /**

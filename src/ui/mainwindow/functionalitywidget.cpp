@@ -1,12 +1,12 @@
 /**
- * @file FunctionalityWidget.cpp
+ * @file functionalitywidget.cpp
  * @brief 功能型widget组件实现
  * @author Developer
  * @date 2026-02-28
  * @version 1.0
  */
 
-#include "FunctionalityWidget.h"
+#include "ui/mainwindow/functionalitywidget.h"
 #include "common/logger/logger.h"
 #include <QThread>
 #include <QCoreApplication>

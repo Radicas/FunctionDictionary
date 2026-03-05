@@ -1,4 +1,4 @@
-#include "databasemanager.h"
+#include "core/database/databasemanager.h"
 #include "common/logger/logger.h"
 #include <QDir>
 #include <QFileInfo>

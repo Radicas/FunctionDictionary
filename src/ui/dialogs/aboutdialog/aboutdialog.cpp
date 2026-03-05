@@ -1,13 +1,13 @@
 /**
- * @file AboutDialog.cpp
+ * @file aboutdialog.cpp
  * @brief 关于对话框实现
  * @author Radica
  * @date 2026-02-28
  * @version 1.0.0
  */
 
-#include "aboutdialog.h"
-#include "versionmanager.h"
+#include "ui/dialogs/aboutdialog/aboutdialog.h"
+#include "common/utils/versionmanager.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>

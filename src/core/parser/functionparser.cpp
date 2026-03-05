@@ -1,12 +1,12 @@
 /**
- * @file FunctionParser.cpp
+ * @file functionparser.cpp
  * @brief 函数解析器实现
  * @author Developer
  * @date 2026-03-03
  * @version 1.0
  */
 
-#include "functionparser.h"
+#include "core/parser/functionparser.h"
 #include "common/logger/logger.h"
 #include <QFile>
 #include <QFileInfo>

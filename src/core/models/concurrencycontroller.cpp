@@ -1,12 +1,12 @@
 /**
- * @file ConcurrencyController.cpp
+ * @file concurrencycontroller.cpp
  * @brief 并发控制器实现
  * @author Developer
  * @date 2026-03-03
  * @version 1.0
  */
 
-#include "concurrencycontroller.h"
+#include "core/models/concurrencycontroller.h"
 #include "common/logger/logger.h"
 
 ConcurrencyController::ConcurrencyController(int maxConcurrent, QObject* parent)

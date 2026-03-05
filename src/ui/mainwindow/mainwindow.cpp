@@ -1,5 +1,5 @@
-#include "mainwindow.h"
-#include "FunctionalityWidget.h"
+#include "ui/mainwindow/mainwindow.h"
+#include "ui/mainwindow/functionalitywidget.h"
 #include "ui/dialogs/addfunctiondialog/addfunctiondialog.h"
 #include "common/logger/logger.h"
 #include <QMessageBox>

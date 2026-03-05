@@ -6,7 +6,7 @@
  * @version 1.0
  */
 
-#include "function_dict_c_api.h"
+#include "api/function_dict_c_api.h"
 #include "core/database/databasemanager.h"
 #include "common/logger/logger.h"
 #include <QString>

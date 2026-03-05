@@ -6,7 +6,7 @@
  * @version 1.0
  */
 
-#include "aicodeparser.h"
+#include "core/parser/aicodeparser.h"
 #include "core/ai/aiconfigmanager.h"
 #include "common/logger/logger.h"
 #include <QFile>

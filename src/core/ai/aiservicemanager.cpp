@@ -1,12 +1,12 @@
 /**
- * @file AIServiceManager.cpp
+ * @file aiservicemanager.cpp
  * @brief AI服务管理器实现
  * @author Developer
  * @date 2026-02-28
  * @version 1.0
  */
 
-#include "aiservicemanager.h"
+#include "core/ai/aiservicemanager.h"
 #include "common/logger/logger.h"
 #include <QNetworkRequest>
 #include <QJsonParseError>
@@ -136,7 +136,7 @@ void AIServiceManager::analyzeFunctions(const QVector<ExtractedFunction>& functi
     
     m_startTime = QDateTime::currentDateTime();
     
-    if (!m_requestQueue.size() == functions.size()) {
+    if (m_requestQueue.size() == functions.size()) {
         processQueue();
     }
 }

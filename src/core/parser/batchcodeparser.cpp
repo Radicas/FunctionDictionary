@@ -6,7 +6,7 @@
  * @version 1.0
  */
 
-#include "batchcodeparser.h"
+#include "core/parser/batchcodeparser.h"
 #include "core/database/databasemanager.h"
 #include "common/logger/logger.h"
 #include <QDir>

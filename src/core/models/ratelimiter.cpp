@@ -1,12 +1,12 @@
 /**
- * @file RateLimiter.cpp
+ * @file ratelimiter.cpp
  * @brief 速率限制器实现
  * @author Developer
  * @date 2026-03-03
  * @version 1.0
  */
 
-#include "ratelimiter.h"
+#include "core/models/ratelimiter.h"
 #include "common/logger/logger.h"
 
 RateLimiter::RateLimiter(int requestsPerMinute, QObject* parent)

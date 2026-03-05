@@ -15,7 +15,7 @@
 #include "core/database/databasemanager.h"
 #include "ui/dialogs/aiconfigdialog/aiconfigdialog.h"
 #include "ui/dialogs/aboutdialog/aboutdialog.h"
-#include "FunctionalityWidget.h"
+#include "ui/mainwindow/functionalitywidget.h"
 #include "ui/markdown/markdownview.h"
 #include "common/theme/thememanager.h"
 #include <QHBoxLayout>
