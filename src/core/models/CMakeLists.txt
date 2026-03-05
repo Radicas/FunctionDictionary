@@ -10,6 +10,7 @@ add_library(core_models STATIC
     RateLimiter.cpp
     concurrencycontroller.h
     ConcurrencyController.cpp
+    parseresult.h
 )
 
 target_include_directories(core_models

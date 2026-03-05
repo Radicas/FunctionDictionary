@@ -13,6 +13,7 @@
 #define MAINWINDOW_H
 
 #include "core/database/databasemanager.h"
+#include "core/interfaces/iparseservice.h"
 #include "ui/dialogs/aiconfigdialog/aiconfigdialog.h"
 #include "ui/dialogs/aboutdialog/aboutdialog.h"
 #include "ui/mainwindow/functionalitywidget.h"
@@ -61,6 +62,7 @@ private:
   QListWidget *m_functionList;
   MarkdownView *m_detailBrowser;
   FunctionalityWidget *m_functionalityWidget;
+  IParseService *m_parseService;
   QPushButton *m_addButton;
   QPushButton *m_deleteButton;
   QMap<int, FunctionData> m_functionMap;

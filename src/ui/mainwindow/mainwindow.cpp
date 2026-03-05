@@ -1,6 +1,7 @@
 #include "ui/mainwindow/mainwindow.h"
 #include "ui/mainwindow/functionalitywidget.h"
 #include "ui/dialogs/addfunctiondialog/addfunctiondialog.h"
+#include "core/services/parseservice.h"
 #include "common/logger/logger.h"
 #include <QMessageBox>
 #include <QVBoxLayout>
@@ -13,10 +14,12 @@ MainWindow::MainWindow(QWidget* parent)
     , m_functionList(nullptr)
     , m_detailBrowser(nullptr)
     , m_functionalityWidget(nullptr)
+    , m_parseService(nullptr)
     , m_addButton(nullptr)
     , m_deleteButton(nullptr)
     , m_currentFunctionId(-1)
     , m_themeActionGroup(nullptr) {
+    m_parseService = new ParseService(this);
     setupUI();
     loadFunctionList();
     
@@ -57,7 +60,7 @@ void MainWindow::setupUI() {
     QFrame* detailPanel = createPanelFrame("", m_detailBrowser, "detailPanel");
     splitter->addWidget(detailPanel);
 
-    m_functionalityWidget = new FunctionalityWidget(this);
+    m_functionalityWidget = new FunctionalityWidget(m_parseService, this);
     connect(m_functionalityWidget, &FunctionalityWidget::batchProcessingCompleted,
             this, &MainWindow::loadFunctionList);
     QFrame* functionalityPanel = createPanelFrame("功能操作", m_functionalityWidget, "functionalityPanel");
