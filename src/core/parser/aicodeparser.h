@@ -118,6 +118,11 @@ signals:
      */
     void parseProgress(const QString& stage, const QString& message);
 
+    /**
+     * @brief 解析取消完成信号
+     */
+    void parseCancelled();
+
 private slots:
     /**
      * @brief 网络请求完成槽函数

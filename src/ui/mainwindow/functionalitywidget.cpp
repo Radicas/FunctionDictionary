@@ -12,7 +12,7 @@
 #include <QCoreApplication>
 
 FunctionalityWidget::FunctionalityWidget(QWidget *parent)
-    : QWidget(parent), m_currentMode(ParseMode::SingleFile), m_successCount(0), m_failedCount(0)
+    : QWidget(parent), m_currentMode(ParseMode::SingleFile), m_successCount(0), m_failedCount(0), m_skippedCount(0)
 {
     setupUI();
 
@@ -33,6 +33,11 @@ FunctionalityWidget::FunctionalityWidget(QWidget *parent)
             this, &FunctionalityWidget::onBatchComplete);
     connect(&batchParser, &BatchCodeParser::batchFailed,
             this, &FunctionalityWidget::onBatchFailed);
+    connect(&batchParser, &BatchCodeParser::batchCancelled,
+            this, &FunctionalityWidget::onBatchCancelled);
+
+    connect(&aiParser, &AICodeParser::parseCancelled,
+            this, &FunctionalityWidget::onAIParseCancelled);
 
     Logger::instance().info("功能型widget初始化完成");
 }
@@ -258,6 +263,8 @@ void FunctionalityWidget::onParseButtonClicked()
 
 void FunctionalityWidget::onCancelClicked()
 {
+    showStatusMessage("正在取消解析...");
+    
     if (m_currentMode == ParseMode::SingleFile)
     {
         AICodeParser::instance().cancelParsing();
@@ -266,8 +273,6 @@ void FunctionalityWidget::onCancelClicked()
     {
         BatchCodeParser::instance().cancelParsing();
     }
-    showStatusMessage("已取消解析");
-    onParseFinished();
 }
 
 void FunctionalityWidget::onParseFinished()
@@ -282,14 +287,14 @@ void FunctionalityWidget::onAIParseComplete(const AIParseResult &result)
 
     m_successCount = 0;
     m_failedCount = 0;
-    int skippedCount = 0;
+    m_skippedCount = 0;
     bool skipExisting = m_skipExistingCheckBox->isChecked();
 
     for (const FunctionData &funcData : result.functions)
     {
         if (skipExisting && DatabaseManager::instance().functionExists(funcData.key))
         {
-            skippedCount++;
+            m_skippedCount++;
             m_logView->append(QString("[跳过] %1 - 已存在").arg(funcData.key));
         }
         else
@@ -313,14 +318,14 @@ void FunctionalityWidget::onAIParseComplete(const AIParseResult &result)
 
     m_successCountLabel->setText(QString("成功: %1").arg(m_successCount));
     m_failedCountLabel->setText(QString("失败: %1").arg(m_failedCount));
-    m_skippedCountLabel->setText(QString("跳过: %1").arg(skippedCount));
+    m_skippedCountLabel->setText(QString("跳过: %1").arg(m_skippedCount));
 
     m_progressBar->setValue(100);
 
     QString message = QString("解析完成！成功: %1, 失败: %2, 跳过: %3")
                           .arg(m_successCount)
                           .arg(m_failedCount)
-                          .arg(skippedCount);
+                          .arg(m_skippedCount);
     QMessageBox::information(this, "完成", message);
     showStatusMessage(message);
     Logger::instance().info(message);
@@ -354,10 +359,15 @@ void FunctionalityWidget::onAIParseProgress(const QString &stage, const QString 
     else if (stage == "发送请求")
     {
         m_progressBar->setValue(30);
+        m_logView->append("正在等待AI响应，这可能需要一些时间...");
     }
     else if (stage == "解析响应")
     {
         m_progressBar->setValue(70);
+    }
+    else if (stage == "保存数据")
+    {
+        m_progressBar->setValue(90);
     }
 }
 
@@ -423,6 +433,20 @@ void FunctionalityWidget::onBatchFailed(const QString &error)
     onParseFinished();
 }
 
+void FunctionalityWidget::onAIParseCancelled()
+{
+    showStatusMessage("已取消解析");
+    m_logView->append("[取消] AI解析已取消");
+    onParseFinished();
+}
+
+void FunctionalityWidget::onBatchCancelled()
+{
+    showStatusMessage("已取消批量解析");
+    m_logView->append("[取消] 批量解析已取消");
+    onParseFinished();
+}
+
 bool FunctionalityWidget::validatePath(const QString &path)
 {
     QFileInfo fileInfo(path);
@@ -441,12 +465,33 @@ void FunctionalityWidget::showStatusMessage(const QString &message, int duration
 
 void FunctionalityWidget::startParsing()
 {
+    AIConfig config = AIConfigManager::instance().getCurrentConfig();
+    if (!AIConfigManager::instance().isConfigValid(config)) {
+        QMessageBox msgBox(this);
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.setWindowTitle("AI配置缺失");
+        msgBox.setText("AI配置不完整，请先配置AI服务！");
+        msgBox.setInformativeText("是否立即配置AI服务？");
+        QPushButton *configBtn = msgBox.addButton("立即配置", QMessageBox::ActionRole);
+        msgBox.addButton("取消", QMessageBox::RejectRole);
+        
+        msgBox.exec();
+        
+        if (msgBox.clickedButton() == configBtn) {
+            AIConfigDialog dialog(this);
+            dialog.exec();
+            Logger::instance().info("用户打开AI配置对话框");
+        }
+        return;
+    }
+    
     updateUIState(true);
     m_logView->clear();
     m_progressBar->setValue(0);
 
     m_successCount = 0;
     m_failedCount = 0;
+    m_skippedCount = 0;
 
     m_successCountLabel->setText("成功: 0");
     m_failedCountLabel->setText("失败: 0");

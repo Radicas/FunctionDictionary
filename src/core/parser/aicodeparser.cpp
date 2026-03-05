@@ -132,6 +132,7 @@ void AICodeParser::cancelParsing() {
     }
     m_isParsing = false;
     Logger::instance().info("已取消AI代码解析");
+    emit parseCancelled();
 }
 
 bool AICodeParser::isParsing() const {
@@ -251,11 +252,12 @@ void AICodeParser::onReplyFinished() {
     Logger::instance().info(QString("AI响应内容长度: %1 字符").arg(aiResponse.size()));
     
     AIParseResult result = parseAIResponse(aiResponse, m_currentFilePath, m_currentLanguage);
-    
+
     AIConfig config = AIConfigManager::instance().getCurrentConfig();
     result.aiModel = config.modelId;
-    
+
     if (result.success) {
+        emit parseProgress("保存数据", "正在保存解析结果...");
         emit parseComplete(result);
         Logger::instance().info(QString("AI代码解析完成，提取到 %1 个函数").arg(result.functions.size()));
     } else {

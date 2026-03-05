@@ -120,6 +120,16 @@ private slots:
      */
     void onBatchFailed(const QString& error);
 
+    /**
+     * @brief AI解析取消完成槽函数
+     */
+    void onAIParseCancelled();
+
+    /**
+     * @brief 批量解析取消完成槽函数
+     */
+    void onBatchCancelled();
+
 private:
     /**
      * @brief 设置UI界面
@@ -188,6 +198,7 @@ private:
     ParseMode m_currentMode;           ///< 当前解析模式
     int m_successCount;                ///< 成功计数
     int m_failedCount;                 ///< 失败计数
+    int m_skippedCount;                ///< 跳过计数
 };
 
 #endif // FUNCTIONALITYWIDGET_H

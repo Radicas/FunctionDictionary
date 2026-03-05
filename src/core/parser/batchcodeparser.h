@@ -140,6 +140,11 @@ signals:
      */
     void batchFailed(const QString& error);
 
+    /**
+     * @brief 批量解析取消完成信号
+     */
+    void batchCancelled();
+
 private slots:
     /**
      * @brief 单个文件解析完成槽函数
@@ -176,8 +181,9 @@ private:
      * @brief 递归扫描文件夹
      * @param folderPath 文件夹路径
      * @param files 输出参数，找到的文件列表
+     * @param recursive 是否递归扫描子文件夹
      */
-    void scanFolder(const QString& folderPath, QStringList& files);
+    void scanFolder(const QString& folderPath, QStringList& files, bool recursive = true);
 
     /**
      * @brief 检查文件扩展名是否在允许列表中

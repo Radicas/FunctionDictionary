@@ -76,10 +76,10 @@ void BatchCodeParser::parseFolder(const QString& folderPath, bool recursive) {
         return;
     }
     
-    Logger::instance().info("开始扫描文件夹: " + folderPath);
+    Logger::instance().info("开始扫描文件夹: " + folderPath + ", 递归: " + (recursive ? "是" : "否"));
     
     QStringList files;
-    scanFolder(folderPath, files);
+    scanFolder(folderPath, files, recursive);
     
     if (files.isEmpty()) {
         emit batchFailed("文件夹中没有找到代码文件");
@@ -132,6 +132,7 @@ void BatchCodeParser::cancelParsing() {
     AICodeParser::instance().cancelParsing();
     
     Logger::instance().info("已取消批量解析");
+    emit batchCancelled();
 }
 
 bool BatchCodeParser::isParsing() const {
@@ -150,14 +151,15 @@ void BatchCodeParser::setExcludeDirectories(const QStringList& directories) {
     m_excludeDirectories = directories;
 }
 
-void BatchCodeParser::scanFolder(const QString& folderPath, QStringList& files) {
+void BatchCodeParser::scanFolder(const QString& folderPath, QStringList& files, bool recursive) {
     QDir dir(folderPath);
     if (!dir.exists()) {
         Logger::instance().warning("文件夹不存在: " + folderPath);
         return;
     }
     
-    QDirIterator it(folderPath, QDir::Files | QDir::NoSymLinks, QDirIterator::Subdirectories);
+    QDirIterator::IteratorFlags flags = recursive ? QDirIterator::Subdirectories : QDirIterator::NoIteratorFlags;
+    QDirIterator it(folderPath, QDir::Files | QDir::NoSymLinks, flags);
     
     while (it.hasNext()) {
         QString filePath = it.next();
