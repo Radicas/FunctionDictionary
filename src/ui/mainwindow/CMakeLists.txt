@@ -26,8 +26,10 @@ target_link_libraries(ui_mainwindow
     core_ai
     core_database
     core_services
+    core_models
     ui_dialogs_aiconfigdialog
     ui_dialogs_aboutdialog
+    ui_dialogs_addprojectdialog
     ui_markdown
     common_logger
 )

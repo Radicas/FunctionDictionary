@@ -17,7 +17,8 @@
  */
 struct FunctionData {
     int id;                             ///< 函数ID
-    QString key;                        ///< 函数名称（唯一标识）
+    int projectId;                      ///< 所属项目ID
+    QString key;                        ///< 函数名称
     QString value;                      ///< 函数介绍（Markdown格式）
     QDateTime createTime;               ///< 创建时间
     
@@ -39,6 +40,7 @@ struct FunctionData {
      */
     FunctionData()
         : id(0)
+        , projectId(0)
         , createTime(QDateTime::currentDateTime())
         , startLine(0)
         , endLine(0)

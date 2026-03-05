@@ -1,3 +1,4 @@
 add_subdirectory(addfunctiondialog)
+add_subdirectory(addprojectdialog)
 add_subdirectory(aiconfigdialog)
 add_subdirectory(aboutdialog)

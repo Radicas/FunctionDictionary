@@ -18,6 +18,7 @@
 #include <QPair>
 #include <QSet>
 #include "core/models/functiondata.h"
+#include "core/models/projectinfo.h"
 #include "core/models/batchconfig.h"
 
 /**
@@ -151,6 +152,75 @@ public:
      * @return 已处理的函数名集合
      */
     QSet<QString> getProcessedFunctions(const QString& filePath);
+
+    /**
+     * @brief 添加项目
+     * @param project 项目信息
+     * @return 添加是否成功
+     */
+    bool addProject(ProjectInfo& project);
+
+    /**
+     * @brief 更新项目
+     * @param project 项目信息
+     * @return 更新是否成功
+     */
+    bool updateProject(const ProjectInfo& project);
+
+    /**
+     * @brief 删除项目
+     * @param projectId 项目ID
+     * @return 删除是否成功
+     */
+    bool deleteProject(int projectId);
+
+    /**
+     * @brief 获取所有项目
+     * @return 项目列表
+     */
+    QVector<ProjectInfo> getAllProjects();
+
+    /**
+     * @brief 根据ID获取项目
+     * @param projectId 项目ID
+     * @return 项目信息
+     */
+    ProjectInfo getProjectById(int projectId);
+
+    /**
+     * @brief 检查项目路径是否存在
+     * @param rootPath 项目根路径
+     * @return 是否存在
+     */
+    bool projectPathExists(const QString& rootPath);
+
+    /**
+     * @brief 根据项目ID获取函数列表
+     * @param projectId 项目ID
+     * @return 函数列表
+     */
+    QVector<FunctionData> getFunctionsByProject(int projectId);
+
+    /**
+     * @brief 删除项目下的所有函数
+     * @param projectId 项目ID
+     * @return 删除是否成功
+     */
+    bool deleteFunctionsByProject(int projectId);
+
+    /**
+     * @brief 检查函数是否存在（按key和filePath组合）
+     * @param key 函数名称
+     * @param filePath 文件路径
+     * @return 是否存在
+     */
+    bool functionExistsByKeyAndPath(const QString& key, const QString& filePath);
+
+    /**
+     * @brief 清空所有数据（用于重置）
+     * @return 是否成功
+     */
+    bool clearAllData();
 
 private:
     DatabaseManager();

@@ -66,9 +66,25 @@ bool DatabaseManager::isInitialized() const {
 bool DatabaseManager::createTables() {
     QSqlQuery query;
     
+    QString createProjectsSql = "CREATE TABLE IF NOT EXISTS projects ("
+                                 "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                                 "name TEXT NOT NULL, "
+                                 "root_path TEXT NOT NULL UNIQUE, "
+                                 "description TEXT, "
+                                 "create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "
+                                 "update_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"
+                                 ")";
+
+    if (!query.exec(createProjectsSql)) {
+        m_lastError = "创建projects表失败: " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+    
     QString createFunctionsSql = "CREATE TABLE IF NOT EXISTS functions ("
                                   "id INTEGER PRIMARY KEY AUTOINCREMENT, "
-                                  "key TEXT NOT NULL UNIQUE, "
+                                  "project_id INTEGER, "
+                                  "key TEXT NOT NULL, "
                                   "value TEXT NOT NULL, "
                                   "signature TEXT, "
                                   "return_type TEXT, "
@@ -82,7 +98,9 @@ bool DatabaseManager::createTables() {
                                   "structure_diagram TEXT, "
                                   "ai_model TEXT, "
                                   "create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "
-                                  "analyze_time DATETIME"
+                                  "analyze_time DATETIME, "
+                                  "UNIQUE(key, file_path), "
+                                  "FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE"
                                   ")";
 
     if (!query.exec(createFunctionsSql)) {
@@ -129,6 +147,7 @@ bool DatabaseManager::checkAndAddMissingColumns() {
     QSqlQuery query;
     
     QStringList requiredColumns = {
+        "project_id INTEGER",
         "signature TEXT",
         "return_type TEXT",
         "parameters TEXT",
@@ -279,14 +298,16 @@ QVector<FunctionData> DatabaseManager::getAllFunctions() {
         return functions;
     }
 
-    QSqlQuery query("SELECT id, key, value, create_time FROM functions ORDER BY key ASC");
+    QSqlQuery query("SELECT id, project_id, key, value, file_path, create_time FROM functions ORDER BY key ASC");
 
     while (query.next()) {
         FunctionData data;
         data.id = query.value(0).toInt();
-        data.key = query.value(1).toString();
-        data.value = query.value(2).toString();
-        data.createTime = query.value(3).toDateTime();
+        data.projectId = query.value(1).toInt();
+        data.key = query.value(2).toString();
+        data.value = query.value(3).toString();
+        data.filePath = query.value(4).toString();
+        data.createTime = query.value(5).toDateTime();
         functions.append(data);
     }
 
@@ -309,14 +330,16 @@ FunctionData DatabaseManager::getFunctionById(int id) {
     }
 
     QSqlQuery query;
-    query.prepare("SELECT id, key, value, create_time FROM functions WHERE id = ?");
+    query.prepare("SELECT id, project_id, key, value, file_path, create_time FROM functions WHERE id = ?");
     query.addBindValue(id);
 
     if (query.exec() && query.next()) {
         data.id = query.value(0).toInt();
-        data.key = query.value(1).toString();
-        data.value = query.value(2).toString();
-        data.createTime = query.value(3).toDateTime();
+        data.projectId = query.value(1).toInt();
+        data.key = query.value(2).toString();
+        data.value = query.value(3).toString();
+        data.filePath = query.value(4).toString();
+        data.createTime = query.value(5).toDateTime();
     } else {
         m_lastError = "获取函数失败，ID: " + QString::number(id) + " - " + query.lastError().text();
         Logger::instance().error(m_lastError);
@@ -336,14 +359,16 @@ FunctionData DatabaseManager::getFunctionByKey(const QString& key) {
     }
 
     QSqlQuery query;
-    query.prepare("SELECT id, key, value, create_time FROM functions WHERE key = ?");
+    query.prepare("SELECT id, project_id, key, value, file_path, create_time FROM functions WHERE key = ?");
     query.addBindValue(key);
 
     if (query.exec() && query.next()) {
         data.id = query.value(0).toInt();
-        data.key = query.value(1).toString();
-        data.value = query.value(2).toString();
-        data.createTime = query.value(3).toDateTime();
+        data.projectId = query.value(1).toInt();
+        data.key = query.value(2).toString();
+        data.value = query.value(3).toString();
+        data.filePath = query.value(4).toString();
+        data.createTime = query.value(5).toDateTime();
     } else {
         m_lastError = "获取函数失败，Key: " + key + " - " + query.lastError().text();
         Logger::instance().error(m_lastError);
@@ -386,10 +411,11 @@ bool DatabaseManager::addFunction(const FunctionData& func) {
     }
 
     QSqlQuery query;
-    query.prepare("INSERT OR REPLACE INTO functions (key, value, signature, return_type, parameters, "
+    query.prepare("INSERT OR REPLACE INTO functions (project_id, key, value, signature, return_type, parameters, "
                   "file_path, start_line, end_line, language, flowchart, sequence_diagram, "
                   "structure_diagram, ai_model, create_time, analyze_time) "
-                  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                  "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    query.addBindValue(func.projectId);
     query.addBindValue(func.key);
     query.addBindValue(func.value);
     query.addBindValue(func.signature);
@@ -548,4 +574,289 @@ QSet<QString> DatabaseManager::getProcessedFunctions(const QString& filePath) {
     }
 
     return functions;
+}
+
+bool DatabaseManager::addProject(ProjectInfo& project) {
+    if (!m_initialized) {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    if (project.name.trimmed().isEmpty()) {
+        m_lastError = "项目名称不能为空";
+        Logger::instance().warning(m_lastError);
+        return false;
+    }
+
+    if (project.rootPath.trimmed().isEmpty()) {
+        m_lastError = "项目根路径不能为空";
+        Logger::instance().warning(m_lastError);
+        return false;
+    }
+
+    if (projectPathExists(project.rootPath)) {
+        m_lastError = "项目路径已存在: " + project.rootPath;
+        Logger::instance().warning(m_lastError);
+        return false;
+    }
+
+    QSqlQuery query;
+    query.prepare("INSERT INTO projects (name, root_path, description, create_time, update_time) "
+                  "VALUES (?, ?, ?, ?, ?)");
+    query.addBindValue(project.name);
+    query.addBindValue(project.rootPath);
+    query.addBindValue(project.description);
+    query.addBindValue(project.createTime);
+    query.addBindValue(project.updateTime);
+
+    if (!query.exec()) {
+        m_lastError = "添加项目失败: " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    project.id = query.lastInsertId().toInt();
+    Logger::instance().info("添加项目成功: " + project.name);
+    return true;
+}
+
+bool DatabaseManager::updateProject(const ProjectInfo& project) {
+    if (!m_initialized) {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    QSqlQuery query;
+    query.prepare("UPDATE projects SET name = ?, root_path = ?, description = ?, update_time = ? WHERE id = ?");
+    query.addBindValue(project.name);
+    query.addBindValue(project.rootPath);
+    query.addBindValue(project.description);
+    query.addBindValue(QDateTime::currentDateTime());
+    query.addBindValue(project.id);
+
+    if (!query.exec()) {
+        m_lastError = "更新项目失败: " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    Logger::instance().info("更新项目成功: " + project.name);
+    return true;
+}
+
+bool DatabaseManager::deleteProject(int projectId) {
+    if (!m_initialized) {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    m_db.transaction();
+
+    QSqlQuery deleteFunctionsQuery;
+    deleteFunctionsQuery.prepare("DELETE FROM functions WHERE project_id = ?");
+    deleteFunctionsQuery.addBindValue(projectId);
+    if (!deleteFunctionsQuery.exec()) {
+        m_db.rollback();
+        m_lastError = "删除项目函数失败: " + deleteFunctionsQuery.lastError().text();
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    QSqlQuery deleteProjectQuery;
+    deleteProjectQuery.prepare("DELETE FROM projects WHERE id = ?");
+    deleteProjectQuery.addBindValue(projectId);
+    if (!deleteProjectQuery.exec()) {
+        m_db.rollback();
+        m_lastError = "删除项目失败: " + deleteProjectQuery.lastError().text();
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    m_db.commit();
+    Logger::instance().info("删除项目成功，ID: " + QString::number(projectId));
+    return true;
+}
+
+QVector<ProjectInfo> DatabaseManager::getAllProjects() {
+    QVector<ProjectInfo> projects;
+
+    if (!m_initialized) {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return projects;
+    }
+
+    QSqlQuery query("SELECT id, name, root_path, description, create_time, update_time FROM projects ORDER BY name ASC");
+
+    while (query.next()) {
+        ProjectInfo project;
+        project.id = query.value(0).toInt();
+        project.name = query.value(1).toString();
+        project.rootPath = query.value(2).toString();
+        project.description = query.value(3).toString();
+        project.createTime = query.value(4).toDateTime();
+        project.updateTime = query.value(5).toDateTime();
+        projects.append(project);
+    }
+
+    if (query.lastError().isValid()) {
+        m_lastError = "获取项目列表失败: " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+    }
+
+    return projects;
+}
+
+ProjectInfo DatabaseManager::getProjectById(int projectId) {
+    ProjectInfo project;
+    project.id = -1;
+
+    if (!m_initialized) {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return project;
+    }
+
+    QSqlQuery query;
+    query.prepare("SELECT id, name, root_path, description, create_time, update_time FROM projects WHERE id = ?");
+    query.addBindValue(projectId);
+
+    if (query.exec() && query.next()) {
+        project.id = query.value(0).toInt();
+        project.name = query.value(1).toString();
+        project.rootPath = query.value(2).toString();
+        project.description = query.value(3).toString();
+        project.createTime = query.value(4).toDateTime();
+        project.updateTime = query.value(5).toDateTime();
+    } else {
+        m_lastError = "获取项目失败，ID: " + QString::number(projectId) + " - " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+    }
+
+    return project;
+}
+
+bool DatabaseManager::projectPathExists(const QString& rootPath) {
+    if (!m_initialized) {
+        return false;
+    }
+
+    QSqlQuery query;
+    query.prepare("SELECT COUNT(*) FROM projects WHERE root_path = ?");
+    query.addBindValue(rootPath);
+
+    if (query.exec() && query.next()) {
+        return query.value(0).toInt() > 0;
+    }
+
+    return false;
+}
+
+QVector<FunctionData> DatabaseManager::getFunctionsByProject(int projectId) {
+    QVector<FunctionData> functions;
+
+    if (!m_initialized) {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return functions;
+    }
+
+    QSqlQuery query;
+    query.prepare("SELECT id, project_id, key, value, file_path, create_time FROM functions WHERE project_id = ? ORDER BY key ASC");
+    query.addBindValue(projectId);
+
+    if (query.exec()) {
+        while (query.next()) {
+            FunctionData data;
+            data.id = query.value(0).toInt();
+            data.projectId = query.value(1).toInt();
+            data.key = query.value(2).toString();
+            data.value = query.value(3).toString();
+            data.filePath = query.value(4).toString();
+            data.createTime = query.value(5).toDateTime();
+            functions.append(data);
+        }
+    } else {
+        m_lastError = "获取项目函数列表失败: " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+    }
+
+    return functions;
+}
+
+bool DatabaseManager::deleteFunctionsByProject(int projectId) {
+    if (!m_initialized) {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    QSqlQuery query;
+    query.prepare("DELETE FROM functions WHERE project_id = ?");
+    query.addBindValue(projectId);
+
+    if (!query.exec()) {
+        m_lastError = "删除项目函数失败: " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    Logger::instance().info("删除项目函数成功，项目ID: " + QString::number(projectId));
+    return true;
+}
+
+bool DatabaseManager::functionExistsByKeyAndPath(const QString& key, const QString& filePath) {
+    if (!m_initialized) {
+        return false;
+    }
+
+    QSqlQuery query;
+    query.prepare("SELECT COUNT(*) FROM functions WHERE key = ? AND file_path = ?");
+    query.addBindValue(key);
+    query.addBindValue(filePath);
+
+    if (query.exec() && query.next()) {
+        return query.value(0).toInt() > 0;
+    }
+
+    return false;
+}
+
+bool DatabaseManager::clearAllData() {
+    if (!m_initialized) {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    m_db.transaction();
+
+    QSqlQuery query;
+    if (!query.exec("DELETE FROM functions")) {
+        m_db.rollback();
+        m_lastError = "清空函数表失败: " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    if (!query.exec("DELETE FROM projects")) {
+        m_db.rollback();
+        m_lastError = "清空项目表失败: " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    if (!query.exec("DELETE FROM process_state")) {
+        m_db.rollback();
+        m_lastError = "清空处理状态表失败: " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    m_db.commit();
+    Logger::instance().info("清空所有数据成功");
+    return true;
 }

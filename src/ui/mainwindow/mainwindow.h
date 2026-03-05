@@ -3,9 +3,10 @@
  * @brief 主窗口类，函数数据库管理系统的主界面
  * @author Developer
  * @date 2026-02-27
- * @version 1.1
+ * @version 1.2
  * 
  * 更新说明：
+ * - v1.2: 重构为树形结构，使用QTreeView替代QListWidget
  * - v1.1: 新增主题切换功能
  */
 
@@ -14,6 +15,7 @@
 
 #include "core/database/databasemanager.h"
 #include "core/interfaces/iparseservice.h"
+#include "core/models/functiontreemodel.h"
 #include "ui/dialogs/aiconfigdialog/aiconfigdialog.h"
 #include "ui/dialogs/aboutdialog/aboutdialog.h"
 #include "ui/mainwindow/functionalitywidget.h"
@@ -21,7 +23,8 @@
 #include "common/theme/thememanager.h"
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QListWidget>
+#include <QTreeView>
+#include <QLineEdit>
 #include <QMainWindow>
 #include <QMap>
 #include <QPushButton>
@@ -42,31 +45,45 @@ public:
   ~MainWindow();
 
 private slots:
-  void onFunctionItemClicked(QListWidgetItem *item);
-  void onAddButtonClicked();
-  void onDeleteButtonClicked();
+  void onTreeItemClicked(const QModelIndex &index);
+  void onTreeItemDoubleClicked(const QModelIndex &index);
+  void onAddProjectClicked();
+  void onRemoveProjectClicked();
+  void onAddFunctionClicked();
+  void onDeleteFunctionClicked();
+  void onSearchTextChanged(const QString &text);
   void onAIConfigClicked();
   void onAboutClicked();
   void onThemeChanged(QAction* action);
   void onThemeChangedSignal(ThemeType theme);
+  void onDataChanged();
 
 private:
   void setupUI();
   void setupMenuBar();
-  void loadFunctionList();
+  void setupTreeView();
+  void loadTreeData();
   void displayFunctionDetail(const FunctionData &functionData);
   void updateThemeMenuSelection(ThemeType theme);
+  void expandToIndex(const QModelIndex &index);
   
   QFrame* createPanelFrame(const QString &title, QWidget *content, const QString &objectName);
 
-  QListWidget *m_functionList;
+  QTreeView *m_treeView;
+  QLineEdit *m_searchEdit;
   MarkdownView *m_detailBrowser;
   FunctionalityWidget *m_functionalityWidget;
   IParseService *m_parseService;
-  QPushButton *m_addButton;
-  QPushButton *m_deleteButton;
-  QMap<int, FunctionData> m_functionMap;
+  QPushButton *m_addProjectButton;
+  QPushButton *m_removeProjectButton;
+  QPushButton *m_addFunctionButton;
+  QPushButton *m_deleteFunctionButton;
+  
+  FunctionTreeModel *m_treeModel;
+  FunctionTreeProxyModel *m_proxyModel;
+  
   int m_currentFunctionId;
+  int m_currentProjectId;
   QActionGroup *m_themeActionGroup;
   QMap<ThemeType, QAction*> m_themeActions;
 };

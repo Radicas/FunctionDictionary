@@ -11,6 +11,11 @@ add_library(core_models STATIC
     concurrencycontroller.h
     ConcurrencyController.cpp
     parseresult.h
+    projectinfo.h
+    treeitem.h
+    treeitem.cpp
+    functiontreemodel.h
+    functiontreemodel.cpp
 )
 
 target_include_directories(core_models
