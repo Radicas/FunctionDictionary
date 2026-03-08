@@ -72,6 +72,12 @@ void FunctionalityWidget::loadProjects()
     Logger::instance().info(QString("已加载 %1 个项目").arg(projects.size()));
 }
 
+void FunctionalityWidget::refreshProjectList()
+{
+    loadProjects();
+    Logger::instance().info("项目列表已刷新");
+}
+
 void FunctionalityWidget::connectSignals()
 {
     connect(m_fileSelector, &FileSelectorWidget::pathSelected,

@@ -160,6 +160,11 @@ void MainWindow::loadTreeData() {
     QVector<FunctionData> functions = DatabaseManager::instance().getAllFunctions();
     m_treeModel->setTreeData(projects, functions);
     m_treeView->expandAll();
+    
+    if (m_functionalityWidget) {
+        m_functionalityWidget->refreshProjectList();
+    }
+    
     Logger::instance().info("树形数据已加载");
 }
 

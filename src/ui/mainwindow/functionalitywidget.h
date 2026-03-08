@@ -54,6 +54,12 @@ signals:
      */
     void batchProcessingCompleted();
 
+public slots:
+    /**
+     * @brief 刷新项目列表
+     */
+    void refreshProjectList();
+
 private slots:
     /**
      * @brief 路径选择完成槽函数
