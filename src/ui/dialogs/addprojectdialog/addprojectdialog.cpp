@@ -74,19 +74,22 @@ void AddProjectDialog::setupUI() {
 }
 
 void AddProjectDialog::onBrowseClicked() {
-    QString dir = QFileDialog::getExistingDirectory(
-        this,
-        "选择项目根目录",
-        m_pathEdit->text(),
-        QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks
-    );
-
-    if (!dir.isEmpty()) {
-        m_pathEdit->setText(dir);
-        
-        if (m_nameEdit->text().isEmpty()) {
-            QDir d(dir);
-            m_nameEdit->setText(d.dirName());
+    QFileDialog dialog(this, "选择项目根目录", m_pathEdit->text().isEmpty() ? QDir::homePath() : m_pathEdit->text());
+    dialog.setFileMode(QFileDialog::Directory);
+    dialog.setOption(QFileDialog::ShowDirsOnly, true);
+    dialog.setOption(QFileDialog::DontResolveSymlinks, true);
+    dialog.setOption(QFileDialog::DontUseNativeDialog, true);
+    
+    if (dialog.exec() == QDialog::Accepted) {
+        QStringList selectedDirs = dialog.selectedFiles();
+        if (!selectedDirs.isEmpty()) {
+            QString dir = selectedDirs.first();
+            m_pathEdit->setText(dir);
+            
+            if (m_nameEdit->text().isEmpty()) {
+                QDir d(dir);
+                m_nameEdit->setText(d.dirName());
+            }
         }
     }
 }
