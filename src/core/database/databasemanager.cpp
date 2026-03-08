@@ -860,3 +860,86 @@ bool DatabaseManager::clearAllData() {
     Logger::instance().info("清空所有数据成功");
     return true;
 }
+
+ProjectInfo DatabaseManager::getOrCreateTemporaryProject() {
+    ProjectInfo tempProject;
+    tempProject.id = -1;
+
+    if (!m_initialized) {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return tempProject;
+    }
+
+    QSqlQuery query;
+    query.prepare("SELECT id, name, root_path, description, create_time, update_time FROM projects WHERE root_path = ?");
+    query.addBindValue("__temporary__");
+
+    if (query.exec() && query.next()) {
+        tempProject.id = query.value(0).toInt();
+        tempProject.name = query.value(1).toString();
+        tempProject.rootPath = query.value(2).toString();
+        tempProject.description = query.value(3).toString();
+        tempProject.createTime = query.value(4).toDateTime();
+        tempProject.updateTime = query.value(5).toDateTime();
+        return tempProject;
+    }
+
+    tempProject.name = "待整理";
+    tempProject.rootPath = "__temporary__";
+    tempProject.description = "未分配到具体项目的函数存放处";
+    tempProject.createTime = QDateTime::currentDateTime();
+    tempProject.updateTime = QDateTime::currentDateTime();
+
+    if (addProject(tempProject)) {
+        Logger::instance().info("创建临时项目成功");
+        return tempProject;
+    }
+
+    tempProject.id = -1;
+    return tempProject;
+}
+
+bool DatabaseManager::isTemporaryProject(int projectId) {
+    if (!m_initialized) {
+        return false;
+    }
+
+    QSqlQuery query;
+    query.prepare("SELECT root_path FROM projects WHERE id = ?");
+    query.addBindValue(projectId);
+
+    if (query.exec() && query.next()) {
+        return query.value(0).toString() == "__temporary__";
+    }
+
+    return false;
+}
+
+bool DatabaseManager::updateFunctionProject(int functionId, int newProjectId) {
+    if (!m_initialized) {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    QSqlQuery query;
+    query.prepare("UPDATE functions SET project_id = ? WHERE id = ?");
+    query.addBindValue(newProjectId);
+    query.addBindValue(functionId);
+
+    if (!query.exec()) {
+        m_lastError = "更新函数项目失败: " + query.lastError().text();
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+
+    if (query.numRowsAffected() == 0) {
+        m_lastError = "函数不存在，ID: " + QString::number(functionId);
+        Logger::instance().warning(m_lastError);
+        return false;
+    }
+
+    Logger::instance().info(QString("更新函数项目成功，函数ID: %1, 新项目ID: %2").arg(functionId).arg(newProjectId));
+    return true;
+}

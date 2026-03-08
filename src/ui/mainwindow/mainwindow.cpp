@@ -142,10 +142,17 @@ void MainWindow::setupTreeView() {
     m_proxyModel->setFilterCaseSensitivity(Qt::CaseInsensitive);
     
     m_treeView->setModel(m_proxyModel);
+    m_treeView->setDragEnabled(true);
+    m_treeView->setAcceptDrops(true);
+    m_treeView->setDropIndicatorShown(true);
+    m_treeView->setDragDropMode(QAbstractItemView::DragDrop);
+    m_treeView->setDefaultDropAction(Qt::MoveAction);
     
     connect(m_treeView, &QTreeView::clicked, this, &MainWindow::onTreeItemClicked);
     connect(m_treeView, &QTreeView::doubleClicked, this, &MainWindow::onTreeItemDoubleClicked);
+    connect(m_treeView, &QWidget::customContextMenuRequested, this, &MainWindow::onTreeViewContextMenu);
     connect(m_treeModel, &FunctionTreeModel::dataRefreshNeeded, this, &MainWindow::loadTreeData);
+    connect(m_treeModel, &FunctionTreeModel::functionMoved, this, &MainWindow::onFunctionMoved);
 }
 
 void MainWindow::loadTreeData() {
@@ -227,6 +234,117 @@ void MainWindow::onTreeItemDoubleClicked(const QModelIndex& index) {
     }
 }
 
+void MainWindow::onTreeViewContextMenu(const QPoint& pos) {
+    QModelIndex index = m_treeView->indexAt(pos);
+    if (!index.isValid()) {
+        return;
+    }
+
+    QModelIndex sourceIndex = m_proxyModel->mapToSource(index);
+    TreeItemType type = m_treeModel->itemType(sourceIndex);
+
+    QMenu contextMenu(tr("上下文菜单"), this);
+
+    if (type == TreeItemType::Project) {
+        ProjectInfo project = m_treeModel->getProjectInfo(sourceIndex);
+        
+        if (DatabaseManager::instance().isTemporaryProject(project.id)) {
+            QAction* infoAction = contextMenu.addAction("待整理项目不可删除");
+            infoAction->setEnabled(false);
+        } else {
+            QAction* deleteAction = contextMenu.addAction("删除项目");
+            deleteAction->setIcon(QIcon::fromTheme("edit-delete"));
+            connect(deleteAction, &QAction::triggered, this, [this, project]() {
+                QMessageBox::StandardButton reply = QMessageBox::question(
+                    this,
+                    "确认删除",
+                    QString("确定要删除项目 \"%1\" 吗？\n这将同时删除该项目下的所有函数数据！").arg(project.name),
+                    QMessageBox::Yes | QMessageBox::No
+                );
+
+                if (reply == QMessageBox::Yes) {
+                    if (DatabaseManager::instance().deleteProject(project.id)) {
+                        QMessageBox::information(this, "成功", "项目删除成功！");
+                        m_currentProjectId = -1;
+                        m_currentFunctionId = -1;
+                        m_detailBrowser->clear();
+                        loadTreeData();
+                        Logger::instance().info("用户删除项目: " + project.name);
+                    } else {
+                        QMessageBox::critical(this, "错误", "项目删除失败：" + DatabaseManager::instance().lastError());
+                    }
+                }
+            });
+        }
+    } else if (type == TreeItemType::Function) {
+        FunctionData func = m_treeModel->getFunctionData(sourceIndex);
+        
+        QAction* deleteAction = contextMenu.addAction("删除函数");
+        deleteAction->setIcon(QIcon::fromTheme("edit-delete"));
+        connect(deleteAction, &QAction::triggered, this, [this, func]() {
+            QMessageBox::StandardButton reply = QMessageBox::question(
+                this,
+                "确认删除",
+                QString("确定要删除函数 \"%1\" 吗？").arg(func.key),
+                QMessageBox::Yes | QMessageBox::No
+            );
+
+            if (reply == QMessageBox::Yes) {
+                if (DatabaseManager::instance().deleteFunction(func.id)) {
+                    QMessageBox::information(this, "成功", "函数删除成功！");
+                    m_currentFunctionId = -1;
+                    m_detailBrowser->clear();
+                    loadTreeData();
+                    Logger::instance().info("用户删除函数: " + func.key);
+                } else {
+                    QMessageBox::critical(this, "错误", "函数删除失败：" + DatabaseManager::instance().lastError());
+                }
+            }
+        });
+    } else if (type == TreeItemType::Directory || type == TreeItemType::File) {
+        QString path = m_treeModel->getNodePath(sourceIndex);
+        
+        QAction* deleteAction = contextMenu.addAction("删除此路径下的所有函数");
+        deleteAction->setIcon(QIcon::fromTheme("edit-delete"));
+        connect(deleteAction, &QAction::triggered, this, [this, path, sourceIndex]() {
+            QMessageBox::StandardButton reply = QMessageBox::question(
+                this,
+                "确认删除",
+                QString("确定要删除路径 \"%1\" 下的所有函数吗？").arg(path),
+                QMessageBox::Yes | QMessageBox::No
+            );
+
+            if (reply == QMessageBox::Yes) {
+                int deletedCount = 0;
+                QVector<FunctionData> allFunctions = DatabaseManager::instance().getAllFunctions();
+                
+                for (const FunctionData& func : allFunctions) {
+                    if (func.filePath.startsWith(path)) {
+                        if (DatabaseManager::instance().deleteFunction(func.id)) {
+                            deletedCount++;
+                        }
+                    }
+                }
+                
+                if (deletedCount > 0) {
+                    QMessageBox::information(this, "成功", 
+                        QString("成功删除 %1 个函数！").arg(deletedCount));
+                    m_currentFunctionId = -1;
+                    m_detailBrowser->clear();
+                    loadTreeData();
+                    Logger::instance().info(QString("用户删除路径 %1 下的 %2 个函数").arg(path).arg(deletedCount));
+                } else {
+                    QMessageBox::information(this, "提示", "该路径下没有函数数据。");
+                }
+            }
+        });
+    }
+
+    if (!contextMenu.isEmpty()) {
+        contextMenu.exec(m_treeView->viewport()->mapToGlobal(pos));
+    }
+}
+
 void MainWindow::onAddProjectClicked() {
     AddProjectDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
@@ -270,14 +388,25 @@ void MainWindow::onRemoveProjectClicked() {
 
 void MainWindow::onAddFunctionClicked() {
     AddFunctionDialog dialog(this);
+    
+    if (m_currentProjectId > 0) {
+        dialog.setSelectedProject(m_currentProjectId);
+    }
+    
     if (dialog.exec() == QDialog::Accepted) {
         QString key = dialog.getFunctionKey();
         QString value = dialog.getFunctionValue();
+        int projectId = dialog.getProjectId();
+
+        if (projectId <= 0) {
+            QMessageBox::warning(this, "警告", "请选择一个项目！");
+            return;
+        }
 
         FunctionData func;
         func.key = key;
         func.value = value;
-        func.projectId = m_currentProjectId > 0 ? m_currentProjectId : 0;
+        func.projectId = projectId;
 
         if (DatabaseManager::instance().addFunction(func)) {
             QMessageBox::information(this, "成功", "函数添加成功！");
@@ -446,5 +575,37 @@ void MainWindow::expandToIndex(const QModelIndex& index) {
     while (parent.isValid()) {
         m_treeView->expand(parent);
         parent = parent.parent();
+    }
+}
+
+void MainWindow::onFunctionMoved(int functionId, int targetProjectId) {
+    FunctionData func = DatabaseManager::instance().getFunctionById(functionId);
+    ProjectInfo targetProject = DatabaseManager::instance().getProjectById(targetProjectId);
+    
+    if (func.id <= 0) {
+        Logger::instance().error(QString("拖拽失败：找不到函数ID %1").arg(functionId));
+        return;
+    }
+    
+    if (targetProject.id <= 0) {
+        Logger::instance().error(QString("拖拽失败：找不到目标项目ID %1").arg(targetProjectId));
+        return;
+    }
+    
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this,
+        "确认移动",
+        QString("确定将函数 \"%1\" 移动到项目 \"%2\" 吗？").arg(func.key).arg(targetProject.name),
+        QMessageBox::Yes | QMessageBox::No
+    );
+    
+    if (reply == QMessageBox::Yes) {
+        if (DatabaseManager::instance().updateFunctionProject(functionId, targetProjectId)) {
+            QMessageBox::information(this, "成功", "函数移动成功！");
+            loadTreeData();
+            Logger::instance().info(QString("函数 %1 已移动到项目 %2").arg(func.key).arg(targetProject.name));
+        } else {
+            QMessageBox::critical(this, "错误", "函数移动失败：" + DatabaseManager::instance().lastError());
+        }
     }
 }

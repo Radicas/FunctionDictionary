@@ -135,11 +135,49 @@ public:
      */
     QModelIndex findProjectIndex(int projectId) const;
 
+    /**
+     * @brief 获取支持的拖放动作
+     * @return 支持的动作
+     */
+    Qt::DropActions supportedDropActions() const override;
+
+    /**
+     * @brief 获取支持的MIME类型
+     * @return MIME类型列表
+     */
+    QStringList mimeTypes() const override;
+
+    /**
+     * @brief 将数据编码为MIME格式
+     * @param indexes 索引列表
+     * @return MIME数据
+     */
+    QMimeData* mimeData(const QModelIndexList& indexes) const override;
+
+    /**
+     * @brief 处理拖放数据
+     * @param data MIME数据
+     * @param action 拖放动作
+     * @param row 行号
+     * @param column 列号
+     * @param parent 父索引
+     * @return 是否成功
+     */
+    bool dropMimeData(const QMimeData* data, Qt::DropAction action,
+                      int row, int column, const QModelIndex& parent) override;
+
 signals:
     /**
      * @brief 数据需要刷新信号
      */
     void dataRefreshNeeded();
+
+    /**
+     * @brief 函数移动信号
+     * @param functionId 函数ID
+     * @param targetProjectId 目标项目ID
+     */
+    void functionMoved(int functionId, int targetProjectId);
 
 private:
     /**

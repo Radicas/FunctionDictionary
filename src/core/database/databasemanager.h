@@ -222,6 +222,27 @@ public:
      */
     bool clearAllData();
 
+    /**
+     * @brief 获取或创建"待整理"项目
+     * @return 项目信息
+     */
+    ProjectInfo getOrCreateTemporaryProject();
+
+    /**
+     * @brief 检查项目是否为临时项目
+     * @param projectId 项目ID
+     * @return 是否为临时项目
+     */
+    bool isTemporaryProject(int projectId);
+
+    /**
+     * @brief 更新函数所属项目
+     * @param functionId 函数ID
+     * @param newProjectId 新项目ID
+     * @return 更新是否成功
+     */
+    bool updateFunctionProject(int functionId, int newProjectId);
+
 private:
     DatabaseManager();
     ~DatabaseManager();

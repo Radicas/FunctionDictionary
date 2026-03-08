@@ -1,4 +1,5 @@
 #include "ui/dialogs/addfunctiondialog/addfunctiondialog.h"
+#include "core/database/databasemanager.h"
 #include "common/logger/logger.h"
 #include <QMessageBox>
 
@@ -6,18 +7,24 @@ AddFunctionDialog::AddFunctionDialog(QWidget* parent)
     : QDialog(parent)
     , m_keyEdit(nullptr)
     , m_valueEdit(nullptr)
+    , m_projectCombo(nullptr)
     , m_acceptButton(nullptr)
     , m_cancelButton(nullptr) {
     setupUI();
+    loadProjects();
 }
 
 void AddFunctionDialog::setupUI() {
     setWindowTitle("增加函数");
-    setMinimumSize(500, 400);
+    setMinimumSize(500, 450);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
 
     QFormLayout* formLayout = new QFormLayout();
+
+    m_projectCombo = new QComboBox(this);
+    m_projectCombo->setPlaceholderText("请选择项目");
+    formLayout->addRow("所属项目:", m_projectCombo);
 
     m_keyEdit = new QLineEdit(this);
     m_keyEdit->setPlaceholderText("请输入函数名称");
@@ -48,6 +55,30 @@ void AddFunctionDialog::setupUI() {
     Logger::instance().info("增加函数对话框初始化完成");
 }
 
+void AddFunctionDialog::loadProjects() {
+    if (!m_projectCombo) {
+        return;
+    }
+
+    m_projectCombo->clear();
+    
+    QVector<ProjectInfo> projects = DatabaseManager::instance().getAllProjects();
+    
+    ProjectInfo tempProject = DatabaseManager::instance().getOrCreateTemporaryProject();
+    
+    m_projectCombo->addItem("待整理", tempProject.id);
+    
+    for (const ProjectInfo& project : projects) {
+        if (project.rootPath != "__temporary__") {
+            m_projectCombo->addItem(project.name, project.id);
+        }
+    }
+    
+    if (m_projectCombo->count() > 0) {
+        m_projectCombo->setCurrentIndex(0);
+    }
+}
+
 QString AddFunctionDialog::getFunctionKey() const {
     if (m_keyEdit) {
         return m_keyEdit->text().trimmed();
@@ -60,6 +91,26 @@ QString AddFunctionDialog::getFunctionValue() const {
         return m_valueEdit->toPlainText();
     }
     return QString();
+}
+
+int AddFunctionDialog::getProjectId() const {
+    if (m_projectCombo && m_projectCombo->currentIndex() >= 0) {
+        return m_projectCombo->currentData().toInt();
+    }
+    return -1;
+}
+
+void AddFunctionDialog::setSelectedProject(int projectId) {
+    if (!m_projectCombo) {
+        return;
+    }
+
+    for (int i = 0; i < m_projectCombo->count(); ++i) {
+        if (m_projectCombo->itemData(i).toInt() == projectId) {
+            m_projectCombo->setCurrentIndex(i);
+            return;
+        }
+    }
 }
 
 void AddFunctionDialog::onAcceptClicked() {

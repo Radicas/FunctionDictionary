@@ -10,6 +10,7 @@
 #include "common/logger/logger.h"
 #include <QDir>
 #include <QFileInfo>
+#include <QMimeData>
 
 FunctionTreeModel::FunctionTreeModel(QObject* parent)
     : QAbstractItemModel(parent)
@@ -143,7 +144,26 @@ void FunctionTreeModel::refresh()
 void FunctionTreeModel::buildTree()
 {
     QMap<int, TreeItem*> projectItems;
+    
+    QVector<ProjectInfo> normalProjects;
+    QVector<ProjectInfo> tempProjects;
+    
     for (const ProjectInfo& project : m_projects) {
+        if (project.rootPath == "__temporary__") {
+            tempProjects.append(project);
+        } else {
+            normalProjects.append(project);
+        }
+    }
+    
+    for (const ProjectInfo& project : normalProjects) {
+        TreeItem* projectItem = new TreeItem(TreeItemType::Project, m_rootItem);
+        projectItem->setProjectInfo(project);
+        m_rootItem->appendChild(projectItem);
+        projectItems[project.id] = projectItem;
+    }
+    
+    for (const ProjectInfo& project : tempProjects) {
         TreeItem* projectItem = new TreeItem(TreeItemType::Project, m_rootItem);
         projectItem->setProjectInfo(project);
         m_rootItem->appendChild(projectItem);
@@ -371,4 +391,100 @@ bool FunctionTreeProxyModel::hasMatchingChildren(const QModelIndex& index) const
         }
     }
     return false;
+}
+
+Qt::DropActions FunctionTreeModel::supportedDropActions() const
+{
+    return Qt::MoveAction;
+}
+
+QStringList FunctionTreeModel::mimeTypes() const
+{
+    QStringList types;
+    types << "application/x-functiondata";
+    return types;
+}
+
+QMimeData* FunctionTreeModel::mimeData(const QModelIndexList& indexes) const
+{
+    QMimeData* mimeData = new QMimeData();
+    QByteArray encodedData;
+    
+    for (const QModelIndex& index : indexes) {
+        if (index.isValid()) {
+            TreeItem* item = itemFromIndex(index);
+            if (item && item->type() == TreeItemType::Function) {
+                FunctionData func = item->functionData();
+                QString data = QString("%1|%2").arg(func.id).arg(func.key);
+                encodedData.append(data.toUtf8());
+                encodedData.append('\n');
+            }
+        }
+    }
+    
+    mimeData->setData("application/x-functiondata", encodedData);
+    return mimeData;
+}
+
+bool FunctionTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
+                                      int row, int column, const QModelIndex& parent)
+{
+    Q_UNUSED(row)
+    Q_UNUSED(column)
+    
+    if (action == Qt::IgnoreAction) {
+        return true;
+    }
+    
+    if (!data->hasFormat("application/x-functiondata")) {
+        return false;
+    }
+    
+    if (!parent.isValid()) {
+        return false;
+    }
+    
+    TreeItem* targetItem = itemFromIndex(parent);
+    if (!targetItem) {
+        return false;
+    }
+    
+    int targetProjectId = -1;
+    QString targetProjectName;
+    
+    if (targetItem->type() == TreeItemType::Project) {
+        ProjectInfo project = targetItem->projectInfo();
+        targetProjectId = project.id;
+        targetProjectName = project.name;
+    } else {
+        TreeItem* current = targetItem;
+        while (current && current->type() != TreeItemType::Project) {
+            current = current->parent();
+        }
+        if (current) {
+            ProjectInfo project = current->projectInfo();
+            targetProjectId = project.id;
+            targetProjectName = project.name;
+        }
+    }
+    
+    if (targetProjectId < 0) {
+        return false;
+    }
+    
+    QByteArray encodedData = data->data("application/x-functiondata");
+    QString dataStr = QString::fromUtf8(encodedData);
+    QStringList items = dataStr.split('\n', Qt::SkipEmptyParts);
+    
+    for (const QString& item : items) {
+        QStringList parts = item.split('|');
+        if (parts.size() >= 2) {
+            int functionId = parts[0].toInt();
+            emit functionMoved(functionId, targetProjectId);
+        }
+    }
+    
+    Logger::instance().info(QString("拖拽函数到项目: %1").arg(targetProjectName));
+    
+    return true;
 }

@@ -47,6 +47,7 @@ public:
 private slots:
   void onTreeItemClicked(const QModelIndex &index);
   void onTreeItemDoubleClicked(const QModelIndex &index);
+  void onTreeViewContextMenu(const QPoint &pos);
   void onAddProjectClicked();
   void onRemoveProjectClicked();
   void onAddFunctionClicked();
@@ -57,6 +58,7 @@ private slots:
   void onThemeChanged(QAction* action);
   void onThemeChangedSignal(ThemeType theme);
   void onDataChanged();
+  void onFunctionMoved(int functionId, int targetProjectId);
 
 private:
   void setupUI();
