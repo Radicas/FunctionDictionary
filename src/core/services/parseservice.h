@@ -68,6 +68,18 @@ public:
      */
     void setSkipExisting(bool skip) override;
 
+    /**
+     * @brief 设置目标项目ID
+     * @param projectId 项目ID
+     */
+    void setTargetProject(int projectId) override;
+
+    /**
+     * @brief 获取目标项目ID
+     * @return 项目ID
+     */
+    int targetProject() const override;
+
 private slots:
     /**
      * @brief AI代码解析完成槽函数（单文件）
@@ -141,6 +153,7 @@ private:
     bool m_skipExisting;                ///< 是否跳过已存在的函数
     bool m_isParsing;                   ///< 是否正在解析
     QString m_currentFilePath;          ///< 当前解析的文件路径
+    int m_targetProjectId;              ///< 目标项目ID
 };
 
 #endif // PARSESERVICE_H

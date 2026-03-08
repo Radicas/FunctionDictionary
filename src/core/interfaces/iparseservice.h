@@ -63,6 +63,18 @@ public:
      */
     virtual void setSkipExisting(bool skip) = 0;
 
+    /**
+     * @brief 设置目标项目ID
+     * @param projectId 项目ID
+     */
+    virtual void setTargetProject(int projectId) = 0;
+
+    /**
+     * @brief 获取目标项目ID
+     * @return 项目ID
+     */
+    virtual int targetProject() const = 0;
+
 signals:
     /**
      * @brief 解析完成信号

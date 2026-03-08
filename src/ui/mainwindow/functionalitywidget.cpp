@@ -3,18 +3,20 @@
  * @brief 功能型widget组件实现（协调者）
  * @author Developer
  * @date 2026-03-05
- * @version 2.0
+ * @version 2.1
  */
 
 #include "ui/mainwindow/functionalitywidget.h"
 #include "common/logger/logger.h"
 #include "core/ai/aiconfigmanager.h"
+#include "core/database/databasemanager.h"
 
 FunctionalityWidget::FunctionalityWidget(IParseService* parseService, QWidget *parent)
     : QWidget(parent), m_parseService(parseService)
 {
     setupUI();
     connectSignals();
+    loadProjects();
     Logger::instance().info("功能型widget初始化完成（协调者模式）");
 }
 
@@ -31,6 +33,15 @@ void FunctionalityWidget::setupUI()
     m_fileSelector = new FileSelectorWidget(this);
     m_mainLayout->addWidget(m_fileSelector);
 
+    QHBoxLayout* projectLayout = new QHBoxLayout();
+    m_projectLabel = new QLabel("目标项目:", this);
+    m_projectCombo = new QComboBox(this);
+    m_projectCombo->setMinimumWidth(200);
+    projectLayout->addWidget(m_projectLabel);
+    projectLayout->addWidget(m_projectCombo);
+    projectLayout->addStretch();
+    m_mainLayout->addLayout(projectLayout);
+
     m_progressWidget = new ProgressWidget(this);
     m_mainLayout->addWidget(m_progressWidget);
 
@@ -38,6 +49,27 @@ void FunctionalityWidget::setupUI()
     m_mainLayout->addWidget(m_controlWidget);
 
     setLayout(m_mainLayout);
+}
+
+void FunctionalityWidget::loadProjects()
+{
+    m_projectCombo->clear();
+    
+    QVector<ProjectInfo> projects = DatabaseManager::instance().getAllProjects();
+    
+    m_projectCombo->addItem("待整理", -1);
+    
+    for (const ProjectInfo& project : projects) {
+        if (project.rootPath != "__temporary__") {
+            m_projectCombo->addItem(project.name, project.id);
+        }
+    }
+    
+    if (m_projectCombo->count() > 0) {
+        m_projectCombo->setCurrentIndex(0);
+    }
+    
+    Logger::instance().info(QString("已加载 %1 个项目").arg(projects.size()));
 }
 
 void FunctionalityWidget::connectSignals()
@@ -167,9 +199,12 @@ void FunctionalityWidget::startParsing()
     QString path = m_fileSelector->selectedPath();
     ParseMode mode = m_fileSelector->currentMode();
     bool skipExisting = m_controlWidget->skipExisting();
+    
+    int projectId = m_projectCombo->currentData().toInt();
 
     if (m_parseService) {
         m_parseService->setSkipExisting(skipExisting);
+        m_parseService->setTargetProject(projectId);
         
         if (mode == ParseMode::SingleFile) {
             m_progressWidget->appendLog("开始解析文件...");
@@ -179,9 +214,10 @@ void FunctionalityWidget::startParsing()
             bool recursive = m_controlWidget->isRecursive();
             m_progressWidget->appendLog(QString("开始批量解析文件夹%1...")
                                            .arg(recursive ? "（递归）" : ""));
-            Logger::instance().info(QString("开始批量解析文件夹: %1, 递归: %2")
+            Logger::instance().info(QString("开始批量解析文件夹: %1, 递归: %2, 项目ID: %3")
                                         .arg(path)
-                                        .arg(recursive));
+                                        .arg(recursive)
+                                        .arg(projectId));
             m_parseService->parseFolder(path, recursive);
         }
     }

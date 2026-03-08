@@ -15,6 +15,8 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QMessageBox>
+#include <QComboBox>
+#include <QLabel>
 #include "ui/mainwindow/widgets/fileselectorwidget.h"
 #include "ui/mainwindow/widgets/progresswidget.h"
 #include "ui/mainwindow/widgets/parsecontrolwidget.h"
@@ -131,9 +133,16 @@ private:
      */
     bool validateAIConfig();
 
+    /**
+     * @brief 加载项目列表
+     */
+    void loadProjects();
+
     FileSelectorWidget *m_fileSelector;      ///< 文件选择器组件
     ProgressWidget *m_progressWidget;        ///< 进度显示组件
     ParseControlWidget *m_controlWidget;     ///< 解析控制组件
+    QLabel *m_projectLabel;                  ///< 项目选择标签
+    QComboBox *m_projectCombo;               ///< 项目选择下拉框
     
     IParseService* m_parseService;           ///< 解析服务（依赖注入）
     

@@ -18,7 +18,9 @@ BatchCodeParser::BatchCodeParser(QObject* parent)
     : QObject(parent)
     , m_isParsing(false)
     , m_skipExisting(true)
-    , m_cancelled(false) {
+    , m_cancelled(false)
+    , m_targetProjectId(-1)
+{
     
     m_allowedExtensions = {
         "cpp", "h", "hpp", "cc", "cxx",
@@ -151,6 +153,16 @@ void BatchCodeParser::setExcludeDirectories(const QStringList& directories) {
     m_excludeDirectories = directories;
 }
 
+void BatchCodeParser::setTargetProject(int projectId) {
+    m_targetProjectId = projectId;
+    Logger::instance().info(QString("设置批量解析目标项目ID: %1").arg(projectId));
+}
+
+void BatchCodeParser::setProjectRootPath(const QString& rootPath) {
+    m_projectRootPath = rootPath;
+    Logger::instance().info(QString("设置项目根路径: %1").arg(rootPath));
+}
+
 void BatchCodeParser::scanFolder(const QString& folderPath, QStringList& files, bool recursive) {
     QDir dir(folderPath);
     if (!dir.exists()) {
@@ -242,6 +254,14 @@ void BatchCodeParser::onFileParseComplete(const AIParseResult& result) {
     if (result.success && !result.functions.isEmpty()) {
         int savedCount = 0;
         
+        QString relativePath = result.filePath;
+        if (!m_projectRootPath.isEmpty() && result.filePath.startsWith(m_projectRootPath)) {
+            relativePath = result.filePath.mid(m_projectRootPath.length());
+            if (relativePath.startsWith("/")) {
+                relativePath = relativePath.mid(1);
+            }
+        }
+        
         for (const FunctionData& funcData : result.functions) {
             if (m_skipExisting && DatabaseManager::instance().functionExists(funcData.key)) {
                 m_currentProgress.skippedCount++;
@@ -251,6 +271,14 @@ void BatchCodeParser::onFileParseComplete(const AIParseResult& result) {
                 FunctionData data = funcData;
                 data.createTime = QDateTime::currentDateTime();
                 data.analyzeTime = QDateTime::currentDateTime();
+                data.filePath = relativePath;
+                
+                if (m_targetProjectId > 0) {
+                    data.projectId = m_targetProjectId;
+                } else {
+                    ProjectInfo tempProject = DatabaseManager::instance().getOrCreateTemporaryProject();
+                    data.projectId = tempProject.id;
+                }
                 
                 if (DatabaseManager::instance().addFunction(data)) {
                     savedCount++;

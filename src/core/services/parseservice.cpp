@@ -11,7 +11,7 @@
 #include <QDateTime>
 
 ParseService::ParseService(QObject* parent)
-    : IParseService(parent), m_skipExisting(true), m_isParsing(false)
+    : IParseService(parent), m_skipExisting(true), m_isParsing(false), m_targetProjectId(-1)
 {
     AICodeParser &aiParser = AICodeParser::instance();
     connect(&aiParser, &AICodeParser::parseComplete,
@@ -70,6 +70,17 @@ void ParseService::parseFolder(const QString& folderPath, bool recursive)
                                .arg(recursive));
 
     BatchCodeParser::instance().setSkipExisting(m_skipExisting);
+    BatchCodeParser::instance().setTargetProject(m_targetProjectId);
+    
+    if (m_targetProjectId > 0) {
+        ProjectInfo project = DatabaseManager::instance().getProjectById(m_targetProjectId);
+        if (project.id > 0) {
+            BatchCodeParser::instance().setProjectRootPath(project.rootPath);
+        }
+    } else {
+        BatchCodeParser::instance().setProjectRootPath(folderPath);
+    }
+    
     BatchCodeParser::instance().parseFolder(folderPath, recursive);
 }
 
@@ -99,6 +110,17 @@ void ParseService::setSkipExisting(bool skip)
 {
     m_skipExisting = skip;
     Logger::instance().info(QString("设置跳过已存在: %1").arg(skip ? "是" : "否"));
+}
+
+void ParseService::setTargetProject(int projectId)
+{
+    m_targetProjectId = projectId;
+    Logger::instance().info(QString("设置目标项目ID: %1").arg(projectId));
+}
+
+int ParseService::targetProject() const
+{
+    return m_targetProjectId;
 }
 
 void ParseService::onAIParseComplete(const AIParseResult& result)
@@ -201,6 +223,20 @@ ParseResult ParseService::processSingleFileResult(const AIParseResult& result)
     int failedCount = 0;
     int skippedCount = 0;
 
+    QString relativePath = result.filePath;
+    
+    if (m_targetProjectId > 0) {
+        ProjectInfo project = DatabaseManager::instance().getProjectById(m_targetProjectId);
+        if (project.id > 0 && !project.rootPath.isEmpty()) {
+            if (result.filePath.startsWith(project.rootPath)) {
+                relativePath = result.filePath.mid(project.rootPath.length());
+                if (relativePath.startsWith("/")) {
+                    relativePath = relativePath.mid(1);
+                }
+            }
+        }
+    }
+
     for (const FunctionData &funcData : result.functions) {
         if (m_skipExisting && DatabaseManager::instance().functionExists(funcData.key)) {
             skippedCount++;
@@ -209,6 +245,14 @@ ParseResult ParseService::processSingleFileResult(const AIParseResult& result)
             FunctionData data = funcData;
             data.createTime = QDateTime::currentDateTime();
             data.analyzeTime = QDateTime::currentDateTime();
+            data.filePath = relativePath;
+            
+            if (m_targetProjectId > 0) {
+                data.projectId = m_targetProjectId;
+            } else {
+                ProjectInfo tempProject = DatabaseManager::instance().getOrCreateTemporaryProject();
+                data.projectId = tempProject.id;
+            }
 
             if (DatabaseManager::instance().addFunction(data)) {
                 successCount++;

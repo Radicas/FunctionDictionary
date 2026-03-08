@@ -114,6 +114,24 @@ public:
      */
     void setExcludeDirectories(const QStringList& directories);
 
+    /**
+     * @brief 设置目标项目ID
+     * @param projectId 项目ID
+     */
+    void setTargetProject(int projectId);
+
+    /**
+     * @brief 设置项目根路径（用于计算相对路径）
+     * @param rootPath 项目根路径
+     */
+    void setProjectRootPath(const QString& rootPath);
+
+    /**
+     * @brief 获取目标项目ID
+     * @return 项目ID
+     */
+    int targetProjectId() const { return m_targetProjectId; }
+
 signals:
     /**
      * @brief 批量解析进度信号
@@ -220,6 +238,8 @@ private:
     BatchParseResult m_currentResult;       ///< 当前批量解析结果
     BatchParseProgress m_currentProgress;   ///< 当前进度
     QString m_currentFile;                  ///< 当前处理的文件
+    int m_targetProjectId;                  ///< 目标项目ID
+    QString m_projectRootPath;              ///< 项目根路径
 };
 
 #endif // BATCHCODEPARSER_H
