@@ -1,18 +1,19 @@
 /**
  * @file functionalitywidget.cpp
  * @brief 功能型widget组件实现（协调者）
- * @author Developer
+ * @author FunctionDB Team
  * @date 2026-03-05
- * @version 2.1
+ * @version 3.0
  */
 
 #include "ui/mainwindow/functionalitywidget.h"
 #include "common/logger/logger.h"
 #include "core/ai/aiconfigmanager.h"
-#include "core/database/databasemanager.h"
 
-FunctionalityWidget::FunctionalityWidget(IParseService* parseService, QWidget *parent)
-    : QWidget(parent), m_parseService(parseService)
+FunctionalityWidget::FunctionalityWidget(IDatabaseManager* dbManager, IParseService* parseService, QWidget *parent)
+    : QWidget(parent)
+    , m_dbManager(dbManager)
+    , m_parseService(parseService)
 {
     setupUI();
     connectSignals();
@@ -55,7 +56,7 @@ void FunctionalityWidget::loadProjects()
 {
     m_projectCombo->clear();
     
-    QVector<ProjectInfo> projects = DatabaseManager::instance().getAllProjects();
+    QVector<ProjectInfo> projects = m_dbManager->getAllProjects();
     
     m_projectCombo->addItem("待整理", -1);
     

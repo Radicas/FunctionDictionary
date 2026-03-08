@@ -13,5 +13,6 @@ target_link_libraries(core_database
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Sql
     core_models
+    core_interfaces
     common_logger
 )

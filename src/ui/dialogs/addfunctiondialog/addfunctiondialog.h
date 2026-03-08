@@ -1,9 +1,12 @@
 /**
  * @file addfunctiondialog.h
  * @brief 增加函数对话框，用于添加新的函数信息
- * @author Developer
+ * @author FunctionDB Team
  * @date 2026-02-27
- * @version 1.1
+ * @version 2.0
+ * 
+ * @details 更新说明：
+ * - v2.0: 采用依赖注入模式，解耦数据库访问
  */
 
 #ifndef ADDFUNCTIONDIALOG_H
@@ -18,19 +21,13 @@
 #include <QLabel>
 #include <QFormLayout>
 #include <QComboBox>
+#include "core/interfaces/idatabaserepository.h"
 
-/**
- * @brief 增加函数对话框类
- */
 class AddFunctionDialog : public QDialog {
     Q_OBJECT
 
 public:
-    /**
-     * @brief 构造函数
-     * @param parent 父窗口指针
-     */
-    explicit AddFunctionDialog(QWidget* parent = nullptr);
+    explicit AddFunctionDialog(IDatabaseManager* dbManager, QWidget* parent = nullptr);
 
     /**
      * @brief 获取输入的函数名称
@@ -78,6 +75,7 @@ private:
      */
     void loadProjects();
 
+    IDatabaseManager* m_dbManager;  ///< 数据库管理器（依赖注入）
     QLineEdit* m_keyEdit;      ///< 函数名称输入框
     QTextEdit* m_valueEdit;    ///< 函数介绍文本框
     QComboBox* m_projectCombo; ///< 项目选择下拉框

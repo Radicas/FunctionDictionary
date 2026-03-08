@@ -1,41 +1,27 @@
 /**
  * @file parseservice.h
  * @brief 解析服务实现类
- * @author Developer
+ * @author FunctionDB Team
  * @date 2026-03-05
- * @version 1.0
+ * @version 2.0
+ * 
+ * @details 更新说明：
+ * - v2.0: 采用依赖注入模式，解耦数据库访问
  */
 
 #ifndef PARSESERVICE_H
 #define PARSESERVICE_H
 
 #include "core/interfaces/iparseservice.h"
+#include "core/interfaces/idatabaserepository.h"
 #include "core/parser/aicodeparser.h"
 #include "core/parser/batchcodeparser.h"
-#include "core/database/databasemanager.h"
 
-/**
- * @brief 解析服务实现类
- * 
- * 该类负责：
- * - 协调 AICodeParser 和 BatchCodeParser
- * - 调用 DatabaseManager 存储结果
- * - 处理解析结果（跳过已存在等）
- * - 错误处理和重试
- */
 class ParseService : public IParseService {
     Q_OBJECT
 
 public:
-    /**
-     * @brief 构造函数
-     * @param parent 父对象
-     */
-    explicit ParseService(QObject* parent = nullptr);
-
-    /**
-     * @brief 析构函数
-     */
+    explicit ParseService(IDatabaseManager* dbManager, QObject* parent = nullptr);
     ~ParseService();
 
     /**
@@ -150,10 +136,11 @@ private:
      */
     ParseResult processBatchResult(const BatchParseResult& result);
 
-    bool m_skipExisting;                ///< 是否跳过已存在的函数
-    bool m_isParsing;                   ///< 是否正在解析
-    QString m_currentFilePath;          ///< 当前解析的文件路径
-    int m_targetProjectId;              ///< 目标项目ID
+    IDatabaseManager* m_dbManager;       ///< 数据库管理器（依赖注入）
+    bool m_skipExisting;                 ///< 是否跳过已存在的函数
+    bool m_isParsing;                    ///< 是否正在解析
+    QString m_currentFilePath;           ///< 当前解析的文件路径
+    int m_targetProjectId;               ///< 目标项目ID
 };
 
 #endif // PARSESERVICE_H

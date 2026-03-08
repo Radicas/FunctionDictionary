@@ -1,11 +1,12 @@
 /**
  * @file functionalitywidget.h
  * @brief 功能型widget组件，协调子组件和服务
- * @author Developer
+ * @author FunctionDB Team
  * @date 2026-03-05
- * @version 2.0
+ * @version 3.0
  * 
- * 更新说明：
+ * @details 更新说明：
+ * - v3.0: 采用依赖注入模式，解耦数据库访问
  * - v2.0: 重构为协调者模式，职责分离
  */
 
@@ -21,31 +22,14 @@
 #include "ui/mainwindow/widgets/progresswidget.h"
 #include "ui/mainwindow/widgets/parsecontrolwidget.h"
 #include "core/interfaces/iparseservice.h"
+#include "core/interfaces/idatabaserepository.h"
 #include "ui/dialogs/aiconfigdialog/aiconfigdialog.h"
 
-/**
- * @brief 功能型widget组件类（协调者）
- * 
- * 该组件负责：
- * - 创建和布局子Widget
- * - 连接子Widget之间的信号
- * - 连接子Widget与服务的信号
- * - 协调UI状态
- */
 class FunctionalityWidget : public QWidget {
     Q_OBJECT
 
 public:
-    /**
-     * @brief 构造函数
-     * @param parseService 解析服务接口（依赖注入）
-     * @param parent 父窗口
-     */
-    explicit FunctionalityWidget(IParseService* parseService, QWidget *parent = nullptr);
-    
-    /**
-     * @brief 析构函数
-     */
+    explicit FunctionalityWidget(IDatabaseManager* dbManager, IParseService* parseService, QWidget *parent = nullptr);
     ~FunctionalityWidget();
 
 signals:
@@ -150,6 +134,7 @@ private:
     QLabel *m_projectLabel;                  ///< 项目选择标签
     QComboBox *m_projectCombo;               ///< 项目选择下拉框
     
+    IDatabaseManager* m_dbManager;           ///< 数据库管理器（依赖注入）
     IParseService* m_parseService;           ///< 解析服务（依赖注入）
     
     QVBoxLayout *m_mainLayout;               ///< 主布局

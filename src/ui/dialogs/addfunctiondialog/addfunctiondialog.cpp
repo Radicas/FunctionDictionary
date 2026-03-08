@@ -1,10 +1,10 @@
 #include "ui/dialogs/addfunctiondialog/addfunctiondialog.h"
-#include "core/database/databasemanager.h"
 #include "common/logger/logger.h"
 #include <QMessageBox>
 
-AddFunctionDialog::AddFunctionDialog(QWidget* parent)
+AddFunctionDialog::AddFunctionDialog(IDatabaseManager* dbManager, QWidget* parent)
     : QDialog(parent)
+    , m_dbManager(dbManager)
     , m_keyEdit(nullptr)
     , m_valueEdit(nullptr)
     , m_projectCombo(nullptr)
@@ -62,9 +62,9 @@ void AddFunctionDialog::loadProjects() {
 
     m_projectCombo->clear();
     
-    QVector<ProjectInfo> projects = DatabaseManager::instance().getAllProjects();
+    QVector<ProjectInfo> projects = m_dbManager->getAllProjects();
     
-    ProjectInfo tempProject = DatabaseManager::instance().getOrCreateTemporaryProject();
+    ProjectInfo tempProject = m_dbManager->getOrCreateTemporaryProject();
     
     m_projectCombo->addItem("待整理", tempProject.id);
     

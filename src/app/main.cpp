@@ -1,4 +1,5 @@
 #include "core/database/databasemanager.h"
+#include "core/services/parseservice.h"
 #include "common/logger/logger.h"
 #include "ui/mainwindow/mainwindow.h"
 #include "common/theme/thememanager.h"
@@ -43,7 +44,10 @@ int main(int argc, char *argv[]) {
     return -1;
   }
 
-  MainWindow window;
+  IDatabaseManager* dbManager = &DatabaseManager::instance();
+  IParseService* parseService = new ParseService(dbManager, &app);
+
+  MainWindow window(dbManager, parseService);
   window.show();
 
   int result = app.exec();

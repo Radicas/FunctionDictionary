@@ -1,16 +1,15 @@
 /**
  * @file mainwindow.cpp
  * @brief 主窗口类实现
- * @author Developer
+ * @author FunctionDB Team
  * @date 2026-02-27
- * @version 1.2
+ * @version 2.0
  */
 
 #include "ui/mainwindow/mainwindow.h"
 #include "ui/mainwindow/functionalitywidget.h"
 #include "ui/dialogs/addfunctiondialog/addfunctiondialog.h"
 #include "ui/dialogs/addprojectdialog/addprojectdialog.h"
-#include "core/services/parseservice.h"
 #include "core/models/treeitem.h"
 #include "common/logger/logger.h"
 #include <QMessageBox>
@@ -19,13 +18,14 @@
 #include <QRegularExpression>
 #include <QAbstractItemView>
 
-MainWindow::MainWindow(QWidget* parent)
+MainWindow::MainWindow(IDatabaseManager* dbManager, IParseService* parseService, QWidget* parent)
     : QMainWindow(parent)
     , m_treeView(nullptr)
     , m_searchEdit(nullptr)
     , m_detailBrowser(nullptr)
     , m_functionalityWidget(nullptr)
-    , m_parseService(nullptr)
+    , m_dbManager(dbManager)
+    , m_parseService(parseService)
     , m_addProjectButton(nullptr)
     , m_removeProjectButton(nullptr)
     , m_addFunctionButton(nullptr)
@@ -35,7 +35,6 @@ MainWindow::MainWindow(QWidget* parent)
     , m_currentFunctionId(-1)
     , m_currentProjectId(-1)
     , m_themeActionGroup(nullptr) {
-    m_parseService = new ParseService(this);
     setupUI();
     loadTreeData();
     
@@ -92,7 +91,7 @@ void MainWindow::setupUI() {
     QFrame* detailPanel = createPanelFrame("", m_detailBrowser, "detailPanel");
     splitter->addWidget(detailPanel);
 
-    m_functionalityWidget = new FunctionalityWidget(m_parseService, this);
+    m_functionalityWidget = new FunctionalityWidget(m_dbManager, m_parseService, this);
     connect(m_functionalityWidget, &FunctionalityWidget::batchProcessingCompleted,
             this, &MainWindow::onDataChanged);
     QFrame* functionalityPanel = createPanelFrame("功能操作", m_functionalityWidget, "functionalityPanel");
@@ -156,8 +155,8 @@ void MainWindow::setupTreeView() {
 }
 
 void MainWindow::loadTreeData() {
-    QVector<ProjectInfo> projects = DatabaseManager::instance().getAllProjects();
-    QVector<FunctionData> functions = DatabaseManager::instance().getAllFunctions();
+    QVector<ProjectInfo> projects = m_dbManager->getAllProjects();
+    QVector<FunctionData> functions = m_dbManager->getAllFunctions();
     m_treeModel->setTreeData(projects, functions);
     m_treeView->expandAll();
     
@@ -253,7 +252,7 @@ void MainWindow::onTreeViewContextMenu(const QPoint& pos) {
     if (type == TreeItemType::Project) {
         ProjectInfo project = m_treeModel->getProjectInfo(sourceIndex);
         
-        if (DatabaseManager::instance().isTemporaryProject(project.id)) {
+        if (m_dbManager->isTemporaryProject(project.id)) {
             QAction* infoAction = contextMenu.addAction("待整理项目不可删除");
             infoAction->setEnabled(false);
         } else {
@@ -268,7 +267,7 @@ void MainWindow::onTreeViewContextMenu(const QPoint& pos) {
                 );
 
                 if (reply == QMessageBox::Yes) {
-                    if (DatabaseManager::instance().deleteProject(project.id)) {
+                    if (m_dbManager->deleteProject(project.id)) {
                         QMessageBox::information(this, "成功", "项目删除成功！");
                         m_currentProjectId = -1;
                         m_currentFunctionId = -1;
@@ -276,7 +275,7 @@ void MainWindow::onTreeViewContextMenu(const QPoint& pos) {
                         loadTreeData();
                         Logger::instance().info("用户删除项目: " + project.name);
                     } else {
-                        QMessageBox::critical(this, "错误", "项目删除失败：" + DatabaseManager::instance().lastError());
+                        QMessageBox::critical(this, "错误", "项目删除失败：" + m_dbManager->lastError());
                     }
                 }
             });
@@ -295,14 +294,14 @@ void MainWindow::onTreeViewContextMenu(const QPoint& pos) {
             );
 
             if (reply == QMessageBox::Yes) {
-                if (DatabaseManager::instance().deleteFunction(func.id)) {
+                if (m_dbManager->deleteFunction(func.id)) {
                     QMessageBox::information(this, "成功", "函数删除成功！");
                     m_currentFunctionId = -1;
                     m_detailBrowser->clear();
                     loadTreeData();
                     Logger::instance().info("用户删除函数: " + func.key);
                 } else {
-                    QMessageBox::critical(this, "错误", "函数删除失败：" + DatabaseManager::instance().lastError());
+                    QMessageBox::critical(this, "错误", "函数删除失败：" + m_dbManager->lastError());
                 }
             }
         });
@@ -321,11 +320,11 @@ void MainWindow::onTreeViewContextMenu(const QPoint& pos) {
 
             if (reply == QMessageBox::Yes) {
                 int deletedCount = 0;
-                QVector<FunctionData> allFunctions = DatabaseManager::instance().getAllFunctions();
+                QVector<FunctionData> allFunctions = m_dbManager->getAllFunctions();
                 
                 for (const FunctionData& func : allFunctions) {
                     if (func.filePath.startsWith(path)) {
-                        if (DatabaseManager::instance().deleteFunction(func.id)) {
+                        if (m_dbManager->deleteFunction(func.id)) {
                             deletedCount++;
                         }
                     }
@@ -354,11 +353,11 @@ void MainWindow::onAddProjectClicked() {
     AddProjectDialog dialog(this);
     if (dialog.exec() == QDialog::Accepted) {
         ProjectInfo project = dialog.getProjectInfo();
-        if (DatabaseManager::instance().addProject(project)) {
+        if (m_dbManager->addProject(project)) {
             QMessageBox::information(this, "成功", "项目添加成功！");
             loadTreeData();
         } else {
-            QMessageBox::critical(this, "错误", "项目添加失败：" + DatabaseManager::instance().lastError());
+            QMessageBox::critical(this, "错误", "项目添加失败：" + m_dbManager->lastError());
         }
     }
 }
@@ -369,7 +368,7 @@ void MainWindow::onRemoveProjectClicked() {
         return;
     }
 
-    ProjectInfo project = DatabaseManager::instance().getProjectById(m_currentProjectId);
+    ProjectInfo project = m_dbManager->getProjectById(m_currentProjectId);
     
     QMessageBox::StandardButton reply = QMessageBox::question(
         this,
@@ -379,20 +378,20 @@ void MainWindow::onRemoveProjectClicked() {
     );
 
     if (reply == QMessageBox::Yes) {
-        if (DatabaseManager::instance().deleteProject(m_currentProjectId)) {
+        if (m_dbManager->deleteProject(m_currentProjectId)) {
             QMessageBox::information(this, "成功", "项目移除成功！");
             m_currentProjectId = -1;
             m_currentFunctionId = -1;
             m_detailBrowser->clear();
             loadTreeData();
         } else {
-            QMessageBox::critical(this, "错误", "项目移除失败：" + DatabaseManager::instance().lastError());
+            QMessageBox::critical(this, "错误", "项目移除失败：" + m_dbManager->lastError());
         }
     }
 }
 
 void MainWindow::onAddFunctionClicked() {
-    AddFunctionDialog dialog(this);
+    AddFunctionDialog dialog(m_dbManager, this);
     
     if (m_currentProjectId > 0) {
         dialog.setSelectedProject(m_currentProjectId);
@@ -413,11 +412,11 @@ void MainWindow::onAddFunctionClicked() {
         func.value = value;
         func.projectId = projectId;
 
-        if (DatabaseManager::instance().addFunction(func)) {
+        if (m_dbManager->addFunction(func)) {
             QMessageBox::information(this, "成功", "函数添加成功！");
             loadTreeData();
         } else {
-            QMessageBox::critical(this, "错误", "函数添加失败：" + DatabaseManager::instance().lastError());
+            QMessageBox::critical(this, "错误", "函数添加失败：" + m_dbManager->lastError());
         }
     }
 }
@@ -436,13 +435,13 @@ void MainWindow::onDeleteFunctionClicked() {
     );
 
     if (reply == QMessageBox::Yes) {
-        if (DatabaseManager::instance().deleteFunction(m_currentFunctionId)) {
+        if (m_dbManager->deleteFunction(m_currentFunctionId)) {
             QMessageBox::information(this, "成功", "函数删除成功！");
             m_currentFunctionId = -1;
             m_detailBrowser->clear();
             loadTreeData();
         } else {
-            QMessageBox::critical(this, "错误", "函数删除失败：" + DatabaseManager::instance().lastError());
+            QMessageBox::critical(this, "错误", "函数删除失败：" + m_dbManager->lastError());
         }
     }
 }
@@ -488,14 +487,14 @@ void MainWindow::setupMenuBar() {
             QMessageBox::Yes | QMessageBox::No
         );
         if (reply == QMessageBox::Yes) {
-            if (DatabaseManager::instance().clearAllData()) {
+            if (m_dbManager->clearAllData()) {
                 QMessageBox::information(this, "成功", "数据已清空！");
                 m_currentFunctionId = -1;
                 m_currentProjectId = -1;
                 m_detailBrowser->clear();
                 loadTreeData();
             } else {
-                QMessageBox::critical(this, "错误", "清空数据失败：" + DatabaseManager::instance().lastError());
+                QMessageBox::critical(this, "错误", "清空数据失败：" + m_dbManager->lastError());
             }
         }
     });
@@ -584,8 +583,8 @@ void MainWindow::expandToIndex(const QModelIndex& index) {
 }
 
 void MainWindow::onFunctionMoved(int functionId, int targetProjectId) {
-    FunctionData func = DatabaseManager::instance().getFunctionById(functionId);
-    ProjectInfo targetProject = DatabaseManager::instance().getProjectById(targetProjectId);
+    FunctionData func = m_dbManager->getFunctionById(functionId);
+    ProjectInfo targetProject = m_dbManager->getProjectById(targetProjectId);
     
     if (func.id <= 0) {
         Logger::instance().error(QString("拖拽失败：找不到函数ID %1").arg(functionId));
@@ -605,12 +604,12 @@ void MainWindow::onFunctionMoved(int functionId, int targetProjectId) {
     );
     
     if (reply == QMessageBox::Yes) {
-        if (DatabaseManager::instance().updateFunctionProject(functionId, targetProjectId)) {
+        if (m_dbManager->updateFunctionProject(functionId, targetProjectId)) {
             QMessageBox::information(this, "成功", "函数移动成功！");
             loadTreeData();
             Logger::instance().info(QString("函数 %1 已移动到项目 %2").arg(func.key).arg(targetProject.name));
         } else {
-            QMessageBox::critical(this, "错误", "函数移动失败：" + DatabaseManager::instance().lastError());
+            QMessageBox::critical(this, "错误", "函数移动失败：" + m_dbManager->lastError());
         }
     }
 }

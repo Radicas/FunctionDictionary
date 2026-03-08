@@ -1,11 +1,12 @@
 /**
  * @file mainwindow.h
  * @brief 主窗口类，函数数据库管理系统的主界面
- * @author Developer
+ * @author FunctionDB Team
  * @date 2026-02-27
- * @version 1.2
+ * @version 2.0
  * 
- * 更新说明：
+ * @details 更新说明：
+ * - v2.0: 采用依赖注入模式，解耦数据库访问
  * - v1.2: 重构为树形结构，使用QTreeView替代QListWidget
  * - v1.1: 新增主题切换功能
  */
@@ -13,8 +14,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "core/database/databasemanager.h"
 #include "core/interfaces/iparseservice.h"
+#include "core/interfaces/idatabaserepository.h"
 #include "core/models/functiontreemodel.h"
 #include "ui/dialogs/aiconfigdialog/aiconfigdialog.h"
 #include "ui/dialogs/aboutdialog/aboutdialog.h"
@@ -41,7 +42,7 @@ class MainWindow : public QMainWindow {
   Q_OBJECT
 
 public:
-  explicit MainWindow(QWidget *parent = nullptr);
+  explicit MainWindow(IDatabaseManager* dbManager, IParseService* parseService, QWidget *parent = nullptr);
   ~MainWindow();
 
 private slots:
@@ -75,6 +76,7 @@ private:
   QLineEdit *m_searchEdit;
   MarkdownView *m_detailBrowser;
   FunctionalityWidget *m_functionalityWidget;
+  IDatabaseManager *m_dbManager;
   IParseService *m_parseService;
   QPushButton *m_addProjectButton;
   QPushButton *m_removeProjectButton;

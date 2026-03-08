@@ -15,4 +15,5 @@ target_link_libraries(ui_dialogs_addfunctiondialog
     Qt${QT_VERSION_MAJOR}::Sql
     common_logger
     core_database
+    core_interfaces
 )

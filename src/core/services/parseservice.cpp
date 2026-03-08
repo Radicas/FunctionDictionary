@@ -1,17 +1,21 @@
 /**
  * @file parseservice.cpp
  * @brief 解析服务实现
- * @author Developer
+ * @author FunctionDB Team
  * @date 2026-03-05
- * @version 1.0
+ * @version 2.0
  */
 
 #include "core/services/parseservice.h"
 #include "common/logger/logger.h"
 #include <QDateTime>
 
-ParseService::ParseService(QObject* parent)
-    : IParseService(parent), m_skipExisting(true), m_isParsing(false), m_targetProjectId(-1)
+ParseService::ParseService(IDatabaseManager* dbManager, QObject* parent)
+    : IParseService(parent)
+    , m_dbManager(dbManager)
+    , m_skipExisting(true)
+    , m_isParsing(false)
+    , m_targetProjectId(-1)
 {
     AICodeParser &aiParser = AICodeParser::instance();
     connect(&aiParser, &AICodeParser::parseComplete,
@@ -73,7 +77,7 @@ void ParseService::parseFolder(const QString& folderPath, bool recursive)
     BatchCodeParser::instance().setTargetProject(m_targetProjectId);
     
     if (m_targetProjectId > 0) {
-        ProjectInfo project = DatabaseManager::instance().getProjectById(m_targetProjectId);
+        ProjectInfo project = m_dbManager->getProjectById(m_targetProjectId);
         if (project.id > 0) {
             BatchCodeParser::instance().setProjectRootPath(project.rootPath);
         }
@@ -226,7 +230,7 @@ ParseResult ParseService::processSingleFileResult(const AIParseResult& result)
     QString relativePath = result.filePath;
     
     if (m_targetProjectId > 0) {
-        ProjectInfo project = DatabaseManager::instance().getProjectById(m_targetProjectId);
+        ProjectInfo project = m_dbManager->getProjectById(m_targetProjectId);
         if (project.id > 0 && !project.rootPath.isEmpty()) {
             if (result.filePath.startsWith(project.rootPath)) {
                 relativePath = result.filePath.mid(project.rootPath.length());
@@ -238,7 +242,7 @@ ParseResult ParseService::processSingleFileResult(const AIParseResult& result)
     }
 
     for (const FunctionData &funcData : result.functions) {
-        if (m_skipExisting && DatabaseManager::instance().functionExists(funcData.key)) {
+        if (m_skipExisting && m_dbManager->functionExists(funcData.key)) {
             skippedCount++;
             Logger::instance().info(QString("[跳过] %1 - 已存在").arg(funcData.key));
         } else {
@@ -250,11 +254,11 @@ ParseResult ParseService::processSingleFileResult(const AIParseResult& result)
             if (m_targetProjectId > 0) {
                 data.projectId = m_targetProjectId;
             } else {
-                ProjectInfo tempProject = DatabaseManager::instance().getOrCreateTemporaryProject();
+                ProjectInfo tempProject = m_dbManager->getOrCreateTemporaryProject();
                 data.projectId = tempProject.id;
             }
 
-            if (DatabaseManager::instance().addFunction(data)) {
+            if (m_dbManager->addFunction(data)) {
                 successCount++;
                 parseResult.functions.append(data);
                 Logger::instance().info(QString("[成功] %1").arg(funcData.key));
@@ -262,7 +266,7 @@ ParseResult ParseService::processSingleFileResult(const AIParseResult& result)
                 failedCount++;
                 Logger::instance().error(QString("[失败] %1 - %2")
                                             .arg(funcData.key)
-                                            .arg(DatabaseManager::instance().lastError()));
+                                            .arg(m_dbManager->lastError()));
             }
         }
     }

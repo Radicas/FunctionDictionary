@@ -1,9 +1,12 @@
 /**
  * @file databasemanager.h
  * @brief 数据库管理模块，负责SQLite数据库的操作
- * @author Developer
+ * @author FunctionDB Team
  * @date 2026-02-27
- * @version 1.0
+ * @version 2.0
+ * 
+ * @details 该类实现了IDatabaseManager接口，采用Repository模式
+ * 支持依赖注入，便于单元测试和实现替换。
  */
 
 #ifndef DATABASEMANAGER_H
@@ -20,11 +23,17 @@
 #include "core/models/functiondata.h"
 #include "core/models/projectinfo.h"
 #include "core/models/batchconfig.h"
+#include "core/interfaces/idatabaserepository.h"
 
 /**
  * @brief 数据库管理类，提供SQLite数据库操作功能
+ * 
+ * @details 该类实现了IDatabaseManager接口，支持：
+ * - 单例模式访问（向后兼容）
+ * - 依赖注入方式访问（推荐）
+ * - Repository模式的数据访问
  */
-class DatabaseManager {
+class DatabaseManager : public IDatabaseManager {
 public:
     /**
      * @brief 获取DatabaseManager单例实例

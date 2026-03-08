@@ -1,5 +1,6 @@
 add_library(core_interfaces STATIC
     iparseservice.h
+    idatabaserepository.h
 )
 
 target_include_directories(core_interfaces
