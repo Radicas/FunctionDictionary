@@ -137,6 +137,7 @@ private:
     ParseResult processBatchResult(const BatchParseResult& result);
 
     IDatabaseManager* m_dbManager;       ///< 数据库管理器（依赖注入）
+    BatchCodeParser* m_batchParser;      ///< 批量解析器（依赖注入）
     bool m_skipExisting;                 ///< 是否跳过已存在的函数
     bool m_isParsing;                    ///< 是否正在解析
     QString m_currentFilePath;           ///< 当前解析的文件路径

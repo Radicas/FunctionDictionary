@@ -3,19 +3,19 @@
  * @brief 批量代码解析器实现
  * @author Developer
  * @date 2026-03-04
- * @version 1.0
+ * @version 2.0
  */
 
 #include "core/parser/batchcodeparser.h"
-#include "core/database/databasemanager.h"
 #include "common/logger/logger.h"
 #include <QDir>
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QTimer>
 
-BatchCodeParser::BatchCodeParser(QObject* parent)
+BatchCodeParser::BatchCodeParser(IDatabaseManager* dbManager, QObject* parent)
     : QObject(parent)
+    , m_dbManager(dbManager)
     , m_isParsing(false)
     , m_skipExisting(true)
     , m_cancelled(false)
@@ -65,11 +65,6 @@ BatchCodeParser::BatchCodeParser(QObject* parent)
 
 BatchCodeParser::~BatchCodeParser() {
     cancelParsing();
-}
-
-BatchCodeParser& BatchCodeParser::instance() {
-    static BatchCodeParser instance;
-    return instance;
 }
 
 void BatchCodeParser::parseFolder(const QString& folderPath, bool recursive) {
@@ -263,7 +258,7 @@ void BatchCodeParser::onFileParseComplete(const AIParseResult& result) {
         }
         
         for (const FunctionData& funcData : result.functions) {
-            if (m_skipExisting && DatabaseManager::instance().functionExists(funcData.key)) {
+            if (m_skipExisting && m_dbManager->functionExists(funcData.key)) {
                 m_currentProgress.skippedCount++;
                 m_currentResult.skippedCount++;
                 Logger::instance().info("跳过已存在的函数: " + funcData.key);
@@ -276,11 +271,11 @@ void BatchCodeParser::onFileParseComplete(const AIParseResult& result) {
                 if (m_targetProjectId > 0) {
                     data.projectId = m_targetProjectId;
                 } else {
-                    ProjectInfo tempProject = DatabaseManager::instance().getOrCreateTemporaryProject();
+                    ProjectInfo tempProject = m_dbManager->getOrCreateTemporaryProject();
                     data.projectId = tempProject.id;
                 }
                 
-                if (DatabaseManager::instance().addFunction(data)) {
+                if (m_dbManager->addFunction(data)) {
                     savedCount++;
                     m_currentResult.allFunctions.append(data);
                 }

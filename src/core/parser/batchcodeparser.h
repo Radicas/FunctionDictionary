@@ -3,19 +3,21 @@
  * @brief 批量代码解析器，支持文件夹递归扫描和批量处理
  * @author Developer
  * @date 2026-03-04
- * @version 1.0
+ * @version 2.0
  * 
  * @details 该解析器基于 AICodeParser 实现：
  * - 递归扫描文件夹中的代码文件
  * - 维护文件处理队列
  * - 逐个调用 AICodeParser 进行解析
  * - 提供进度回调和错误处理
+ * - 采用依赖注入模式，支持单元测试
  */
 
 #ifndef BATCHCODEPARSER_H
 #define BATCHCODEPARSER_H
 
 #include "core/parser/aicodeparser.h"
+#include "core/interfaces/idatabaserepository.h"
 #include <QObject>
 #include <QString>
 #include <QStringList>
@@ -53,7 +55,7 @@ struct BatchParseResult {
 /**
  * @brief 批量代码解析器类
  * 
- * @details 该类采用单例模式，提供：
+ * @details 该类采用依赖注入模式，提供：
  * - 文件夹递归扫描
  * - 批量文件处理队列
  * - 进度回调
@@ -64,11 +66,17 @@ class BatchCodeParser : public QObject {
 
 public:
     /**
-     * @brief 获取BatchCodeParser的单例实例
-     * @return BatchCodeParser的引用
+     * @brief 构造函数
+     * @param dbManager 数据库管理器接口（依赖注入）
+     * @param parent 父对象
      */
-    static BatchCodeParser& instance();
-    
+    explicit BatchCodeParser(IDatabaseManager* dbManager, QObject* parent = nullptr);
+
+    /**
+     * @brief 析构函数
+     */
+    ~BatchCodeParser();
+
     BatchCodeParser(const BatchCodeParser&) = delete;
     BatchCodeParser& operator=(const BatchCodeParser&) = delete;
 
@@ -185,17 +193,6 @@ private slots:
 
 private:
     /**
-     * @brief 构造函数
-     * @param parent 父对象
-     */
-    explicit BatchCodeParser(QObject* parent = nullptr);
-
-    /**
-     * @brief 析构函数
-     */
-    ~BatchCodeParser();
-
-    /**
      * @brief 递归扫描文件夹
      * @param folderPath 文件夹路径
      * @param files 输出参数，找到的文件列表
@@ -225,6 +222,7 @@ private:
      */
     void finishBatch();
 
+    IDatabaseManager* m_dbManager;          ///< 数据库管理器（依赖注入）
     QQueue<QString> m_fileQueue;            ///< 文件队列
     QSet<QString> m_processedFiles;         ///< 已处理的文件集合
     

@@ -13,6 +13,7 @@
 ParseService::ParseService(IDatabaseManager* dbManager, QObject* parent)
     : IParseService(parent)
     , m_dbManager(dbManager)
+    , m_batchParser(new BatchCodeParser(dbManager, this))
     , m_skipExisting(true)
     , m_isParsing(false)
     , m_targetProjectId(-1)
@@ -27,16 +28,15 @@ ParseService::ParseService(IDatabaseManager* dbManager, QObject* parent)
     connect(&aiParser, &AICodeParser::parseCancelled,
             this, &ParseService::onAIParseCancelled);
 
-    BatchCodeParser &batchParser = BatchCodeParser::instance();
-    connect(&batchParser, &BatchCodeParser::batchProgress,
+    connect(m_batchParser, &BatchCodeParser::batchProgress,
             this, &ParseService::onBatchProgress);
-    connect(&batchParser, &BatchCodeParser::fileParsed,
+    connect(m_batchParser, &BatchCodeParser::fileParsed,
             this, &ParseService::onFileParsed);
-    connect(&batchParser, &BatchCodeParser::batchComplete,
+    connect(m_batchParser, &BatchCodeParser::batchComplete,
             this, &ParseService::onBatchComplete);
-    connect(&batchParser, &BatchCodeParser::batchFailed,
+    connect(m_batchParser, &BatchCodeParser::batchFailed,
             this, &ParseService::onBatchFailed);
-    connect(&batchParser, &BatchCodeParser::batchCancelled,
+    connect(m_batchParser, &BatchCodeParser::batchCancelled,
             this, &ParseService::onBatchCancelled);
 
     Logger::instance().info("解析服务初始化完成");
@@ -73,19 +73,19 @@ void ParseService::parseFolder(const QString& folderPath, bool recursive)
                                .arg(folderPath)
                                .arg(recursive));
 
-    BatchCodeParser::instance().setSkipExisting(m_skipExisting);
-    BatchCodeParser::instance().setTargetProject(m_targetProjectId);
+    m_batchParser->setSkipExisting(m_skipExisting);
+    m_batchParser->setTargetProject(m_targetProjectId);
     
     if (m_targetProjectId > 0) {
         ProjectInfo project = m_dbManager->getProjectById(m_targetProjectId);
         if (project.id > 0) {
-            BatchCodeParser::instance().setProjectRootPath(project.rootPath);
+            m_batchParser->setProjectRootPath(project.rootPath);
         }
     } else {
-        BatchCodeParser::instance().setProjectRootPath(folderPath);
+        m_batchParser->setProjectRootPath(folderPath);
     }
     
-    BatchCodeParser::instance().parseFolder(folderPath, recursive);
+    m_batchParser->parseFolder(folderPath, recursive);
 }
 
 void ParseService::cancelParsing()
@@ -100,8 +100,8 @@ void ParseService::cancelParsing()
         AICodeParser::instance().cancelParsing();
     }
     
-    if (BatchCodeParser::instance().isParsing()) {
-        BatchCodeParser::instance().cancelParsing();
+    if (m_batchParser->isParsing()) {
+        m_batchParser->cancelParsing();
     }
 }
 
