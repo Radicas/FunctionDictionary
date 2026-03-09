@@ -18,11 +18,14 @@ AIServiceManager::AIServiceManager(QObject* parent)
     , m_networkManager(nullptr)
     , m_rateLimit(60)
     , m_lastRequestTime(0)
-    , m_processTimer(new QTimer(this)) {
+    , m_processTimer(new QTimer(this))
+    , m_timeoutTimer(new QTimer(this))
+    , m_timeoutMs(120000) {
     
     m_networkManager = new QNetworkAccessManager(this);
     
     connect(m_processTimer, &QTimer::timeout, this, &AIServiceManager::onProcessQueue);
+    connect(m_timeoutTimer, &QTimer::timeout, this, &AIServiceManager::onRequestTimeout);
     
     Logger::instance().info("AI服务管理器初始化完成");
 }
@@ -32,6 +35,9 @@ AIServiceManager::~AIServiceManager() {
     
     if (m_processTimer->isActive()) {
         m_processTimer->stop();
+    }
+    if (m_timeoutTimer->isActive()) {
+        m_timeoutTimer->stop();
     }
 }
 
@@ -53,44 +59,23 @@ void AIServiceManager::analyzeCode(const QString& code) {
 
     emit analysisProgress("正在向AI发送请求...");
 
-    QString prompt = "请分析以下代码，提取函数详细信息。\n"
-                     "请以JSON格式返回，格式如下：\n"
-                     "{\n"
-                     "  \"function_name\": \"函数名\",\n"
-                     "  \"function_description\": \"函数的基本功能说明\",\n"
-                     "  \"parameters\": [\n"
-                     "    {\"name\": \"参数名\", \"type\": \"参数类型\", \"description\": \"参数说明\"}\n"
-                     "  ],\n"
-                     "  \"return_type\": \"返回值类型\",\n"
-                     "  \"return_description\": \"返回值说明\",\n"
-                     "  \"flowchart\": \"使用mermaid flowchart语法绘制的函数运行流程图，清晰展示函数内部执行步骤和分支逻辑\",\n"
-                     "  \"sequence_diagram\": \"使用mermaid sequenceDiagram语法绘制的函数调用时序图，明确函数与其他模块或组件的交互过程和调用顺序\",\n"
-                     "  \"structure_diagram\": \"使用mermaid graph语法绘制的函数结构关系图，直观呈现该函数在整体系统架构中的位置以及与其他函数或类的依赖关系\"\n"
-                     "}\n\n"
-                     "要求：\n"
-                     "1. 所有mermaid图表语法必须正确、逻辑清晰，符合mermaid规范\n"
-                     "2. 图表内容应基于代码实际逻辑，能够直接用于文档生成或可视化展示\n"
-                     "3. 流程图应包含所有关键分支和循环结构\n"
-                     "4. 时序图应展示函数与外部组件的交互\n"
-                     "5. 结构图应清晰展示依赖关系\n\n"
-                     "代码：\n" + code;
+    ExtractedFunction func;
+    func.name = "code_analysis";
+    func.body = code;
+    func.language = "generic";
+    func.signature = "code_analysis";
 
-    QUrl url(buildRequestUrl());
-    QNetworkRequest request(url);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    request.setRawHeader("Authorization", QString("Bearer %1").arg(config.apiKey).toUtf8());
-
-    QJsonObject jsonObj = buildRequestJson(prompt);
-    QJsonDocument jsonDoc(jsonObj);
-    QByteArray jsonData = jsonDoc.toJson();
-
-    QNetworkReply* reply = m_networkManager->post(request, jsonData);
-
-    connect(reply, &QNetworkReply::finished, this, [this, reply]() {
-        onReplyFinished(reply);
-    });
-
-    Logger::instance().info("已发送AI分析请求，Base URL: " + config.baseUrl + ", Model: " + config.modelId);
+    AIAnalysisRequest request;
+    request.requestId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    request.function = func;
+    request.createTime = QDateTime::currentDateTime();
+    
+    m_pendingRequests[request.requestId] = request;
+    m_requestQueue.enqueue(request);
+    
+    if (m_requestQueue.size() == 1) {
+        processQueue();
+    }
 }
 
 void AIServiceManager::analyzeFunction(const ExtractedFunction& func, const QString& requestId) {
@@ -188,8 +173,52 @@ void AIServiceManager::setRateLimit(int requestsPerMinute) {
     Logger::instance().info(QString("速率限制已设置为每分钟 %1 次").arg(requestsPerMinute));
 }
 
+void AIServiceManager::setTimeout(int timeoutMs) {
+    QMutexLocker locker(&m_mutex);
+    m_timeoutMs = timeoutMs;
+    Logger::instance().info(QString("请求超时时间已设置为 %1 毫秒").arg(timeoutMs));
+}
+
+void AIServiceManager::onRequestTimeout() {
+    QMutexLocker locker(&m_mutex);
+    
+    Logger::instance().error(QString("请求超时 (%1 ms)").arg(m_timeoutMs));
+    
+    for (auto it = m_activeRequests.begin(); it != m_activeRequests.end(); ++it) {
+        QString requestId = it.key();
+        QNetworkReply* reply = it.value();
+        
+        if (reply) {
+            reply->abort();
+            reply->deleteLater();
+        }
+        
+        AIAnalysisResponse response;
+        response.requestId = requestId;
+        response.success = false;
+        response.errorMessage = QString("请求超时 (%1 秒)").arg(m_timeoutMs / 1000);
+        
+        if (m_pendingRequests.contains(requestId)) {
+            response.retryCount = m_pendingRequests.value(requestId).retryCount;
+            response.functionName = m_pendingRequests.value(requestId).function.name;
+            m_pendingRequests.remove(requestId);
+        }
+        
+        emit functionAnalysisComplete(response);
+    }
+    
+    m_activeRequests.clear();
+    m_requestStartTimes.clear();
+    
+    emit queueStatusChanged(getQueueStatus());
+    
+    processQueue();
+}
+
 void AIServiceManager::onReplyFinished(QNetworkReply* reply) {
     QMutexLocker locker(&m_mutex);
+    
+    m_timeoutTimer->stop();
     
     QString requestId;
     for (auto it = m_activeRequests.begin(); it != m_activeRequests.end(); ++it) {
@@ -200,10 +229,15 @@ void AIServiceManager::onReplyFinished(QNetworkReply* reply) {
     }
     
     m_activeRequests.remove(requestId);
+    m_requestStartTimes.remove(requestId);
     reply->deleteLater();
     
     AIAnalysisResponse response;
     response.requestId = requestId;
+    
+    if (m_requestStartTimes.contains(requestId)) {
+        response.responseTime = QDateTime::currentMSecsSinceEpoch() - m_requestStartTimes.value(requestId);
+    }
     
     if (reply->error() != QNetworkReply::NoError) {
         response.success = false;
@@ -250,6 +284,11 @@ void AIServiceManager::onReplyFinished(QNetworkReply* reply) {
                             if (obj.contains("flowchart")) response.flowchart = obj["flowchart"].toString();
                             if (obj.contains("sequence_diagram")) response.sequenceDiagram = obj["sequence_diagram"].toString();
                             if (obj.contains("structure_diagram")) response.structureDiagram = obj["structure_diagram"].toString();
+                            
+                            if (obj.contains("parameters") && obj["parameters"].isArray()) {
+                                QJsonDocument paramsDoc(obj["parameters"].toArray());
+                                response.parameters = paramsDoc.toJson(QJsonDocument::Compact);
+                            }
                         }
                     }
                     
@@ -268,6 +307,10 @@ void AIServiceManager::onReplyFinished(QNetworkReply* reply) {
         response.functionName = m_pendingRequests.value(requestId).function.name;
         m_pendingRequests.remove(requestId);
     }
+    
+    AIConfig config = AIConfigManager::instance().getCurrentConfig();
+    response.aiModel = config.modelId;
+    response.analyzeTime = QDateTime::currentDateTime();
     
     emit functionAnalysisComplete(response);
     
@@ -343,6 +386,7 @@ bool AIServiceManager::extractFunctionInfo(const QString& aiResponse, QString& f
     int jsonEnd = jsonStr.lastIndexOf('}');
 
     if (jsonStart == -1 || jsonEnd == -1 || jsonEnd <= jsonStart) {
+        Logger::instance().error("AI响应中未找到有效的JSON对象");
         return false;
     }
 
@@ -353,24 +397,36 @@ bool AIServiceManager::extractFunctionInfo(const QString& aiResponse, QString& f
 
     if (error.error != QJsonParseError::NoError) {
         Logger::instance().error("解析AI响应JSON失败: " + error.errorString());
+        Logger::instance().error("JSON位置 " + QString::number(error.offset) + " 附近内容: " + jsonStr.mid(qMax(0, error.offset - 50), 100));
         return false;
     }
 
     if (!jsonDoc.isObject()) {
+        Logger::instance().error("AI响应不是有效的JSON对象");
         return false;
     }
 
     QJsonObject jsonObj = jsonDoc.object();
 
     if (jsonObj.contains("function_name")) {
-        functionName = jsonObj["function_name"].toString();
+        functionName = jsonObj["function_name"].toString().trimmed();
+    }
+    
+    if (functionName.isEmpty()) {
+        Logger::instance().warning("AI响应中缺少function_name字段或为空");
+        functionName = "unknown_function";
     }
 
     if (jsonObj.contains("function_description")) {
-        functionDescription = jsonObj["function_description"].toString();
+        functionDescription = jsonObj["function_description"].toString().trimmed();
+    }
+    
+    if (functionDescription.isEmpty()) {
+        Logger::instance().warning("AI响应中缺少function_description字段或为空");
+        functionDescription = "暂无描述";
     }
 
-    return !functionName.isEmpty() && !functionDescription.isEmpty();
+    return true;
 }
 
 QString AIServiceManager::buildFunctionPrompt(const ExtractedFunction& func) const {
@@ -456,18 +512,17 @@ void AIServiceManager::sendRequest(const AIAnalysisRequest& request) {
     QNetworkReply* reply = m_networkManager->post(networkRequest, jsonData);
     
     m_activeRequests[request.requestId] = reply;
+    m_requestStartTimes[request.requestId] = QDateTime::currentMSecsSinceEpoch();
     m_lastRequestTime = QDateTime::currentMSecsSinceEpoch();
     
     connect(reply, &QNetworkReply::finished, this, [this, reply]() {
         onReplyFinished(reply);
     });
     
+    m_timeoutTimer->start(m_timeoutMs);
+    
     Logger::instance().info(QString("已发送AI分析请求，函数: %1").arg(request.function.name));
     
     emit queueStatusChanged(getQueueStatus());
-    
-    if (!m_requestQueue.isEmpty()) {
-        m_processTimer->start(60000 / m_rateLimit);
-    }
 }
 

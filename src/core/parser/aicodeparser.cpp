@@ -198,6 +198,11 @@ void AICodeParser::onReplyFinished() {
     return;
   }
 
+  if (!m_streamBuffer.trimmed().isEmpty()) {
+    parseSSELine(m_streamBuffer);
+    m_streamBuffer.clear();
+  }
+
   reply->deleteLater();
 
   QString aiResponse = m_streamContent;
@@ -514,16 +519,53 @@ AICodeParser::parseFunctionFromJson(const QJsonObject &jsonObj,
   FunctionData funcData;
 
   funcData.key = jsonObj["name"].toString();
+  if (funcData.key.isEmpty()) {
+    Logger::instance().warning("函数缺少name字段，使用默认值");
+    funcData.key = "unknown_function";
+  }
+
   funcData.signature = jsonObj["signature"].toString();
+  if (funcData.signature.isEmpty()) {
+    funcData.signature = funcData.key + "()";
+  }
+
   funcData.returnType = jsonObj["return_type"].toString();
+  
   funcData.filePath = filePath;
-  funcData.startLine = jsonObj["start_line"].toInt();
-  funcData.endLine = jsonObj["end_line"].toInt();
+  
+  int startLine = jsonObj["start_line"].toInt(0);
+  int endLine = jsonObj["end_line"].toInt(0);
+  if (startLine <= 0) {
+    Logger::instance().warning(QString("函数 %1 的 start_line 无效: %2").arg(funcData.key).arg(startLine));
+    startLine = 1;
+  }
+  if (endLine <= 0 || endLine < startLine) {
+    Logger::instance().warning(QString("函数 %1 的 end_line 无效: %2").arg(funcData.key).arg(endLine));
+    endLine = startLine;
+  }
+  funcData.startLine = startLine;
+  funcData.endLine = endLine;
+  
   funcData.language = language;
   funcData.value = jsonObj["description"].toString();
+  if (funcData.value.isEmpty()) {
+    Logger::instance().warning(QString("函数 %1 缺少描述信息").arg(funcData.key));
+    funcData.value = "暂无描述";
+  }
+
   funcData.flowchart = jsonObj["flowchart"].toString();
+  if (!funcData.flowchart.isEmpty() && !funcData.flowchart.trimmed().startsWith("flowchart") 
+      && !funcData.flowchart.trimmed().startsWith("graph")) {
+    Logger::instance().warning(QString("函数 %1 的 flowchart 格式可能不正确").arg(funcData.key));
+  }
+
   funcData.sequenceDiagram = jsonObj["sequence_diagram"].toString();
+  if (!funcData.sequenceDiagram.isEmpty() && !funcData.sequenceDiagram.trimmed().startsWith("sequenceDiagram")) {
+    Logger::instance().warning(QString("函数 %1 的 sequence_diagram 格式可能不正确").arg(funcData.key));
+  }
+
   funcData.structureDiagram = jsonObj["structure_diagram"].toString();
+  
   funcData.createTime = QDateTime::currentDateTime();
   funcData.analyzeTime = QDateTime::currentDateTime();
 

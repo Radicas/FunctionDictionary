@@ -76,6 +76,12 @@ public:
      */
     void setRateLimit(int requestsPerMinute);
 
+    /**
+     * @brief 设置请求超时时间
+     * @param timeoutMs 超时时间（毫秒）
+     */
+    void setTimeout(int timeoutMs);
+
 signals:
     /**
      * @brief 分析完成信号（兼容旧接口）
@@ -119,6 +125,11 @@ private slots:
      * @brief 处理队列槽函数
      */
     void onProcessQueue();
+
+    /**
+     * @brief 请求超时槽函数
+     */
+    void onRequestTimeout();
 
 private:
     /**
@@ -185,10 +196,13 @@ private:
     QQueue<AIAnalysisRequest> m_requestQueue;
     QMap<QString, QNetworkReply*> m_activeRequests;
     QMap<QString, AIAnalysisRequest> m_pendingRequests;
+    QMap<QString, qint64> m_requestStartTimes;
 
     int m_rateLimit;
     qint64 m_lastRequestTime;
     QTimer* m_processTimer;
+    QTimer* m_timeoutTimer;
+    int m_timeoutMs;
 
     QDateTime m_startTime;
 };
