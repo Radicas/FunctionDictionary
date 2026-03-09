@@ -7,49 +7,39 @@
  */
 
 #include "core/services/parseservice.h"
-#include "common/logger/logger.h"
 #include <QDateTime>
+#include "common/logger/logger.h"
 
 ParseService::ParseService(IDatabaseManager* dbManager, QObject* parent)
-    : IParseService(parent)
-    , m_dbManager(dbManager)
-    , m_batchParser(new BatchCodeParser(dbManager, this))
-    , m_skipExisting(true)
-    , m_isParsing(false)
-    , m_isBatchMode(false)
-    , m_targetProjectId(-1)
+    : IParseService(parent),
+      m_dbManager(dbManager),
+      m_batchParser(new BatchCodeParser(dbManager, this)),
+      m_skipExisting(true),
+      m_isParsing(false),
+      m_isBatchMode(false),
+      m_targetProjectId(-1)
 {
-    AICodeParser &aiParser = AICodeParser::instance();
-    connect(&aiParser, &AICodeParser::parseComplete,
-            this, &ParseService::onAIParseComplete);
-    connect(&aiParser, &AICodeParser::parseFailed,
-            this, &ParseService::onAIParseFailed);
-    connect(&aiParser, &AICodeParser::parseProgress,
-            this, &ParseService::onAIParseProgress);
-    connect(&aiParser, &AICodeParser::parseCancelled,
-            this, &ParseService::onAIParseCancelled);
+    AICodeParser& aiParser = AICodeParser::instance();
+    connect(&aiParser, &AICodeParser::parseComplete, this, &ParseService::onAIParseComplete);
+    connect(&aiParser, &AICodeParser::parseFailed, this, &ParseService::onAIParseFailed);
+    connect(&aiParser, &AICodeParser::parseProgress, this, &ParseService::onAIParseProgress);
+    connect(&aiParser, &AICodeParser::parseCancelled, this, &ParseService::onAIParseCancelled);
 
-    connect(m_batchParser, &BatchCodeParser::batchProgress,
-            this, &ParseService::onBatchProgress);
-    connect(m_batchParser, &BatchCodeParser::fileParsed,
-            this, &ParseService::onFileParsed);
-    connect(m_batchParser, &BatchCodeParser::batchComplete,
-            this, &ParseService::onBatchComplete);
-    connect(m_batchParser, &BatchCodeParser::batchFailed,
-            this, &ParseService::onBatchFailed);
-    connect(m_batchParser, &BatchCodeParser::batchCancelled,
-            this, &ParseService::onBatchCancelled);
+    connect(m_batchParser, &BatchCodeParser::batchProgress, this, &ParseService::onBatchProgress);
+    connect(m_batchParser, &BatchCodeParser::fileParsed, this, &ParseService::onFileParsed);
+    connect(m_batchParser, &BatchCodeParser::batchComplete, this, &ParseService::onBatchComplete);
+    connect(m_batchParser, &BatchCodeParser::batchFailed, this, &ParseService::onBatchFailed);
+    connect(m_batchParser, &BatchCodeParser::batchCancelled, this, &ParseService::onBatchCancelled);
 
     Logger::instance().info("解析服务初始化完成");
 }
 
-ParseService::~ParseService()
-{
-}
+ParseService::~ParseService() {}
 
 void ParseService::parseFile(const QString& filePath)
 {
-    if (m_isParsing) {
+    if (m_isParsing)
+    {
         emit parseFailed("正在解析其他文件，请稍候...");
         return;
     }
@@ -57,53 +47,59 @@ void ParseService::parseFile(const QString& filePath)
     m_isParsing = true;
     m_isBatchMode = false;
     m_currentFilePath = filePath;
-    
+
     Logger::instance().info("开始解析文件: " + filePath);
     AICodeParser::instance().parseFile(filePath);
 }
 
 void ParseService::parseFolder(const QString& folderPath, bool recursive)
 {
-    if (m_isParsing) {
+    if (m_isParsing)
+    {
         emit parseFailed("正在解析其他文件，请稍候...");
         return;
     }
 
     m_isParsing = true;
     m_isBatchMode = true;
-    
-    Logger::instance().info(QString("开始批量解析文件夹: %1, 递归: %2")
-                               .arg(folderPath)
-                               .arg(recursive));
+
+    Logger::instance().info(QString("开始批量解析文件夹: %1, 递归: %2").arg(folderPath).arg(recursive));
 
     m_batchParser->setSkipExisting(m_skipExisting);
     m_batchParser->setTargetProject(m_targetProjectId);
-    
-    if (m_targetProjectId > 0) {
+
+    if (m_targetProjectId > 0)
+    {
         ProjectInfo project = m_dbManager->getProjectById(m_targetProjectId);
-        if (project.id > 0) {
+        if (project.id > 0)
+        {
             m_batchParser->setProjectRootPath(project.rootPath);
         }
-    } else {
+    }
+    else
+    {
         m_batchParser->setProjectRootPath(folderPath);
     }
-    
+
     m_batchParser->parseFolder(folderPath, recursive);
 }
 
 void ParseService::cancelParsing()
 {
-    if (!m_isParsing) {
+    if (!m_isParsing)
+    {
         return;
     }
 
     Logger::instance().info("取消解析");
-    
-    if (AICodeParser::instance().isParsing()) {
+
+    if (AICodeParser::instance().isParsing())
+    {
         AICodeParser::instance().cancelParsing();
     }
-    
-    if (m_batchParser->isParsing()) {
+
+    if (m_batchParser->isParsing())
+    {
         m_batchParser->cancelParsing();
     }
 }
@@ -132,10 +128,11 @@ int ParseService::targetProject() const
 
 void ParseService::onAIParseComplete(const AIParseResult& result)
 {
-    if (m_isBatchMode) {
+    if (m_isBatchMode)
+    {
         return;
     }
-    
+
     ParseResult parseResult = processSingleFileResult(result);
     m_isParsing = false;
     emit parseComplete(parseResult);
@@ -143,10 +140,11 @@ void ParseService::onAIParseComplete(const AIParseResult& result)
 
 void ParseService::onAIParseFailed(const QString& error)
 {
-    if (m_isBatchMode) {
+    if (m_isBatchMode)
+    {
         return;
     }
-    
+
     m_isParsing = false;
     Logger::instance().error("AI 解析失败: " + error);
     emit parseFailed(error);
@@ -154,36 +152,47 @@ void ParseService::onAIParseFailed(const QString& error)
 
 void ParseService::onAIParseProgress(const QString& stage, const QString& message)
 {
-    if (m_isBatchMode) {
+    if (m_isBatchMode)
+    {
         return;
     }
-    
+
     ParseProgress progress;
     progress.stage = stage;
     progress.message = message;
-    
-    if (stage == "读取文件") {
+
+    if (stage == "读取文件")
+    {
         progress.current = 10;
-    } else if (stage == "构建请求") {
+    }
+    else if (stage == "构建请求")
+    {
         progress.current = 20;
-    } else if (stage == "发送请求") {
+    }
+    else if (stage == "发送请求")
+    {
         progress.current = 30;
-    } else if (stage == "解析响应") {
+    }
+    else if (stage == "解析响应")
+    {
         progress.current = 70;
-    } else if (stage == "保存数据") {
+    }
+    else if (stage == "保存数据")
+    {
         progress.current = 90;
     }
     progress.total = 100;
-    
+
     emit parseProgress(progress);
 }
 
 void ParseService::onAIParseCancelled()
 {
-    if (m_isBatchMode) {
+    if (m_isBatchMode)
+    {
         return;
     }
-    
+
     m_isParsing = false;
     Logger::instance().info("AI解析已取消");
     emit parseCancelled();
@@ -199,15 +208,13 @@ void ParseService::onBatchProgress(const BatchParseProgress& progress)
     progressInfo.skippedCount = progress.skippedCount;
     progressInfo.stage = progress.currentStage;
     progressInfo.message = progress.currentMessage;
-    
+
     emit parseProgress(progressInfo);
 }
 
 void ParseService::onFileParsed(const QString& filePath, const AIParseResult& result)
 {
-    Logger::instance().info(QString("文件解析完成: %1, 提取 %2 个函数")
-                               .arg(filePath)
-                               .arg(result.functions.size()));
+    Logger::instance().info(QString("文件解析完成: %1, 提取 %2 个函数").arg(filePath).arg(result.functions.size()));
 }
 
 void ParseService::onBatchComplete(const BatchParseResult& result)
@@ -239,8 +246,9 @@ ParseResult ParseService::processSingleFileResult(const AIParseResult& result)
     ParseResult parseResult;
     parseResult.filePath = result.filePath;
     parseResult.success = result.success;
-    
-    if (!result.success) {
+
+    if (!result.success)
+    {
         parseResult.errorMessage = result.errorMessage;
         return parseResult;
     }
@@ -250,45 +258,57 @@ ParseResult ParseService::processSingleFileResult(const AIParseResult& result)
     int skippedCount = 0;
 
     QString relativePath = result.filePath;
-    
-    if (m_targetProjectId > 0) {
+
+    if (m_targetProjectId > 0)
+    {
         ProjectInfo project = m_dbManager->getProjectById(m_targetProjectId);
-        if (project.id > 0 && !project.rootPath.isEmpty()) {
-            if (result.filePath.startsWith(project.rootPath)) {
+        if (project.id > 0 && !project.rootPath.isEmpty())
+        {
+            if (result.filePath.startsWith(project.rootPath))
+            {
                 relativePath = result.filePath.mid(project.rootPath.length());
-                if (relativePath.startsWith("/")) {
+                if (relativePath.startsWith("/"))
+                {
                     relativePath = relativePath.mid(1);
                 }
             }
         }
     }
 
-    for (const FunctionData &funcData : result.functions) {
-        if (m_skipExisting && m_dbManager->functionExists(funcData.key)) {
+    for (const FunctionData& funcData : result.functions)
+    {
+        if (m_skipExisting && m_dbManager->functionExists(funcData.key))
+        {
             skippedCount++;
             Logger::instance().info(QString("[跳过] %1 - 已存在").arg(funcData.key));
-        } else {
+        }
+        else
+        {
             FunctionData data = funcData;
             data.createTime = QDateTime::currentDateTime();
             data.analyzeTime = QDateTime::currentDateTime();
             data.filePath = relativePath;
-            
-            if (m_targetProjectId > 0) {
+
+            if (m_targetProjectId > 0)
+            {
                 data.projectId = m_targetProjectId;
-            } else {
+            }
+            else
+            {
                 ProjectInfo tempProject = m_dbManager->getOrCreateTemporaryProject();
                 data.projectId = tempProject.id;
             }
 
-            if (m_dbManager->addFunction(data)) {
+            if (m_dbManager->addFunction(data))
+            {
                 successCount++;
                 parseResult.functions.append(data);
                 Logger::instance().info(QString("[成功] %1").arg(funcData.key));
-            } else {
+            }
+            else
+            {
                 failedCount++;
-                Logger::instance().error(QString("[失败] %1 - %2")
-                                            .arg(funcData.key)
-                                            .arg(m_dbManager->lastError()));
+                Logger::instance().error(QString("[失败] %1 - %2").arg(funcData.key).arg(m_dbManager->lastError()));
             }
         }
     }
@@ -296,12 +316,10 @@ ParseResult ParseService::processSingleFileResult(const AIParseResult& result)
     parseResult.successCount = successCount;
     parseResult.failedCount = failedCount;
     parseResult.skippedCount = skippedCount;
-    
-    Logger::instance().info(QString("解析完成！成功: %1, 失败: %2, 跳过: %3")
-                               .arg(successCount)
-                               .arg(failedCount)
-                               .arg(skippedCount));
-    
+
+    Logger::instance().info(
+        QString("解析完成！成功: %1, 失败: %2, 跳过: %3").arg(successCount).arg(failedCount).arg(skippedCount));
+
     return parseResult;
 }
 
@@ -313,17 +331,18 @@ ParseResult ParseService::processBatchResult(const BatchParseResult& result)
     parseResult.failedCount = result.failedCount;
     parseResult.skippedCount = result.skippedCount;
     parseResult.functions = result.allFunctions;
-    
-    if (!result.success) {
+
+    if (!result.success)
+    {
         parseResult.errorMessage = result.errorMessage;
     }
-    
+
     Logger::instance().info(QString("批量解析完成！总计: %1 个文件, 成功: %2, 失败: %3, 跳过: %4, 提取函数: %5 个")
-                               .arg(result.totalFiles)
-                               .arg(result.successCount)
-                               .arg(result.failedCount)
-                               .arg(result.skippedCount)
-                               .arg(result.allFunctions.size()));
-    
+                                .arg(result.totalFiles)
+                                .arg(result.successCount)
+                                .arg(result.failedCount)
+                                .arg(result.skippedCount)
+                                .arg(result.allFunctions.size()));
+
     return parseResult;
 }

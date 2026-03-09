@@ -7,14 +7,12 @@
  */
 
 #include "core/models/functiontreemodel.h"
-#include "common/logger/logger.h"
 #include <QDir>
 #include <QFileInfo>
 #include <QMimeData>
+#include "common/logger/logger.h"
 
-FunctionTreeModel::FunctionTreeModel(QObject* parent)
-    : QAbstractItemModel(parent)
-    , m_rootItem(nullptr)
+FunctionTreeModel::FunctionTreeModel(QObject* parent) : QAbstractItemModel(parent), m_rootItem(nullptr)
 {
     setupRootItem();
 }
@@ -31,33 +29,37 @@ void FunctionTreeModel::setupRootItem()
 
 QModelIndex FunctionTreeModel::index(int row, int column, const QModelIndex& parent) const
 {
-    if (!hasIndex(row, column, parent)) {
+    if (!hasIndex(row, column, parent))
+    {
         return QModelIndex();
     }
-    
+
     TreeItem* parentItem = itemFromIndex(parent);
     TreeItem* childItem = parentItem->child(row);
-    
-    if (childItem) {
+
+    if (childItem)
+    {
         return createIndex(row, column, childItem);
     }
-    
+
     return QModelIndex();
 }
 
 QModelIndex FunctionTreeModel::parent(const QModelIndex& index) const
 {
-    if (!index.isValid()) {
+    if (!index.isValid())
+    {
         return QModelIndex();
     }
-    
+
     TreeItem* childItem = itemFromIndex(index);
     TreeItem* parentItem = childItem->parent();
-    
-    if (parentItem == m_rootItem) {
+
+    if (parentItem == m_rootItem)
+    {
         return QModelIndex();
     }
-    
+
     return indexFromItem(parentItem);
 }
 
@@ -75,18 +77,22 @@ int FunctionTreeModel::columnCount(const QModelIndex& parent) const
 
 QVariant FunctionTreeModel::data(const QModelIndex& index, int role) const
 {
-    if (!index.isValid()) {
+    if (!index.isValid())
+    {
         return QVariant();
     }
-    
+
     TreeItem* item = itemFromIndex(index);
-    
-    if (role == Qt::DisplayRole || role == Qt::EditRole) {
+
+    if (role == Qt::DisplayRole || role == Qt::EditRole)
+    {
         return item->displayText();
     }
-    
-    if (role == Qt::DecorationRole) {
-        switch (item->type()) {
+
+    if (role == Qt::DecorationRole)
+    {
+        switch (item->type())
+        {
             case TreeItemType::Project:
                 return QVariant::fromValue(QString("📁"));
             case TreeItemType::Directory:
@@ -99,20 +105,25 @@ QVariant FunctionTreeModel::data(const QModelIndex& index, int role) const
                 return QVariant();
         }
     }
-    
-    if (role == Qt::ToolTipRole) {
+
+    if (role == Qt::ToolTipRole)
+    {
         QString tooltip = item->displayText();
-        if (item->type() == TreeItemType::Function) {
+        if (item->type() == TreeItemType::Function)
+        {
             FunctionData func = item->functionData();
-            if (!func.filePath.isEmpty()) {
+            if (!func.filePath.isEmpty())
+            {
                 tooltip += "\n" + func.filePath;
             }
-        } else if (item->type() == TreeItemType::File || item->type() == TreeItemType::Directory) {
+        }
+        else if (item->type() == TreeItemType::File || item->type() == TreeItemType::Directory)
+        {
             tooltip += "\n" + item->path();
         }
         return tooltip;
     }
-    
+
     return QVariant();
 }
 
@@ -144,41 +155,50 @@ void FunctionTreeModel::refresh()
 void FunctionTreeModel::buildTree()
 {
     QMap<int, TreeItem*> projectItems;
-    
+
     QVector<ProjectInfo> normalProjects;
     QVector<ProjectInfo> tempProjects;
-    
-    for (const ProjectInfo& project : m_projects) {
-        if (project.rootPath == "__temporary__") {
+
+    for (const ProjectInfo& project : m_projects)
+    {
+        if (project.rootPath == "__temporary__")
+        {
             tempProjects.append(project);
-        } else {
+        }
+        else
+        {
             normalProjects.append(project);
         }
     }
-    
-    for (const ProjectInfo& project : normalProjects) {
+
+    for (const ProjectInfo& project : normalProjects)
+    {
         TreeItem* projectItem = new TreeItem(TreeItemType::Project, m_rootItem);
         projectItem->setProjectInfo(project);
         m_rootItem->appendChild(projectItem);
         projectItems[project.id] = projectItem;
     }
-    
-    for (const ProjectInfo& project : tempProjects) {
+
+    for (const ProjectInfo& project : tempProjects)
+    {
         TreeItem* projectItem = new TreeItem(TreeItemType::Project, m_rootItem);
         projectItem->setProjectInfo(project);
         m_rootItem->appendChild(projectItem);
         projectItems[project.id] = projectItem;
     }
-    
+
     QMap<int, QMap<QString, TreeItem*>> fileItems;
-    
-    for (const FunctionData& func : m_functions) {
+
+    for (const FunctionData& func : m_functions)
+    {
         int projectId = func.projectId;
-        
+
         TreeItem* projectItem = projectItems.value(projectId, nullptr);
-        if (!projectItem) {
+        if (!projectItem)
+        {
             TreeItem* uncatItem = projectItems.value(0, nullptr);
-            if (!uncatItem) {
+            if (!uncatItem)
+            {
                 ProjectInfo uncatProject;
                 uncatProject.id = 0;
                 uncatProject.name = "未分类";
@@ -190,87 +210,98 @@ void FunctionTreeModel::buildTree()
             }
             projectItem = uncatItem;
         }
-        
+
         QString relativePath = func.filePath;
-        if (relativePath.isEmpty()) {
+        if (relativePath.isEmpty())
+        {
             relativePath = "未分类";
         }
-        
+
         TreeItem* fileItem = fileItems[projectId].value(relativePath, nullptr);
-        if (!fileItem) {
+        if (!fileItem)
+        {
             QStringList pathParts = relativePath.split('/', Qt::SkipEmptyParts);
             TreeItem* currentParent = projectItem;
             QString currentPath;
-            
-            for (int i = 0; i < pathParts.size(); ++i) {
+
+            for (int i = 0; i < pathParts.size(); ++i)
+            {
                 const QString& part = pathParts[i];
-                if (currentPath.isEmpty()) {
+                if (currentPath.isEmpty())
+                {
                     currentPath = part;
-                } else {
+                }
+                else
+                {
                     currentPath = currentPath + "/" + part;
                 }
-                
-                bool isFile = (i == pathParts.size() - 1) && 
-                              (part.contains('.') || part == "未分类");
-                
+
+                bool isFile = (i == pathParts.size() - 1) && (part.contains('.') || part == "未分类");
+
                 TreeItemType itemType = isFile ? TreeItemType::File : TreeItemType::Directory;
-                
+
                 bool found = false;
-                for (int j = 0; j < currentParent->childCount(); ++j) {
+                for (int j = 0; j < currentParent->childCount(); ++j)
+                {
                     TreeItem* child = currentParent->child(j);
-                    if (child->displayText() == part) {
+                    if (child->displayText() == part)
+                    {
                         currentParent = child;
                         found = true;
                         break;
                     }
                 }
-                
-                if (!found) {
+
+                if (!found)
+                {
                     TreeItem* newItem = new TreeItem(itemType, currentParent);
                     newItem->setDisplayText(part);
                     newItem->setPath(currentPath);
                     currentParent->appendChild(newItem);
                     currentParent = newItem;
-                    
-                    if (isFile) {
+
+                    if (isFile)
+                    {
                         fileItems[projectId][relativePath] = newItem;
                     }
                 }
             }
-            
+
             fileItem = currentParent;
         }
-        
+
         TreeItem* funcItem = new TreeItem(TreeItemType::Function, fileItem);
         funcItem->setFunctionData(func);
         fileItem->appendChild(funcItem);
     }
-    
-    Logger::instance().info(QString("构建树完成: %1个项目, %2个函数")
-                            .arg(m_projects.size()).arg(m_functions.size()));
+
+    Logger::instance().info(QString("构建树完成: %1个项目, %2个函数").arg(m_projects.size()).arg(m_functions.size()));
 }
 
 QModelIndex FunctionTreeModel::indexFromItem(TreeItem* item) const
 {
-    if (!item || item == m_rootItem) {
+    if (!item || item == m_rootItem)
+    {
         return QModelIndex();
     }
-    
+
     TreeItem* parentItem = item->parent();
-    if (!parentItem) {
+    if (!parentItem)
+    {
         return QModelIndex();
     }
-    
+
     int row = parentItem->indexOfChild(item);
     return createIndex(row, 0, item);
 }
 
 TreeItem* FunctionTreeModel::itemFromIndex(const QModelIndex& index) const
 {
-    if (!index.isValid()) {
+    if (!index.isValid())
+    {
         return m_rootItem;
     }
-    
+
     TreeItem* item = static_cast<TreeItem*>(index.internalPointer());
     return item ? item : m_rootItem;
 }
@@ -284,7 +315,8 @@ TreeItemType FunctionTreeModel::itemType(const QModelIndex& index) const
 FunctionData FunctionTreeModel::getFunctionData(const QModelIndex& index) const
 {
     TreeItem* item = itemFromIndex(index);
-    if (item->type() == TreeItemType::Function) {
+    if (item->type() == TreeItemType::Function)
+    {
         return item->functionData();
     }
     return FunctionData();
@@ -293,7 +325,8 @@ FunctionData FunctionTreeModel::getFunctionData(const QModelIndex& index) const
 ProjectInfo FunctionTreeModel::getProjectInfo(const QModelIndex& index) const
 {
     TreeItem* item = itemFromIndex(index);
-    if (item->type() == TreeItemType::Project) {
+    if (item->type() == TreeItemType::Project)
+    {
         return item->projectInfo();
     }
     return ProjectInfo();
@@ -308,7 +341,8 @@ QString FunctionTreeModel::getNodePath(const QModelIndex& index) const
 QModelIndex FunctionTreeModel::findFunctionIndex(int functionId) const
 {
     TreeItem* item = findFunctionItem(m_rootItem, functionId);
-    if (item) {
+    if (item)
+    {
         return indexFromItem(item);
     }
     return QModelIndex();
@@ -316,13 +350,16 @@ QModelIndex FunctionTreeModel::findFunctionIndex(int functionId) const
 
 TreeItem* FunctionTreeModel::findFunctionItem(TreeItem* parent, int functionId) const
 {
-    for (int i = 0; i < parent->childCount(); ++i) {
+    for (int i = 0; i < parent->childCount(); ++i)
+    {
         TreeItem* child = parent->child(i);
-        if (child->type() == TreeItemType::Function && child->functionId() == functionId) {
+        if (child->type() == TreeItemType::Function && child->functionId() == functionId)
+        {
             return child;
         }
         TreeItem* found = findFunctionItem(child, functionId);
-        if (found) {
+        if (found)
+        {
             return found;
         }
     }
@@ -332,7 +369,8 @@ TreeItem* FunctionTreeModel::findFunctionItem(TreeItem* parent, int functionId) 
 QModelIndex FunctionTreeModel::findProjectIndex(int projectId) const
 {
     TreeItem* item = findProjectItem(m_rootItem, projectId);
-    if (item) {
+    if (item)
+    {
         return indexFromItem(item);
     }
     return QModelIndex();
@@ -340,19 +378,18 @@ QModelIndex FunctionTreeModel::findProjectIndex(int projectId) const
 
 TreeItem* FunctionTreeModel::findProjectItem(TreeItem* parent, int projectId) const
 {
-    for (int i = 0; i < parent->childCount(); ++i) {
+    for (int i = 0; i < parent->childCount(); ++i)
+    {
         TreeItem* child = parent->child(i);
-        if (child->type() == TreeItemType::Project && child->projectId() == projectId) {
+        if (child->type() == TreeItemType::Project && child->projectId() == projectId)
+        {
             return child;
         }
     }
     return nullptr;
 }
 
-FunctionTreeProxyModel::FunctionTreeProxyModel(QObject* parent)
-    : QSortFilterProxyModel(parent)
-{
-}
+FunctionTreeProxyModel::FunctionTreeProxyModel(QObject* parent) : QSortFilterProxyModel(parent) {}
 
 void FunctionTreeProxyModel::setSearchKeyword(const QString& keyword)
 {
@@ -368,25 +405,29 @@ QString FunctionTreeProxyModel::searchKeyword() const
 
 bool FunctionTreeProxyModel::filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const
 {
-    if (m_searchKeyword.isEmpty()) {
+    if (m_searchKeyword.isEmpty())
+    {
         return true;
     }
-    
+
     QModelIndex index = sourceModel()->index(sourceRow, 0, sourceParent);
-    
+
     TreeItem* item = static_cast<TreeItem*>(index.internalPointer());
-    if (item && item->matchesSearch(m_searchKeyword)) {
+    if (item && item->matchesSearch(m_searchKeyword))
+    {
         return true;
     }
-    
+
     return hasMatchingChildren(index);
 }
 
 bool FunctionTreeProxyModel::hasMatchingChildren(const QModelIndex& index) const
 {
     int childCount = sourceModel()->rowCount(index);
-    for (int i = 0; i < childCount; ++i) {
-        if (filterAcceptsRow(i, index)) {
+    for (int i = 0; i < childCount; ++i)
+    {
+        if (filterAcceptsRow(i, index))
+        {
             return true;
         }
     }
@@ -409,11 +450,14 @@ QMimeData* FunctionTreeModel::mimeData(const QModelIndexList& indexes) const
 {
     QMimeData* mimeData = new QMimeData();
     QByteArray encodedData;
-    
-    for (const QModelIndex& index : indexes) {
-        if (index.isValid()) {
+
+    for (const QModelIndex& index : indexes)
+    {
+        if (index.isValid())
+        {
             TreeItem* item = itemFromIndex(index);
-            if (item && item->type() == TreeItemType::Function) {
+            if (item && item->type() == TreeItemType::Function)
+            {
                 FunctionData func = item->functionData();
                 QString data = QString("%1|%2").arg(func.id).arg(func.key);
                 encodedData.append(data.toUtf8());
@@ -421,70 +465,82 @@ QMimeData* FunctionTreeModel::mimeData(const QModelIndexList& indexes) const
             }
         }
     }
-    
+
     mimeData->setData("application/x-functiondata", encodedData);
     return mimeData;
 }
 
-bool FunctionTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
-                                      int row, int column, const QModelIndex& parent)
+bool FunctionTreeModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column,
+                                     const QModelIndex& parent)
 {
     Q_UNUSED(row)
     Q_UNUSED(column)
-    
-    if (action == Qt::IgnoreAction) {
+
+    if (action == Qt::IgnoreAction)
+    {
         return true;
     }
-    
-    if (!data->hasFormat("application/x-functiondata")) {
+
+    if (!data->hasFormat("application/x-functiondata"))
+    {
         return false;
     }
-    
-    if (!parent.isValid()) {
+
+    if (!parent.isValid())
+    {
         return false;
     }
-    
+
     TreeItem* targetItem = itemFromIndex(parent);
-    if (!targetItem) {
+    if (!targetItem)
+    {
         return false;
     }
-    
+
     int targetProjectId = -1;
     QString targetProjectName;
-    
-    if (targetItem->type() == TreeItemType::Project) {
+
+    if (targetItem->type() == TreeItemType::Project)
+    {
         ProjectInfo project = targetItem->projectInfo();
         targetProjectId = project.id;
         targetProjectName = project.name;
-    } else {
+    }
+    else
+    {
         TreeItem* current = targetItem;
-        while (current && current->type() != TreeItemType::Project) {
+        while (current && current->type() != TreeItemType::Project)
+        {
             current = current->parent();
         }
-        if (current) {
+        if (current)
+        {
             ProjectInfo project = current->projectInfo();
             targetProjectId = project.id;
             targetProjectName = project.name;
         }
     }
-    
-    if (targetProjectId < 0) {
+
+    if (targetProjectId < 0)
+    {
         return false;
     }
-    
+
     QByteArray encodedData = data->data("application/x-functiondata");
     QString dataStr = QString::fromUtf8(encodedData);
     QStringList items = dataStr.split('\n', Qt::SkipEmptyParts);
-    
-    for (const QString& item : items) {
+
+    for (const QString& item : items)
+    {
         QStringList parts = item.split('|');
-        if (parts.size() >= 2) {
+        if (parts.size() >= 2)
+        {
             int functionId = parts[0].toInt();
             emit functionMoved(functionId, targetProjectId);
         }
     }
-    
+
     Logger::instance().info(QString("拖拽函数到项目: %1").arg(targetProjectName));
-    
+
     return true;
 }

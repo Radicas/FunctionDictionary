@@ -9,19 +9,20 @@
 #ifndef CONCURRENCYCONTROLLER_H
 #define CONCURRENCYCONTROLLER_H
 
+#include <QMutex>
 #include <QObject>
 #include <QSemaphore>
-#include <QMutex>
 
 /**
  * @brief 并发控制器类
  * 
  * 该类用于控制并发请求数量，防止同时发送过多请求。
  */
-class ConcurrencyController : public QObject {
+class ConcurrencyController : public QObject
+{
     Q_OBJECT
 
-public:
+   public:
     /**
      * @brief 构造函数
      * @param maxConcurrent 最大并发数
@@ -59,10 +60,10 @@ public:
      */
     int available() const;
 
-private:
+   private:
     QSemaphore m_semaphore;  ///< 信号量
-    mutable QMutex m_mutex;   ///< 互斥锁
-    int m_maxConcurrent;      ///< 最大并发数
+    mutable QMutex m_mutex;  ///< 互斥锁
+    int m_maxConcurrent;     ///< 最大并发数
 };
 
-#endif // CONCURRENCYCONTROLLER_H
+#endif  // CONCURRENCYCONTROLLER_H

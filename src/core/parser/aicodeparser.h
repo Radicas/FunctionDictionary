@@ -16,26 +16,27 @@
 #ifndef AICODEPARSER_H
 #define AICODEPARSER_H
 
-#include "core/models/functiondata.h"
-#include <QObject>
-#include <QString>
-#include <QVector>
+#include <QJsonObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include <QJsonObject>
+#include <QObject>
+#include <QString>
 #include <QTimer>
+#include <QVector>
+#include "core/models/functiondata.h"
 
 /**
  * @brief AI代码解析结果结构体
  */
-struct AIParseResult {
-    bool success;                           ///< 是否成功
-    QString filePath;                       ///< 文件路径
-    QString language;                       ///< 语言类型
-    QVector<FunctionData> functions;        ///< 提取的函数列表
-    QString errorMessage;                   ///< 错误信息
-    int totalLines;                         ///< 文件总行数
-    QString aiModel;                        ///< 使用的AI模型
+struct AIParseResult
+{
+    bool success;                     ///< 是否成功
+    QString filePath;                 ///< 文件路径
+    QString language;                 ///< 语言类型
+    QVector<FunctionData> functions;  ///< 提取的函数列表
+    QString errorMessage;             ///< 错误信息
+    int totalLines;                   ///< 文件总行数
+    QString aiModel;                  ///< 使用的AI模型
 };
 
 /**
@@ -47,16 +48,17 @@ struct AIParseResult {
  * - 支持多种编程语言
  * - 异步处理机制
  */
-class AICodeParser : public QObject {
+class AICodeParser : public QObject
+{
     Q_OBJECT
 
-public:
+   public:
     /**
      * @brief 获取AICodeParser的单例实例
      * @return AICodeParser的引用
      */
     static AICodeParser& instance();
-    
+
     AICodeParser(const AICodeParser&) = delete;
     AICodeParser& operator=(const AICodeParser&) = delete;
 
@@ -98,7 +100,7 @@ public:
      */
     void setTimeout(int timeoutMs);
 
-signals:
+   signals:
     /**
      * @brief 解析完成信号
      * @param result 解析结果
@@ -123,7 +125,7 @@ signals:
      */
     void parseCancelled();
 
-private slots:
+   private slots:
     /**
      * @brief 网络请求完成槽函数
      */
@@ -140,7 +142,7 @@ private slots:
      */
     void onTimeout();
 
-private:
+   private:
     /**
      * @brief 构造函数
      * @param parent 父对象
@@ -190,7 +192,8 @@ private:
      * @param language 语言类型
      * @return 函数数据
      */
-    FunctionData parseFunctionFromJson(const QJsonObject& jsonObj, const QString& filePath, const QString& language) const;
+    FunctionData parseFunctionFromJson(const QJsonObject& jsonObj, const QString& filePath,
+                                       const QString& language) const;
 
     /**
      * @brief 计算代码行数
@@ -219,16 +222,16 @@ private:
      */
     bool parseSSELine(const QString& line);
 
-    QNetworkAccessManager* m_networkManager;    ///< 网络访问管理器
-    QNetworkReply* m_currentReply;               ///< 当前网络回复
-    QTimer* m_timeoutTimer;                      ///< 超时定时器
-    QString m_currentFilePath;                   ///< 当前解析的文件路径
-    QString m_currentLanguage;                   ///< 当前解析的语言类型
-    bool m_isParsing;                            ///< 是否正在解析
-    int m_timeoutMs;                             ///< 超时时间（毫秒）
-    QString m_streamBuffer;                      ///< 流式响应缓冲区
-    QString m_streamContent;                     ///< 流式响应完整内容
-    int m_receivedTokens;                        ///< 已接收的token数
+    QNetworkAccessManager* m_networkManager;  ///< 网络访问管理器
+    QNetworkReply* m_currentReply;            ///< 当前网络回复
+    QTimer* m_timeoutTimer;                   ///< 超时定时器
+    QString m_currentFilePath;                ///< 当前解析的文件路径
+    QString m_currentLanguage;                ///< 当前解析的语言类型
+    bool m_isParsing;                         ///< 是否正在解析
+    int m_timeoutMs;                          ///< 超时时间（毫秒）
+    QString m_streamBuffer;                   ///< 流式响应缓冲区
+    QString m_streamContent;                  ///< 流式响应完整内容
+    int m_receivedTokens;                     ///< 已接收的token数
 };
 
-#endif // AICODEPARSER_H
+#endif  // AICODEPARSER_H

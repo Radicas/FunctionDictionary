@@ -13,18 +13,19 @@
 #ifndef THEMEMANAGER_H
 #define THEMEMANAGER_H
 
-#include <QObject>
-#include <QString>
-#include <QFile>
 #include <QApplication>
-#include <QPalette>
 #include <QColor>
+#include <QFile>
+#include <QObject>
+#include <QPalette>
+#include <QString>
 
 /**
  * @enum ThemeType
  * @brief 主题类型枚举
  */
-enum class ThemeType {
+enum class ThemeType
+{
     Industrial,  ///< 工业风复古主题
     Cyberpunk,   ///< 赛博朋克主题
     Modern       ///< 极简现代主题
@@ -40,10 +41,11 @@ enum class ThemeType {
  * - 统一的颜色方案管理
  * - 全局样式应用
  */
-class ThemeManager : public QObject {
+class ThemeManager : public QObject
+{
     Q_OBJECT
 
-public:
+   public:
     /**
      * @brief 获取单例实例
      * @return ThemeManager单例引用
@@ -94,14 +96,14 @@ public:
      */
     QString currentStyleSheet() const;
 
-signals:
+   signals:
     /**
      * @brief 主题变更信号
      * @param theme 新主题类型
      */
     void themeChanged(ThemeType theme);
 
-private:
+   private:
     ThemeManager();
     ~ThemeManager();
     ThemeManager(const ThemeManager&) = delete;
@@ -110,10 +112,10 @@ private:
     void initColorScheme();
     void applyColorScheme();
 
-    ThemeType m_currentTheme;           ///< 当前主题类型
-    QString m_styleSheet;               ///< 当前样式表
-    QMap<QString, QColor> m_colorScheme; ///< 颜色方案映射
-    bool m_initialized;                 ///< 初始化标志
+    ThemeType m_currentTheme;             ///< 当前主题类型
+    QString m_styleSheet;                 ///< 当前样式表
+    QMap<QString, QColor> m_colorScheme;  ///< 颜色方案映射
+    bool m_initialized;                   ///< 初始化标志
 };
 
-#endif // THEMEMANAGER_H
+#endif  // THEMEMANAGER_H

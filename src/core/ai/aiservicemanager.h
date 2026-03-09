@@ -9,24 +9,25 @@
 #ifndef AISERVICEMANAGER_H
 #define AISERVICEMANAGER_H
 
-#include "core/ai/aiconfigmanager.h"
-#include "core/models/extractedfunction.h"
-#include "core/models/batchconfig.h"
-#include <QObject>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QMap>
+#include <QMutex>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-#include <QJsonObject>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QMutex>
+#include <QObject>
 #include <QQueue>
-#include <QMap>
 #include <QTimer>
+#include "core/ai/aiconfigmanager.h"
+#include "core/models/batchconfig.h"
+#include "core/models/extractedfunction.h"
 
-class AIServiceManager : public QObject {
+class AIServiceManager : public QObject
+{
     Q_OBJECT
 
-public:
+   public:
     /**
      * @brief 获取AIServiceManager的单例实例
      * @return AIServiceManager的引用
@@ -82,7 +83,7 @@ public:
      */
     void setTimeout(int timeoutMs);
 
-signals:
+   signals:
     /**
      * @brief 分析完成信号（兼容旧接口）
      * @param functionName 函数名称
@@ -114,7 +115,7 @@ signals:
      */
     void queueStatusChanged(const RequestQueueStatus& status);
 
-private slots:
+   private slots:
     /**
      * @brief 网络请求完成槽函数
      * @param reply 网络回复对象
@@ -131,7 +132,7 @@ private slots:
      */
     void onRequestTimeout();
 
-private:
+   private:
     /**
      * @brief 构造函数
      * @param parent 父对象

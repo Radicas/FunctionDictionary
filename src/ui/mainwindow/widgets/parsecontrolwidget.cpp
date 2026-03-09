@@ -7,24 +7,21 @@
  */
 
 #include "ui/mainwindow/widgets/parsecontrolwidget.h"
-#include "common/logger/logger.h"
-#include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
+#include "common/logger/logger.h"
 
-ParseControlWidget::ParseControlWidget(QWidget *parent)
-    : QWidget(parent), m_isParsing(false)
+ParseControlWidget::ParseControlWidget(QWidget* parent) : QWidget(parent), m_isParsing(false)
 {
     setupUI();
     Logger::instance().info("解析控制组件初始化完成");
 }
 
-ParseControlWidget::~ParseControlWidget()
-{
-}
+ParseControlWidget::~ParseControlWidget() {}
 
 void ParseControlWidget::setupUI()
 {
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(10);
     mainLayout->setContentsMargins(0, 0, 0, 0);
 
@@ -46,8 +43,8 @@ void ParseControlWidget::setupUI()
     connect(m_aiConfigButton, &QPushButton::clicked, this, &ParseControlWidget::onAiConfigClicked);
     mainLayout->addWidget(m_aiConfigButton);
 
-    QHBoxLayout *buttonLayout = new QHBoxLayout();
-    
+    QHBoxLayout* buttonLayout = new QHBoxLayout();
+
     m_parseButton = new QPushButton("开始解析", this);
     m_parseButton->setObjectName("parseButton");
     connect(m_parseButton, &QPushButton::clicked, this, &ParseControlWidget::onParseClicked);
@@ -61,14 +58,14 @@ void ParseControlWidget::setupUI()
 
     mainLayout->addLayout(buttonLayout);
     mainLayout->addStretch();
-    
+
     setLayout(mainLayout);
 }
 
 void ParseControlWidget::setParsing(bool isParsing)
 {
     m_isParsing = isParsing;
-    
+
     m_parseButton->setEnabled(!isParsing);
     m_parseButton->setVisible(!isParsing);
     m_cancelButton->setVisible(isParsing);

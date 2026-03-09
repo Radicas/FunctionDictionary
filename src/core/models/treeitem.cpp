@@ -8,11 +8,7 @@
 
 #include "core/models/treeitem.h"
 
-TreeItem::TreeItem(TreeItemType type, TreeItem* parent)
-    : m_type(type)
-    , m_parent(parent)
-{
-}
+TreeItem::TreeItem(TreeItemType type, TreeItem* parent) : m_type(type), m_parent(parent) {}
 
 TreeItem::~TreeItem()
 {
@@ -21,7 +17,8 @@ TreeItem::~TreeItem()
 
 TreeItem* TreeItem::child(int index)
 {
-    if (index < 0 || index >= m_children.size()) {
+    if (index < 0 || index >= m_children.size())
+    {
         return nullptr;
     }
     return m_children.at(index);
@@ -44,7 +41,8 @@ TreeItem* TreeItem::parent() const
 
 void TreeItem::appendChild(TreeItem* child)
 {
-    if (child) {
+    if (child)
+    {
         child->m_parent = this;
         m_children.append(child);
     }
@@ -52,7 +50,8 @@ void TreeItem::appendChild(TreeItem* child)
 
 void TreeItem::insertChild(int index, TreeItem* child)
 {
-    if (child && index >= 0 && index <= m_children.size()) {
+    if (child && index >= 0 && index <= m_children.size())
+    {
         child->m_parent = this;
         m_children.insert(index, child);
     }
@@ -60,7 +59,8 @@ void TreeItem::insertChild(int index, TreeItem* child)
 
 void TreeItem::removeChild(int index)
 {
-    if (index >= 0 && index < m_children.size()) {
+    if (index >= 0 && index < m_children.size())
+    {
         TreeItem* child = m_children.takeAt(index);
         delete child;
     }
@@ -132,42 +132,53 @@ int TreeItem::projectId() const
 
 bool TreeItem::matchesSearch(const QString& keyword) const
 {
-    if (keyword.isEmpty()) {
+    if (keyword.isEmpty())
+    {
         return true;
     }
-    
+
     QString lowerKeyword = keyword.toLower();
-    
-    if (m_displayText.toLower().contains(lowerKeyword)) {
+
+    if (m_displayText.toLower().contains(lowerKeyword))
+    {
         return true;
     }
-    
-    if (m_type == TreeItemType::Function) {
-        if (m_functionData.value.toLower().contains(lowerKeyword)) {
+
+    if (m_type == TreeItemType::Function)
+    {
+        if (m_functionData.value.toLower().contains(lowerKeyword))
+        {
             return true;
         }
-        if (m_functionData.filePath.toLower().contains(lowerKeyword)) {
-            return true;
-        }
-    }
-    
-    if (m_type == TreeItemType::File || m_type == TreeItemType::Directory) {
-        if (m_path.toLower().contains(lowerKeyword)) {
+        if (m_functionData.filePath.toLower().contains(lowerKeyword))
+        {
             return true;
         }
     }
-    
-    if (m_type == TreeItemType::Project) {
-        if (m_projectInfo.name.toLower().contains(lowerKeyword)) {
-            return true;
-        }
-        if (m_projectInfo.rootPath.toLower().contains(lowerKeyword)) {
-            return true;
-        }
-        if (m_projectInfo.description.toLower().contains(lowerKeyword)) {
+
+    if (m_type == TreeItemType::File || m_type == TreeItemType::Directory)
+    {
+        if (m_path.toLower().contains(lowerKeyword))
+        {
             return true;
         }
     }
-    
+
+    if (m_type == TreeItemType::Project)
+    {
+        if (m_projectInfo.name.toLower().contains(lowerKeyword))
+        {
+            return true;
+        }
+        if (m_projectInfo.rootPath.toLower().contains(lowerKeyword))
+        {
+            return true;
+        }
+        if (m_projectInfo.description.toLower().contains(lowerKeyword))
+        {
+            return true;
+        }
+    }
+
     return false;
 }

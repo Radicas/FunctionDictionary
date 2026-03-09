@@ -9,24 +9,25 @@
 #ifndef AICONFIGMANAGER_H
 #define AICONFIGMANAGER_H
 
-#include <QString>
+#include <QJsonArray>
+#include <QJsonObject>
 #include <QMap>
 #include <QMutex>
-#include <QJsonObject>
-#include <QJsonArray>
+#include <QString>
 #include "core/models/aiconfig.h"
 
 /**
  * @brief AI配置管理器类，单例模式
  */
-class AIConfigManager {
-public:
+class AIConfigManager
+{
+   public:
     /**
      * @brief 获取AIConfigManager的单例实例
      * @return AIConfigManager的引用
      */
     static AIConfigManager& instance();
-    
+
     AIConfigManager(const AIConfigManager&) = delete;
     AIConfigManager& operator=(const AIConfigManager&) = delete;
 
@@ -100,7 +101,7 @@ public:
      */
     void loadAllConfigs();
 
-private:
+   private:
     /**
      * @brief 构造函数
      */

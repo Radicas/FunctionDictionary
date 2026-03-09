@@ -12,15 +12,16 @@
 #ifndef PARSESERVICE_H
 #define PARSESERVICE_H
 
-#include "core/interfaces/iparseservice.h"
 #include "core/interfaces/idatabaserepository.h"
+#include "core/interfaces/iparseservice.h"
 #include "core/parser/aicodeparser.h"
 #include "core/parser/batchcodeparser.h"
 
-class ParseService : public IParseService {
+class ParseService : public IParseService
+{
     Q_OBJECT
 
-public:
+   public:
     explicit ParseService(IDatabaseManager* dbManager, QObject* parent = nullptr);
     ~ParseService();
 
@@ -66,7 +67,7 @@ public:
      */
     int targetProject() const override;
 
-private slots:
+   private slots:
     /**
      * @brief AI代码解析完成槽函数（单文件）
      * @param result 解析结果
@@ -121,7 +122,7 @@ private slots:
      */
     void onBatchCancelled();
 
-private:
+   private:
     /**
      * @brief 处理单文件解析结果
      * @param result AI解析结果
@@ -136,13 +137,13 @@ private:
      */
     ParseResult processBatchResult(const BatchParseResult& result);
 
-    IDatabaseManager* m_dbManager;       ///< 数据库管理器（依赖注入）
-    BatchCodeParser* m_batchParser;      ///< 批量解析器（依赖注入）
-    bool m_skipExisting;                 ///< 是否跳过已存在的函数
-    bool m_isParsing;                    ///< 是否正在解析
-    bool m_isBatchMode;                  ///< 是否处于批量模式
-    QString m_currentFilePath;           ///< 当前解析的文件路径
-    int m_targetProjectId;               ///< 目标项目ID
+    IDatabaseManager* m_dbManager;   ///< 数据库管理器（依赖注入）
+    BatchCodeParser* m_batchParser;  ///< 批量解析器（依赖注入）
+    bool m_skipExisting;             ///< 是否跳过已存在的函数
+    bool m_isParsing;                ///< 是否正在解析
+    bool m_isBatchMode;              ///< 是否处于批量模式
+    QString m_currentFilePath;       ///< 当前解析的文件路径
+    int m_targetProjectId;           ///< 目标项目ID
 };
 
-#endif // PARSESERVICE_H
+#endif  // PARSESERVICE_H

@@ -17,10 +17,10 @@
 #ifndef MARKDOWNVIEW_H
 #define MARKDOWNVIEW_H
 
-#include <QWebEngineView>
+#include <QString>
 #include <QWebChannel>
 #include <QWebEnginePage>
-#include <QString>
+#include <QWebEngineView>
 #include <QWidget>
 
 /**
@@ -29,14 +29,16 @@
  * 基于QWebEngineView实现的Markdown渲染组件，支持完整的GFM语法、
  * 代码高亮、Mermaid图表和数学公式。
  */
-class MarkdownView : public QWebEngineView {
+class MarkdownView : public QWebEngineView
+{
     Q_OBJECT
 
-public:
+   public:
     /**
      * @brief 主题类型枚举
      */
-    enum class Theme {
+    enum class Theme
+    {
         Light,  ///< 明亮主题
         Dark    ///< 暗黑主题
     };
@@ -45,7 +47,7 @@ public:
      * @brief 构造函数
      * @param parent 父窗口指针
      */
-    explicit MarkdownView(QWidget *parent = nullptr);
+    explicit MarkdownView(QWidget* parent = nullptr);
 
     /**
      * @brief 析构函数
@@ -56,13 +58,13 @@ public:
      * @brief 设置Markdown内容
      * @param content Markdown格式的文本内容
      */
-    void setMarkdown(const QString &content);
+    void setMarkdown(const QString& content);
 
     /**
      * @brief 设置HTML内容
      * @param html HTML格式的文本内容
      */
-    void setHtmlContent(const QString &html);
+    void setHtmlContent(const QString& html);
 
     /**
      * @brief 清除内容
@@ -85,7 +87,7 @@ public:
      * @brief 滚动到指定锚点
      * @param anchor 锚点名称
      */
-    void scrollToAnchor(const QString &anchor);
+    void scrollToAnchor(const QString& anchor);
 
     /**
      * @brief 获取当前Markdown内容
@@ -93,12 +95,12 @@ public:
      */
     QString markdown() const;
 
-signals:
+   signals:
     /**
      * @brief 链接点击信号
      * @param url 被点击的链接URL
      */
-    void linkClicked(const QUrl &url);
+    void linkClicked(const QUrl& url);
 
     /**
      * @brief 内容加载完成信号
@@ -106,14 +108,14 @@ signals:
      */
     void loadFinished(bool success);
 
-private slots:
+   private slots:
     /**
      * @brief 页面加载完成槽函数
      * @param success 是否加载成功
      */
     void onLoadFinished(bool success);
 
-private:
+   private:
     /**
      * @brief 初始化WebEngine视图
      */
@@ -129,7 +131,7 @@ private:
      * @param markdown Markdown内容
      * @return 完整的HTML文档
      */
-    QString generateHtml(const QString &markdown);
+    QString generateHtml(const QString& markdown);
 
     /**
      * @brief 连接信号槽
@@ -141,11 +143,11 @@ private:
      * @param text 原始文本
      * @return 转义后的文本
      */
-    QString escapeHtml(const QString &text);
+    QString escapeHtml(const QString& text);
 
-    Theme m_theme;              ///< 当前主题
-    QString m_currentContent;   ///< 当前Markdown内容
-    bool m_templateLoaded;      ///< 模板是否已加载
+    Theme m_theme;             ///< 当前主题
+    QString m_currentContent;  ///< 当前Markdown内容
+    bool m_templateLoaded;     ///< 模板是否已加载
 };
 
-#endif // MARKDOWNVIEW_H
+#endif  // MARKDOWNVIEW_H

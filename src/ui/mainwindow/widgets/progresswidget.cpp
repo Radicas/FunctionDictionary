@@ -7,25 +7,23 @@
  */
 
 #include "ui/mainwindow/widgets/progresswidget.h"
-#include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QVBoxLayout>
 
-ProgressWidget::ProgressWidget(QWidget *parent)
+ProgressWidget::ProgressWidget(QWidget* parent)
     : QWidget(parent), m_waitingTimer(nullptr), m_waitingDots(0), m_waitingAnimationEnabled(false)
 {
     setupUI();
-    
+
     m_waitingTimer = new QTimer(this);
     connect(m_waitingTimer, &QTimer::timeout, this, &ProgressWidget::updateWaitingAnimation);
 }
 
-ProgressWidget::~ProgressWidget()
-{
-}
+ProgressWidget::~ProgressWidget() {}
 
 void ProgressWidget::setupUI()
 {
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(10);
     mainLayout->setContentsMargins(0, 0, 0, 0);
 
@@ -35,7 +33,7 @@ void ProgressWidget::setupUI()
     m_progressBar->setVisible(false);
     mainLayout->addWidget(m_progressBar);
 
-    QHBoxLayout *statsLayout = new QHBoxLayout();
+    QHBoxLayout* statsLayout = new QHBoxLayout();
     m_successLabel = new QLabel("成功: 0", this);
     m_failedLabel = new QLabel("失败: 0", this);
     m_skippedLabel = new QLabel("跳过: 0", this);
@@ -60,7 +58,8 @@ void ProgressWidget::setupUI()
 
 void ProgressWidget::setProgress(int current, int total)
 {
-    if (total > 0) {
+    if (total > 0)
+    {
         int progressValue = (current * 100) / total;
         m_progressBar->setValue(progressValue);
     }
@@ -69,10 +68,9 @@ void ProgressWidget::setProgress(int current, int total)
 void ProgressWidget::setStatusMessage(const QString& message, int duration)
 {
     m_statusLabel->setText(message);
-    if (duration > 0) {
-        QTimer::singleShot(duration, [this]() {
-            m_statusLabel->setText("就绪");
-        });
+    if (duration > 0)
+    {
+        QTimer::singleShot(duration, [this]() { m_statusLabel->setText("就绪"); });
     }
 }
 
@@ -96,12 +94,15 @@ void ProgressWidget::clearLog()
 void ProgressWidget::setWaitingAnimation(bool enabled)
 {
     m_waitingAnimationEnabled = enabled;
-    
-    if (enabled) {
+
+    if (enabled)
+    {
         m_waitingDots = 0;
         m_elapsedTimer.start();
         m_waitingTimer->start(500);
-    } else {
+    }
+    else
+    {
         m_waitingTimer->stop();
     }
 }
@@ -126,21 +127,25 @@ void ProgressWidget::setVisible(bool visible)
 
 void ProgressWidget::updateWaitingAnimation()
 {
-    if (!m_waitingAnimationEnabled) {
+    if (!m_waitingAnimationEnabled)
+    {
         return;
     }
-    
+
     m_waitingDots = (m_waitingDots % 3) + 1;
     QString dots = QString(".").repeated(m_waitingDots);
-    
+
     qint64 elapsed = m_elapsedTimer.elapsed() / 1000;
     QString timeStr;
-    if (elapsed < 60) {
+    if (elapsed < 60)
+    {
         timeStr = QString("%1秒").arg(elapsed);
-    } else {
+    }
+    else
+    {
         timeStr = QString("%1分%2秒").arg(elapsed / 60).arg(elapsed % 60);
     }
-    
+
     QString message = QString("AI正在分析代码%1 已用时: %2").arg(dots).arg(timeStr);
     m_statusLabel->setText(message);
 }

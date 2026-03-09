@@ -9,14 +9,14 @@
 #ifndef BATCHPROCESSMANAGER_H
 #define BATCHPROCESSMANAGER_H
 
+#include <QMap>
+#include <QMutex>
 #include <QObject>
 #include <QQueue>
 #include <QSet>
-#include <QMap>
-#include <QMutex>
 #include <QTimer>
-#include "core/models/extractedfunction.h"
 #include "core/models/batchconfig.h"
+#include "core/models/extractedfunction.h"
 
 /**
  * @brief 批量处理管理器类
@@ -24,10 +24,11 @@
  * 该类负责协调多个函数的批量AI分析，包括任务队列管理、
  * 进度追踪、错误处理、断点续传等功能。
  */
-class BatchProcessManager : public QObject {
+class BatchProcessManager : public QObject
+{
     Q_OBJECT
 
-public:
+   public:
     /**
      * @brief 获取BatchProcessManager的单例实例
      * @return BatchProcessManager的引用
@@ -94,7 +95,7 @@ public:
      */
     int getSkippedCount() const;
 
-signals:
+   signals:
     /**
      * @brief 整体进度信号
      * @param current 当前处理的函数索引
@@ -125,7 +126,7 @@ signals:
      */
     void stateChanged(BatchProcessState newState);
 
-private slots:
+   private slots:
     /**
      * @brief 处理下一个函数（内部槽函数）
      */
@@ -137,7 +138,7 @@ private slots:
      */
     void onAIAnalysisComplete(const AIAnalysisResponse& response);
 
-private:
+   private:
     /**
      * @brief 构造函数
      * @param parent 父对象
@@ -223,5 +224,4 @@ private:
     mutable QMutex m_mutex;
 };
 
-#endif // BATCHPROCESSMANAGER_H
-
+#endif  // BATCHPROCESSMANAGER_H

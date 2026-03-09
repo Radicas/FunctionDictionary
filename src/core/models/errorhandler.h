@@ -9,10 +9,10 @@
 #ifndef ERRORHANDLER_H
 #define ERRORHANDLER_H
 
-#include <QObject>
 #include <QMutex>
-#include "core/models/processerror.h"
+#include <QObject>
 #include "common/logger/logger.h"
+#include "core/models/processerror.h"
 
 /**
  * @brief 错误处理器类
@@ -20,10 +20,11 @@
  * 该类负责处理各类错误，包括确定错误处理策略、
  * 计算重试延迟时间等功能。
  */
-class ErrorHandler : public QObject {
+class ErrorHandler : public QObject
+{
     Q_OBJECT
 
-public:
+   public:
     /**
      * @brief 获取ErrorHandler的单例实例
      * @return ErrorHandler的引用
@@ -54,14 +55,14 @@ public:
      */
     static QString errorTypeToString(ProcessErrorType type);
 
-signals:
+   signals:
     /**
      * @brief 错误发生信号
      * @param error 错误信息
      */
     void errorOccurred(const ProcessError& error);
 
-private:
+   private:
     /**
      * @brief 构造函数
      */
@@ -73,7 +74,7 @@ private:
     void initErrorActions();
 
     QMap<ProcessErrorType, ErrorAction> m_errorActions;  ///< 错误处理策略映射
-    mutable QMutex m_mutex;  ///< 互斥锁
+    mutable QMutex m_mutex;                              ///< 互斥锁
 };
 
-#endif // ERRORHANDLER_H
+#endif  // ERRORHANDLER_H

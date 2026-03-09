@@ -15,12 +15,12 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#include <QString>
-#include <QFile>
-#include <QTextStream>
-#include <QMutex>
 #include <QDateTime>
+#include <QFile>
+#include <QMutex>
 #include <QMutexLocker>
+#include <QString>
+#include <QTextStream>
 #include <iostream>
 #include <sstream>
 #include <string>
@@ -28,11 +28,12 @@
 /**
  * @brief 日志级别枚举
  */
-enum LogLevel {
-    Debug,   ///< 调试信息 - 青色
-    Info,    ///< 一般信息 - 绿色
-    Warning, ///< 警告信息 - 黄色
-    Error    ///< 错误信息 - 红色
+enum LogLevel
+{
+    Debug,    ///< 调试信息 - 青色
+    Info,     ///< 一般信息 - 绿色
+    Warning,  ///< 警告信息 - 黄色
+    Error     ///< 错误信息 - 红色
 };
 
 /**
@@ -44,8 +45,9 @@ enum LogLevel {
  * - 多线程安全
  * - 跨平台兼容（Windows/Linux/macOS）
  */
-class Logger {
-public:
+class Logger
+{
+   public:
     /**
      * @brief 获取Logger单例实例
      * @return Logger单例引用
@@ -107,7 +109,7 @@ public:
      */
     void error(const QString& message);
 
-private:
+   private:
     Logger();
     ~Logger();
     Logger(const Logger&) = delete;
@@ -149,18 +151,18 @@ private:
      */
     void printColoredLog(LogLevel level, const QString& message);
 
-    QFile* m_logFile;           ///< 日志文件指针
-    QTextStream* m_logStream;   ///< 日志文件流
-    QMutex m_mutex;             ///< 互斥锁，保证线程安全
-    bool m_initialized;         ///< 初始化标志
-    bool m_consoleEnabled;      ///< 控制台输出开关
-    bool m_fileEnabled;         ///< 文件输出开关
-    LogLevel m_minLevel;        ///< 最低日志级别
-    bool m_colorSupported;      ///< 是否支持彩色输出
+    QFile* m_logFile;          ///< 日志文件指针
+    QTextStream* m_logStream;  ///< 日志文件流
+    QMutex m_mutex;            ///< 互斥锁，保证线程安全
+    bool m_initialized;        ///< 初始化标志
+    bool m_consoleEnabled;     ///< 控制台输出开关
+    bool m_fileEnabled;        ///< 文件输出开关
+    LogLevel m_minLevel;       ///< 最低日志级别
+    bool m_colorSupported;     ///< 是否支持彩色输出
 
 #ifdef Q_OS_WIN
-    void* m_hConsole;           ///< Windows控制台句柄
+    void* m_hConsole;  ///< Windows控制台句柄
 #endif
 };
 
-#endif // LOGGER_H
+#endif  // LOGGER_H

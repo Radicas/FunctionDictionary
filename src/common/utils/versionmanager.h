@@ -9,8 +9,8 @@
 #ifndef VERSIONMANAGER_H
 #define VERSIONMANAGER_H
 
-#include <string>
 #include <regex>
+#include <string>
 
 /**
  * @class VersionManager
@@ -23,13 +23,14 @@
  * 
  * 支持预发布版本和构建元数据
  */
-class VersionManager {
-private:
-    int majorVersion;      ///< 主版本号
-    int minorVersion;      ///< 次版本号
-    int patchVersion;      ///< 修订号
-    std::string preRelease; ///< 预发布版本标识符
-    std::string buildMetadata; ///< 构建元数据
+class VersionManager
+{
+   private:
+    int majorVersion;           ///< 主版本号
+    int minorVersion;           ///< 次版本号
+    int patchVersion;           ///< 修订号
+    std::string preRelease;     ///< 预发布版本标识符
+    std::string buildMetadata;  ///< 构建元数据
 
     /**
      * @brief 验证版本号格式是否正确
@@ -38,7 +39,7 @@ private:
      */
     bool validateVersionFormat(const std::string& version);
 
-public:
+   public:
     /**
      * @brief 默认构造函数，初始化版本号为0.0.0
      */
@@ -59,9 +60,8 @@ public:
      * @param preRelease 预发布版本标识符
      * @param buildMetadata 构建元数据
      */
-    VersionManager(int major, int minor, int patch, 
-                  const std::string& preRelease = "", 
-                  const std::string& buildMetadata = "");
+    VersionManager(int major, int minor, int patch, const std::string& preRelease = "",
+                   const std::string& buildMetadata = "");
 
     /**
      * @brief 递增主版本号，重置次版本号和修订号为0
@@ -181,4 +181,4 @@ public:
     bool operator!=(const VersionManager& other) const;
 };
 
-#endif // VERSIONMANAGER_H
+#endif  // VERSIONMANAGER_H

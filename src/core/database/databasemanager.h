@@ -12,18 +12,18 @@
 #ifndef DATABASEMANAGER_H
 #define DATABASEMANAGER_H
 
-#include <QString>
-#include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QSqlError>
 #include <QDateTime>
-#include <QVector>
 #include <QPair>
 #include <QSet>
+#include <QSqlDatabase>
+#include <QSqlError>
+#include <QSqlQuery>
+#include <QString>
+#include <QVector>
+#include "core/interfaces/idatabaserepository.h"
+#include "core/models/batchconfig.h"
 #include "core/models/functiondata.h"
 #include "core/models/projectinfo.h"
-#include "core/models/batchconfig.h"
-#include "core/interfaces/idatabaserepository.h"
 
 /**
  * @brief 数据库管理类，提供SQLite数据库操作功能
@@ -33,8 +33,9 @@
  * - 依赖注入方式访问（推荐）
  * - Repository模式的数据访问
  */
-class DatabaseManager : public IDatabaseManager {
-public:
+class DatabaseManager : public IDatabaseManager
+{
+   public:
     /**
      * @brief 获取DatabaseManager单例实例
      * @return DatabaseManager单例引用
@@ -138,8 +139,8 @@ public:
      * @param errorMessage 错误信息
      * @return 是否成功
      */
-    bool saveProcessState(const QString& filePath, const QString& functionName,
-                          const QString& status, const QString& errorMessage = "");
+    bool saveProcessState(const QString& filePath, const QString& functionName, const QString& status,
+                          const QString& errorMessage = "");
 
     /**
      * @brief 获取文件的处理状态
@@ -252,7 +253,7 @@ public:
      */
     bool updateFunctionProject(int functionId, int newProjectId);
 
-private:
+   private:
     DatabaseManager();
     ~DatabaseManager();
     DatabaseManager(const DatabaseManager&) = delete;
@@ -276,9 +277,9 @@ private:
      */
     bool checkAndAddMissingColumns();
 
-    QSqlDatabase m_db;       ///< 数据库连接
-    bool m_initialized;       ///< 初始化标志
-    QString m_lastError;      ///< 最后一次错误信息
+    QSqlDatabase m_db;    ///< 数据库连接
+    bool m_initialized;   ///< 初始化标志
+    QString m_lastError;  ///< 最后一次错误信息
 };
 
-#endif // DATABASEMANAGER_H
+#endif  // DATABASEMANAGER_H

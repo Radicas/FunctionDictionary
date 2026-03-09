@@ -7,29 +7,31 @@
  */
 
 #include "ui/dialogs/addprojectdialog/addprojectdialog.h"
-#include "common/logger/logger.h"
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QFormLayout>
-#include <QLabel>
-#include <QFileDialog>
-#include <QMessageBox>
 #include <QDir>
+#include <QFileDialog>
+#include <QFormLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QMessageBox>
+#include <QVBoxLayout>
+#include "common/logger/logger.h"
 
 AddProjectDialog::AddProjectDialog(QWidget* parent)
-    : QDialog(parent)
-    , m_nameEdit(nullptr)
-    , m_pathEdit(nullptr)
-    , m_descriptionEdit(nullptr)
-    , m_browseButton(nullptr)
-    , m_confirmButton(nullptr)
-    , m_cancelButton(nullptr) {
+    : QDialog(parent),
+      m_nameEdit(nullptr),
+      m_pathEdit(nullptr),
+      m_descriptionEdit(nullptr),
+      m_browseButton(nullptr),
+      m_confirmButton(nullptr),
+      m_cancelButton(nullptr)
+{
     setupUI();
     setWindowTitle("添加项目");
     setMinimumSize(500, 300);
 }
 
-void AddProjectDialog::setupUI() {
+void AddProjectDialog::setupUI()
+{
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(12);
     mainLayout->setContentsMargins(20, 20, 20, 20);
@@ -73,20 +75,24 @@ void AddProjectDialog::setupUI() {
     mainLayout->addLayout(buttonLayout);
 }
 
-void AddProjectDialog::onBrowseClicked() {
+void AddProjectDialog::onBrowseClicked()
+{
     QFileDialog dialog(this, "选择项目根目录", m_pathEdit->text().isEmpty() ? QDir::homePath() : m_pathEdit->text());
     dialog.setFileMode(QFileDialog::Directory);
     dialog.setOption(QFileDialog::ShowDirsOnly, true);
     dialog.setOption(QFileDialog::DontResolveSymlinks, true);
     dialog.setOption(QFileDialog::DontUseNativeDialog, true);
-    
-    if (dialog.exec() == QDialog::Accepted) {
+
+    if (dialog.exec() == QDialog::Accepted)
+    {
         QStringList selectedDirs = dialog.selectedFiles();
-        if (!selectedDirs.isEmpty()) {
+        if (!selectedDirs.isEmpty())
+        {
             QString dir = selectedDirs.first();
             m_pathEdit->setText(dir);
-            
-            if (m_nameEdit->text().isEmpty()) {
+
+            if (m_nameEdit->text().isEmpty())
+            {
                 QDir d(dir);
                 m_nameEdit->setText(d.dirName());
             }
@@ -94,27 +100,33 @@ void AddProjectDialog::onBrowseClicked() {
     }
 }
 
-void AddProjectDialog::onConfirmClicked() {
-    if (validateInput()) {
+void AddProjectDialog::onConfirmClicked()
+{
+    if (validateInput())
+    {
         accept();
     }
 }
 
-bool AddProjectDialog::validateInput() {
-    if (m_nameEdit->text().trimmed().isEmpty()) {
+bool AddProjectDialog::validateInput()
+{
+    if (m_nameEdit->text().trimmed().isEmpty())
+    {
         QMessageBox::warning(this, "警告", "请输入项目名称！");
         m_nameEdit->setFocus();
         return false;
     }
 
-    if (m_pathEdit->text().trimmed().isEmpty()) {
+    if (m_pathEdit->text().trimmed().isEmpty())
+    {
         QMessageBox::warning(this, "警告", "请选择项目根目录！");
         m_browseButton->setFocus();
         return false;
     }
 
     QDir dir(m_pathEdit->text().trimmed());
-    if (!dir.exists()) {
+    if (!dir.exists())
+    {
         QMessageBox::warning(this, "警告", "所选目录不存在！");
         m_pathEdit->setFocus();
         return false;
@@ -123,7 +135,8 @@ bool AddProjectDialog::validateInput() {
     return true;
 }
 
-ProjectInfo AddProjectDialog::getProjectInfo() const {
+ProjectInfo AddProjectDialog::getProjectInfo() const
+{
     ProjectInfo project;
     project.name = m_nameEdit->text().trimmed();
     project.rootPath = m_pathEdit->text().trimmed();

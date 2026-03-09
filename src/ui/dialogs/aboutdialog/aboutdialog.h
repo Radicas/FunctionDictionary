@@ -10,36 +10,37 @@
 #define ABOUTDIALOG_H
 
 #include <QDialog>
-#include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QVBoxLayout>
 #include <QWidget>
 
 /**
  * @class AboutDialog
  * @brief 关于对话框，显示项目说明、版本号和作者信息
  */
-class AboutDialog : public QDialog {
+class AboutDialog : public QDialog
+{
     Q_OBJECT
 
-public:
+   public:
     /**
      * @brief 构造函数
      * @param parent 父窗口
      */
-    explicit AboutDialog(QWidget *parent = nullptr);
-    
+    explicit AboutDialog(QWidget* parent = nullptr);
+
     /**
      * @brief 析构函数
      */
     ~AboutDialog();
 
-private:
+   private:
     /**
      * @brief 设置UI界面
      */
     void setupUI();
 };
 
-#endif // ABOUTDIALOG_H
+#endif  // ABOUTDIALOG_H

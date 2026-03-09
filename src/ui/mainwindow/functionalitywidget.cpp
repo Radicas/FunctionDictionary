@@ -10,10 +10,8 @@
 #include "common/logger/logger.h"
 #include "core/ai/aiconfigmanager.h"
 
-FunctionalityWidget::FunctionalityWidget(IDatabaseManager* dbManager, IParseService* parseService, QWidget *parent)
-    : QWidget(parent)
-    , m_dbManager(dbManager)
-    , m_parseService(parseService)
+FunctionalityWidget::FunctionalityWidget(IDatabaseManager* dbManager, IParseService* parseService, QWidget* parent)
+    : QWidget(parent), m_dbManager(dbManager), m_parseService(parseService)
 {
     setupUI();
     connectSignals();
@@ -21,9 +19,7 @@ FunctionalityWidget::FunctionalityWidget(IDatabaseManager* dbManager, IParseServ
     Logger::instance().info("功能型widget初始化完成（协调者模式）");
 }
 
-FunctionalityWidget::~FunctionalityWidget()
-{
-}
+FunctionalityWidget::~FunctionalityWidget() {}
 
 void FunctionalityWidget::setupUI()
 {
@@ -55,21 +51,24 @@ void FunctionalityWidget::setupUI()
 void FunctionalityWidget::loadProjects()
 {
     m_projectCombo->clear();
-    
+
     QVector<ProjectInfo> projects = m_dbManager->getAllProjects();
-    
+
     m_projectCombo->addItem("待整理", -1);
-    
-    for (const ProjectInfo& project : projects) {
-        if (project.rootPath != "__temporary__") {
+
+    for (const ProjectInfo& project : projects)
+    {
+        if (project.rootPath != "__temporary__")
+        {
             m_projectCombo->addItem(project.name, project.id);
         }
     }
-    
-    if (m_projectCombo->count() > 0) {
+
+    if (m_projectCombo->count() > 0)
+    {
         m_projectCombo->setCurrentIndex(0);
     }
-    
+
     Logger::instance().info(QString("已加载 %1 个项目").arg(projects.size()));
 }
 
@@ -81,27 +80,19 @@ void FunctionalityWidget::refreshProjectList()
 
 void FunctionalityWidget::connectSignals()
 {
-    connect(m_fileSelector, &FileSelectorWidget::pathSelected,
-            this, &FunctionalityWidget::onPathSelected);
-    connect(m_fileSelector, &FileSelectorWidget::modeChanged,
-            this, &FunctionalityWidget::onModeChanged);
+    connect(m_fileSelector, &FileSelectorWidget::pathSelected, this, &FunctionalityWidget::onPathSelected);
+    connect(m_fileSelector, &FileSelectorWidget::modeChanged, this, &FunctionalityWidget::onModeChanged);
 
-    connect(m_controlWidget, &ParseControlWidget::parseRequested,
-            this, &FunctionalityWidget::onParseRequested);
-    connect(m_controlWidget, &ParseControlWidget::cancelRequested,
-            this, &FunctionalityWidget::onCancelRequested);
-    connect(m_controlWidget, &ParseControlWidget::aiConfigRequested,
-            this, &FunctionalityWidget::onAiConfigRequested);
+    connect(m_controlWidget, &ParseControlWidget::parseRequested, this, &FunctionalityWidget::onParseRequested);
+    connect(m_controlWidget, &ParseControlWidget::cancelRequested, this, &FunctionalityWidget::onCancelRequested);
+    connect(m_controlWidget, &ParseControlWidget::aiConfigRequested, this, &FunctionalityWidget::onAiConfigRequested);
 
-    if (m_parseService) {
-        connect(m_parseService, &IParseService::parseComplete,
-                this, &FunctionalityWidget::onParseComplete);
-        connect(m_parseService, &IParseService::parseProgress,
-                this, &FunctionalityWidget::onParseProgress);
-        connect(m_parseService, &IParseService::parseFailed,
-                this, &FunctionalityWidget::onParseFailed);
-        connect(m_parseService, &IParseService::parseCancelled,
-                this, &FunctionalityWidget::onParseCancelled);
+    if (m_parseService)
+    {
+        connect(m_parseService, &IParseService::parseComplete, this, &FunctionalityWidget::onParseComplete);
+        connect(m_parseService, &IParseService::parseProgress, this, &FunctionalityWidget::onParseProgress);
+        connect(m_parseService, &IParseService::parseFailed, this, &FunctionalityWidget::onParseFailed);
+        connect(m_parseService, &IParseService::parseCancelled, this, &FunctionalityWidget::onParseCancelled);
     }
 }
 
@@ -119,13 +110,15 @@ void FunctionalityWidget::onModeChanged(ParseMode mode)
 void FunctionalityWidget::onParseRequested()
 {
     QString path = m_fileSelector->selectedPath();
-    
-    if (path.isEmpty()) {
+
+    if (path.isEmpty())
+    {
         QMessageBox::warning(this, "警告", "请先选择要解析的文件或文件夹！");
         return;
     }
 
-    if (!validateAIConfig()) {
+    if (!validateAIConfig())
+    {
         return;
     }
 
@@ -134,7 +127,8 @@ void FunctionalityWidget::onParseRequested()
 
 void FunctionalityWidget::onCancelRequested()
 {
-    if (m_parseService) {
+    if (m_parseService)
+    {
         m_parseService->cancelParsing();
     }
     m_progressWidget->setStatusMessage("正在取消解析...");
@@ -156,10 +150,10 @@ void FunctionalityWidget::onParseComplete(const ParseResult& result)
                           .arg(result.successCount)
                           .arg(result.failedCount)
                           .arg(result.skippedCount);
-    
+
     m_progressWidget->setStatusMessage(message);
     m_progressWidget->appendLog(message);
-    
+
     QMessageBox::information(this, "完成", message);
     Logger::instance().info(message);
 
@@ -170,7 +164,7 @@ void FunctionalityWidget::onParseProgress(const ParseProgress& progress)
 {
     m_progressWidget->setProgress(progress.current, progress.total);
     m_progressWidget->setStatistics(progress.successCount, progress.failedCount, progress.skippedCount);
-    
+
     QString logMsg = QString("[%1] %2").arg(progress.stage).arg(progress.message);
     m_progressWidget->setStatusMessage(progress.message);
     m_progressWidget->appendLog(logMsg);
@@ -180,7 +174,7 @@ void FunctionalityWidget::onParseFailed(const QString& error)
 {
     updateUIState(false);
     m_progressWidget->setWaitingAnimation(false);
-    
+
     QMessageBox::critical(this, "错误", "解析失败：" + error);
     Logger::instance().error("解析失败: " + error);
     m_progressWidget->appendLog(QString("[错误] %1").arg(error));
@@ -190,7 +184,7 @@ void FunctionalityWidget::onParseCancelled()
 {
     updateUIState(false);
     m_progressWidget->setWaitingAnimation(false);
-    
+
     m_progressWidget->setStatusMessage("已取消解析");
     m_progressWidget->appendLog("[取消] 解析已取消");
     Logger::instance().info("解析已取消");
@@ -206,25 +200,26 @@ void FunctionalityWidget::startParsing()
     QString path = m_fileSelector->selectedPath();
     ParseMode mode = m_fileSelector->currentMode();
     bool skipExisting = m_controlWidget->skipExisting();
-    
+
     int projectId = m_projectCombo->currentData().toInt();
 
-    if (m_parseService) {
+    if (m_parseService)
+    {
         m_parseService->setSkipExisting(skipExisting);
         m_parseService->setTargetProject(projectId);
-        
-        if (mode == ParseMode::SingleFile) {
+
+        if (mode == ParseMode::SingleFile)
+        {
             m_progressWidget->appendLog("开始解析文件...");
             Logger::instance().info("开始解析文件: " + path);
             m_parseService->parseFile(path);
-        } else {
+        }
+        else
+        {
             bool recursive = m_controlWidget->isRecursive();
-            m_progressWidget->appendLog(QString("开始批量解析文件夹%1...")
-                                           .arg(recursive ? "（递归）" : ""));
-            Logger::instance().info(QString("开始批量解析文件夹: %1, 递归: %2, 项目ID: %3")
-                                        .arg(path)
-                                        .arg(recursive)
-                                        .arg(projectId));
+            m_progressWidget->appendLog(QString("开始批量解析文件夹%1...").arg(recursive ? "（递归）" : ""));
+            Logger::instance().info(
+                QString("开始批量解析文件夹: %1, 递归: %2, 项目ID: %3").arg(path).arg(recursive).arg(projectId));
             m_parseService->parseFolder(path, recursive);
         }
     }
@@ -239,18 +234,20 @@ void FunctionalityWidget::updateUIState(bool isProcessing)
 bool FunctionalityWidget::validateAIConfig()
 {
     AIConfig config = AIConfigManager::instance().getCurrentConfig();
-    if (!AIConfigManager::instance().isConfigValid(config)) {
+    if (!AIConfigManager::instance().isConfigValid(config))
+    {
         QMessageBox msgBox(this);
         msgBox.setIcon(QMessageBox::Warning);
         msgBox.setWindowTitle("AI配置缺失");
         msgBox.setText("AI配置不完整，请先配置AI服务！");
         msgBox.setInformativeText("是否立即配置AI服务？");
-        QPushButton *configBtn = msgBox.addButton("立即配置", QMessageBox::ActionRole);
+        QPushButton* configBtn = msgBox.addButton("立即配置", QMessageBox::ActionRole);
         msgBox.addButton("取消", QMessageBox::RejectRole);
-        
+
         msgBox.exec();
-        
-        if (msgBox.clickedButton() == configBtn) {
+
+        if (msgBox.clickedButton() == configBtn)
+        {
             AIConfigDialog dialog(this);
             dialog.exec();
             Logger::instance().info("用户打开AI配置对话框");

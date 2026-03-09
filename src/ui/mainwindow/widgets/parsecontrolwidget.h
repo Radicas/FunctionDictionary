@@ -9,10 +9,10 @@
 #ifndef PARSECONTROLWIDGET_H
 #define PARSECONTROLWIDGET_H
 
-#include <QWidget>
-#include <QPushButton>
 #include <QCheckBox>
 #include <QLabel>
+#include <QPushButton>
+#include <QWidget>
 
 /**
  * @brief 解析控制组件类
@@ -22,15 +22,16 @@
  * - 配置选项UI（递归扫描、跳过已存在）
  * - AI配置按钮
  */
-class ParseControlWidget : public QWidget {
+class ParseControlWidget : public QWidget
+{
     Q_OBJECT
 
-public:
+   public:
     /**
      * @brief 构造函数
      * @param parent 父窗口
      */
-    explicit ParseControlWidget(QWidget *parent = nullptr);
+    explicit ParseControlWidget(QWidget* parent = nullptr);
 
     /**
      * @brief 析构函数
@@ -67,7 +68,7 @@ public:
      */
     void setRecursiveEnabled(bool enabled);
 
-signals:
+   signals:
     /**
      * @brief 解析请求信号
      */
@@ -83,7 +84,7 @@ signals:
      */
     void aiConfigRequested();
 
-private slots:
+   private slots:
     /**
      * @brief 解析按钮点击槽函数
      */
@@ -99,20 +100,20 @@ private slots:
      */
     void onAiConfigClicked();
 
-private:
+   private:
     /**
      * @brief 设置UI界面
      */
     void setupUI();
 
-    QLabel *m_settingsTitle;           ///< 配置标题标签
-    QPushButton *m_parseButton;        ///< 解析按钮
-    QPushButton *m_cancelButton;       ///< 取消按钮
-    QPushButton *m_aiConfigButton;     ///< AI配置按钮
-    QCheckBox *m_recursiveCheckBox;    ///< 递归扫描复选框
-    QCheckBox *m_skipExistingCheckBox; ///< 跳过已存在复选框
-    
-    bool m_isParsing;                  ///< 是否正在解析
+    QLabel* m_settingsTitle;            ///< 配置标题标签
+    QPushButton* m_parseButton;         ///< 解析按钮
+    QPushButton* m_cancelButton;        ///< 取消按钮
+    QPushButton* m_aiConfigButton;      ///< AI配置按钮
+    QCheckBox* m_recursiveCheckBox;     ///< 递归扫描复选框
+    QCheckBox* m_skipExistingCheckBox;  ///< 跳过已存在复选框
+
+    bool m_isParsing;  ///< 是否正在解析
 };
 
-#endif // PARSECONTROLWIDGET_H
+#endif  // PARSECONTROLWIDGET_H

@@ -8,18 +8,21 @@
 
 #include "core/models/errorhandler.h"
 
-ErrorHandler& ErrorHandler::instance() {
+ErrorHandler& ErrorHandler::instance()
+{
     static ErrorHandler handler;
     return handler;
 }
 
-ErrorHandler::ErrorHandler(QObject* parent) : QObject(parent) {
+ErrorHandler::ErrorHandler(QObject* parent) : QObject(parent)
+{
     initErrorActions();
 }
 
-void ErrorHandler::initErrorActions() {
+void ErrorHandler::initErrorActions()
+{
     QMutexLocker locker(&m_mutex);
-    
+
     m_errorActions[ProcessErrorType::None] = ErrorAction::SaveAndContinue;
     m_errorActions[ProcessErrorType::FileNotFound] = ErrorAction::Skip;
     m_errorActions[ProcessErrorType::FileReadError] = ErrorAction::Retry;
@@ -34,34 +37,39 @@ void ErrorHandler::initErrorActions() {
     m_errorActions[ProcessErrorType::UnknownError] = ErrorAction::Skip;
 }
 
-ErrorAction ErrorHandler::handleError(const ProcessError& error) {
+ErrorAction ErrorHandler::handleError(const ProcessError& error)
+{
     QMutexLocker locker(&m_mutex);
-    
+
     Logger::instance().error(QString("发生错误: %1, 类型: %2, 函数: %3, 重试次数: %4")
-        .arg(error.message)
-        .arg(errorTypeToString(error.type))
-        .arg(error.functionName)
-        .arg(error.retryCount));
-    
+                                 .arg(error.message)
+                                 .arg(errorTypeToString(error.type))
+                                 .arg(error.functionName)
+                                 .arg(error.retryCount));
+
     emit errorOccurred(error);
-    
+
     ErrorAction action = m_errorActions.value(error.type, ErrorAction::Skip);
-    
-    if (action == ErrorAction::Retry && error.retryCount >= 3) {
+
+    if (action == ErrorAction::Retry && error.retryCount >= 3)
+    {
         Logger::instance().warning(QString("已达到最大重试次数，跳过: %1").arg(error.functionName));
         action = ErrorAction::Skip;
     }
-    
+
     return action;
 }
 
-int ErrorHandler::getRetryDelay(int retryCount) const {
+int ErrorHandler::getRetryDelay(int retryCount) const
+{
     int delay = 1000 * (1 << retryCount);
     return qMin(delay, 60000);
 }
 
-QString ErrorHandler::errorTypeToString(ProcessErrorType type) {
-    switch (type) {
+QString ErrorHandler::errorTypeToString(ProcessErrorType type)
+{
+    switch (type)
+    {
         case ProcessErrorType::None:
             return "无错误";
         case ProcessErrorType::FileNotFound:

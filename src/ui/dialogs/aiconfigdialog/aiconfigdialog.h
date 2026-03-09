@@ -9,36 +9,37 @@
 #ifndef AICONFIGDIALOG_H
 #define AICONFIGDIALOG_H
 
-#include "core/ai/aiconfigmanager.h"
-#include "core/ai/modellistfetcher.h"
-#include <QDialog>
 #include <QComboBox>
-#include <QLineEdit>
+#include <QDialog>
+#include <QFormLayout>
 #include <QLabel>
+#include <QLineEdit>
+#include <QListWidget>
 #include <QPushButton>
 #include <QVBoxLayout>
-#include <QFormLayout>
-#include <QListWidget>
+#include "core/ai/aiconfigmanager.h"
+#include "core/ai/modellistfetcher.h"
 
 /**
  * @brief AI配置对话框类
  */
-class AIConfigDialog : public QDialog {
+class AIConfigDialog : public QDialog
+{
     Q_OBJECT
 
-public:
+   public:
     /**
      * @brief 构造函数
      * @param parent 父窗口指针
      */
-    explicit AIConfigDialog(QWidget *parent = nullptr);
+    explicit AIConfigDialog(QWidget* parent = nullptr);
 
     /**
      * @brief 析构函数
      */
     ~AIConfigDialog();
 
-private slots:
+   private slots:
     /**
      * @brief 配置选择变化槽函数
      * @param currentRow 当前行
@@ -87,7 +88,7 @@ private slots:
      */
     void onCredentialsChanged();
 
-private:
+   private:
     /**
      * @brief 初始化界面
      */
@@ -126,23 +127,23 @@ private:
      */
     bool validateInput();
 
-    QListWidget *m_configListWidget;    ///< 配置列表控件
-    QPushButton *m_newConfigButton;     ///< 新建配置按钮
-    QPushButton *m_deleteConfigButton;  ///< 删除配置按钮
+    QListWidget* m_configListWidget;    ///< 配置列表控件
+    QPushButton* m_newConfigButton;     ///< 新建配置按钮
+    QPushButton* m_deleteConfigButton;  ///< 删除配置按钮
 
-    QLineEdit *m_configNameLineEdit;    ///< 配置名称输入框
-    QComboBox *m_providerComboBox;      ///< API提供商选择框
-    QLineEdit *m_baseUrlLineEdit;       ///< Base URL输入框
-    QLineEdit *m_apiKeyLineEdit;        ///< API Key输入框
-    QComboBox *m_modelComboBox;         ///< 模型选择下拉框
-    QPushButton *m_fetchModelsButton;   ///< 获取模型列表按钮
+    QLineEdit* m_configNameLineEdit;   ///< 配置名称输入框
+    QComboBox* m_providerComboBox;     ///< API提供商选择框
+    QLineEdit* m_baseUrlLineEdit;      ///< Base URL输入框
+    QLineEdit* m_apiKeyLineEdit;       ///< API Key输入框
+    QComboBox* m_modelComboBox;        ///< 模型选择下拉框
+    QPushButton* m_fetchModelsButton;  ///< 获取模型列表按钮
 
-    QPushButton *m_saveButton;          ///< 保存按钮
-    QPushButton *m_cancelButton;        ///< 取消按钮
+    QPushButton* m_saveButton;    ///< 保存按钮
+    QPushButton* m_cancelButton;  ///< 取消按钮
 
-    QString m_currentConfigName;        ///< 当前编辑的配置名称
-    bool m_isNewConfig;                 ///< 是否为新建配置
-    bool m_isLoading;                   ///< 是否正在加载配置
+    QString m_currentConfigName;  ///< 当前编辑的配置名称
+    bool m_isNewConfig;           ///< 是否为新建配置
+    bool m_isLoading;             ///< 是否正在加载配置
 };
 
 #endif

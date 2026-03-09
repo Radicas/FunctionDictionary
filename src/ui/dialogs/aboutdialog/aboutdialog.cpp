@@ -7,40 +7,41 @@
  */
 
 #include "ui/dialogs/aboutdialog/aboutdialog.h"
-#include "common/utils/versionmanager.h"
-#include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QVBoxLayout>
 #include <QWidget>
+#include "common/utils/versionmanager.h"
 
 /**
  * @brief 构造函数
  * @param parent 父窗口
  */
-AboutDialog::AboutDialog(QWidget *parent) : QDialog(parent) {
+AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
+{
     setupUI();
 }
 
 /**
  * @brief 析构函数
  */
-AboutDialog::~AboutDialog() {
-}
+AboutDialog::~AboutDialog() {}
 
 /**
  * @brief 设置UI界面
  */
-void AboutDialog::setupUI() {
+void AboutDialog::setupUI()
+{
     setWindowTitle("关于");
     setMinimumSize(400, 250);
     setMaximumSize(500, 300);
 
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(20, 20, 20, 20);
     mainLayout->setSpacing(15);
 
-    QLabel *descriptionLabel = new QLabel(this);
+    QLabel* descriptionLabel = new QLabel(this);
     descriptionLabel->setObjectName("descriptionLabel");
     descriptionLabel->setWordWrap(true);
     descriptionLabel->setAlignment(Qt::AlignCenter);
@@ -48,22 +49,22 @@ void AboutDialog::setupUI() {
     mainLayout->addWidget(descriptionLabel);
 
     VersionManager version(1, 0, 0);
-    QLabel *versionLabel = new QLabel(QString("版本号：%1").arg(QString::fromStdString(version.toString())), this);
+    QLabel* versionLabel = new QLabel(QString("版本号：%1").arg(QString::fromStdString(version.toString())), this);
     versionLabel->setObjectName("versionLabel");
     versionLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(versionLabel);
 
-    QLabel *authorLabel = new QLabel("作者：Radica", this);
+    QLabel* authorLabel = new QLabel("作者：Radica", this);
     authorLabel->setObjectName("authorLabel");
     authorLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(authorLabel);
 
     mainLayout->addStretch();
 
-    QPushButton *closeButton = new QPushButton("关闭", this);
+    QPushButton* closeButton = new QPushButton("关闭", this);
     closeButton->setObjectName("closeButton");
     closeButton->setMinimumWidth(100);
-    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    QHBoxLayout* buttonLayout = new QHBoxLayout();
     buttonLayout->addStretch();
     buttonLayout->addWidget(closeButton);
     buttonLayout->addStretch();

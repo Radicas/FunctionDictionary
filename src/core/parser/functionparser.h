@@ -9,10 +9,10 @@
 #ifndef FUNCTIONPARSER_H
 #define FUNCTIONPARSER_H
 
-#include <QObject>
-#include <QString>
 #include <QMap>
+#include <QObject>
 #include <QRegularExpression>
+#include <QString>
 #include <functional>
 #include "core/models/extractedfunction.h"
 
@@ -22,10 +22,11 @@
  * 该类使用单例模式，提供从源代码文件中提取函数定义的功能。
  * 支持多种编程语言，包括C/C++、Python、Java、JavaScript等。
  */
-class FunctionParser : public QObject {
+class FunctionParser : public QObject
+{
     Q_OBJECT
 
-public:
+   public:
     /**
      * @brief 获取FunctionParser的单例实例
      * @return FunctionParser的引用
@@ -64,7 +65,7 @@ public:
      */
     bool isLanguageSupported(const QString& language) const;
 
-signals:
+   signals:
     /**
      * @brief 提取进度信号
      * @param current 当前进度
@@ -73,7 +74,7 @@ signals:
      */
     void extractionProgress(int current, int total, const QString& message);
 
-private:
+   private:
     /**
      * @brief 构造函数
      * @param parent 父对象
@@ -160,4 +161,4 @@ private:
     QMap<QString, QStringList> m_languageExtensions;                           ///< 语言扩展名映射
 };
 
-#endif // FUNCTIONPARSER_H
+#endif  // FUNCTIONPARSER_H

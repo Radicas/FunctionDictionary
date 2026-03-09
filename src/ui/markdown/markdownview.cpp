@@ -1,70 +1,77 @@
 #include "ui/markdown/markdownview.h"
-#include "common/logger/logger.h"
 #include <QFile>
-#include <QUrl>
 #include <QRegularExpression>
 #include <QTimer>
+#include <QUrl>
 #include <QWebEngineSettings>
+#include "common/logger/logger.h"
 
-MarkdownView::MarkdownView(QWidget *parent)
-    : QWebEngineView(parent)
-    , m_theme(Theme::Light)
-    , m_templateLoaded(false) {
+MarkdownView::MarkdownView(QWidget* parent) : QWebEngineView(parent), m_theme(Theme::Light), m_templateLoaded(false)
+{
     initializeWebEngine();
     connectSignals();
     loadTemplate();
     Logger::instance().info("MarkdownView 初始化完成");
 }
 
-MarkdownView::~MarkdownView() {
+MarkdownView::~MarkdownView()
+{
     Logger::instance().info("MarkdownView 析构");
 }
 
-void MarkdownView::initializeWebEngine() {
-    QWebEnginePage *page = this->page();
-    
+void MarkdownView::initializeWebEngine()
+{
+    QWebEnginePage* page = this->page();
+
     page->settings()->setAttribute(QWebEngineSettings::JavascriptEnabled, true);
     page->settings()->setAttribute(QWebEngineSettings::LocalContentCanAccessRemoteUrls, true);
     page->settings()->setAttribute(QWebEngineSettings::AllowRunningInsecureContent, false);
     page->settings()->setAttribute(QWebEngineSettings::ScrollAnimatorEnabled, true);
-    
+
     setContextMenuPolicy(Qt::NoContextMenu);
 }
 
-void MarkdownView::connectSignals() {
+void MarkdownView::connectSignals()
+{
     connect(this, &QWebEngineView::loadFinished, this, &MarkdownView::onLoadFinished);
 }
 
-void MarkdownView::loadTemplate() {
+void MarkdownView::loadTemplate()
+{
     QString resourcePath = ":/markdown/resources/template.html";
-    
+
     Logger::instance().debug("尝试加载 Markdown 模板，路径: " + resourcePath);
-    
+
     QFile templateFile(resourcePath);
-    
-    if (!templateFile.exists()) {
+
+    if (!templateFile.exists())
+    {
         Logger::instance().error("Markdown 模板文件不存在: " + resourcePath);
         Logger::instance().error("可能原因: 1) 资源文件未正确编译 2) .qrc 文件配置错误 3) CMAKE_AUTORCC 未启用");
         QString fallbackHtml = generateHtml("");
         setHtml(fallbackHtml);
         return;
     }
-    
-    if (templateFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+
+    if (templateFile.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
         QByteArray data = templateFile.readAll();
         templateFile.close();
-        
-        if (data.isEmpty()) {
+
+        if (data.isEmpty())
+        {
             Logger::instance().error("Markdown 模板文件为空: " + resourcePath);
             QString fallbackHtml = generateHtml("");
             setHtml(fallbackHtml);
             return;
         }
-        
+
         QString htmlTemplate = QString::fromUtf8(data);
         setHtml(htmlTemplate, QUrl("qrc:/markdown/"));
         Logger::instance().info("Markdown 模板加载成功，大小: " + QString::number(data.size()) + " 字节");
-    } else {
+    }
+    else
+    {
         Logger::instance().error("无法打开 Markdown 模板文件: " + resourcePath);
         Logger::instance().error("错误码: " + QString::number(templateFile.error()));
         Logger::instance().error("错误信息: " + templateFile.errorString());
@@ -73,74 +80,89 @@ void MarkdownView::loadTemplate() {
     }
 }
 
-void MarkdownView::setMarkdown(const QString &content) {
+void MarkdownView::setMarkdown(const QString& content)
+{
     m_currentContent = content;
-    
-    if (!m_templateLoaded) {
+
+    if (!m_templateLoaded)
+    {
         loadTemplate();
-        QTimer::singleShot(100, [this, content]() {
-            QString escapedContent = escapeHtml(content);
-            QString js = QString("renderMarkdown(`%1`)").arg(escapedContent);
-            page()->runJavaScript(js);
-        });
-    } else {
+        QTimer::singleShot(100,
+                           [this, content]()
+                           {
+                               QString escapedContent = escapeHtml(content);
+                               QString js = QString("renderMarkdown(`%1`)").arg(escapedContent);
+                               page()->runJavaScript(js);
+                           });
+    }
+    else
+    {
         QString escapedContent = escapeHtml(content);
         QString js = QString("renderMarkdown(`%1`)").arg(escapedContent);
         page()->runJavaScript(js);
     }
-    
+
     Logger::instance().debug("设置 Markdown 内容，长度: " + QString::number(content.length()));
 }
 
-void MarkdownView::setHtmlContent(const QString &html) {
+void MarkdownView::setHtmlContent(const QString& html)
+{
     QString fullHtml = generateHtml(html);
     setHtml(fullHtml, QUrl("qrc:/markdown/"));
 }
 
-void MarkdownView::clear() {
+void MarkdownView::clear()
+{
     m_currentContent.clear();
     page()->runJavaScript("document.getElementById('content').innerHTML = ''");
 }
 
-void MarkdownView::setTheme(Theme theme) {
+void MarkdownView::setTheme(Theme theme)
+{
     m_theme = theme;
-    
+
     QString themeName = (theme == Theme::Dark) ? "dark" : "light";
     QString js = QString("setTheme('%1')").arg(themeName);
     page()->runJavaScript(js);
-    
+
     Logger::instance().info("切换 Markdown 主题: " + themeName);
 }
 
-MarkdownView::Theme MarkdownView::currentTheme() const {
+MarkdownView::Theme MarkdownView::currentTheme() const
+{
     return m_theme;
 }
 
-void MarkdownView::scrollToAnchor(const QString &anchor) {
+void MarkdownView::scrollToAnchor(const QString& anchor)
+{
     QString js = QString("document.getElementById('%1').scrollIntoView({behavior: 'smooth'})").arg(anchor);
     page()->runJavaScript(js);
 }
 
-QString MarkdownView::markdown() const {
+QString MarkdownView::markdown() const
+{
     return m_currentContent;
 }
 
-void MarkdownView::onLoadFinished(bool success) {
+void MarkdownView::onLoadFinished(bool success)
+{
     m_templateLoaded = success;
-    
-    if (success && !m_currentContent.isEmpty()) {
+
+    if (success && !m_currentContent.isEmpty())
+    {
         QString escapedContent = escapeHtml(m_currentContent);
         QString js = QString("renderMarkdown(`%1`)").arg(escapedContent);
         page()->runJavaScript(js);
     }
-    
+
     emit loadFinished(success);
     Logger::instance().debug("页面加载完成: " + QString(success ? "成功" : "失败"));
 }
 
-QString MarkdownView::generateHtml(const QString &markdown) {
+QString MarkdownView::generateHtml(const QString& markdown)
+{
     QString escapedMarkdown = escapeHtml(markdown);
-    
+
     QString html = QString(R"(<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -309,12 +331,14 @@ QString MarkdownView::generateHtml(const QString &markdown) {
         }
     </script>
 </body>
-</html>)").arg(escapedMarkdown);
-    
+</html>)")
+                       .arg(escapedMarkdown);
+
     return html;
 }
 
-QString MarkdownView::escapeHtml(const QString &text) {
+QString MarkdownView::escapeHtml(const QString& text)
+{
     QString result = text;
     result.replace("\\", "\\\\");
     result.replace("`", "\\`");

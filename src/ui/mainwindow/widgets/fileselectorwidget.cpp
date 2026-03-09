@@ -7,24 +7,21 @@
  */
 
 #include "ui/mainwindow/widgets/fileselectorwidget.h"
-#include "common/logger/logger.h"
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include "common/logger/logger.h"
 
-FileSelectorWidget::FileSelectorWidget(QWidget *parent)
-    : QWidget(parent), m_currentMode(ParseMode::SingleFile)
+FileSelectorWidget::FileSelectorWidget(QWidget* parent) : QWidget(parent), m_currentMode(ParseMode::SingleFile)
 {
     setupUI();
     Logger::instance().info("文件选择器组件初始化完成");
 }
 
-FileSelectorWidget::~FileSelectorWidget()
-{
-}
+FileSelectorWidget::~FileSelectorWidget() {}
 
 void FileSelectorWidget::setupUI()
 {
-    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setSpacing(10);
     mainLayout->setContentsMargins(0, 0, 0, 0);
 
@@ -35,8 +32,8 @@ void FileSelectorWidget::setupUI()
     m_modeComboBox = new QComboBox(this);
     m_modeComboBox->addItem("单文件", static_cast<int>(ParseMode::SingleFile));
     m_modeComboBox->addItem("文件夹", static_cast<int>(ParseMode::Folder));
-    connect(m_modeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &FileSelectorWidget::onModeChanged);
+    connect(m_modeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+            &FileSelectorWidget::onModeChanged);
     mainLayout->addWidget(m_modeComboBox);
 
     m_pathLabel = new QLabel("解析文件", this);
@@ -47,7 +44,7 @@ void FileSelectorWidget::setupUI()
     m_fileInfoLabel->setObjectName("fileInfoLabel");
     mainLayout->addWidget(m_fileInfoLabel);
 
-    QHBoxLayout *pathLayout = new QHBoxLayout();
+    QHBoxLayout* pathLayout = new QHBoxLayout();
     m_pathEdit = new QLineEdit(this);
     m_pathEdit->setPlaceholderText("请选择要解析的文件或文件夹");
     m_pathEdit->setReadOnly(true);
@@ -76,13 +73,16 @@ void FileSelectorWidget::setMode(ParseMode mode)
 {
     m_currentMode = mode;
     m_modeComboBox->setCurrentIndex(static_cast<int>(mode));
-    
-    if (mode == ParseMode::SingleFile) {
+
+    if (mode == ParseMode::SingleFile)
+    {
         m_pathLabel->setText("解析文件");
-    } else {
+    }
+    else
+    {
         m_pathLabel->setText("解析文件夹");
     }
-    
+
     Logger::instance().info(QString("切换解析模式: %1").arg(mode == ParseMode::SingleFile ? "单文件" : "文件夹"));
 }
 
@@ -165,21 +165,23 @@ void FileSelectorWidget::onModeChanged(int index)
     emit modeChanged(m_currentMode);
 }
 
-bool FileSelectorWidget::validatePath(const QString &path)
+bool FileSelectorWidget::validatePath(const QString& path)
 {
     QFileInfo fileInfo(path);
     return fileInfo.exists() && (fileInfo.isFile() || fileInfo.isDir());
 }
 
-void FileSelectorWidget::updateFileInfo(const QString &path)
+void FileSelectorWidget::updateFileInfo(const QString& path)
 {
     QFileInfo fileInfo(path);
-    
-    if (fileInfo.isFile()) {
-        m_fileInfoLabel->setText(QString("文件: %1, 大小: %2 KB")
-                                     .arg(fileInfo.fileName())
-                                     .arg(fileInfo.size() / 1024.0, 0, 'f', 2));
-    } else if (fileInfo.isDir()) {
+
+    if (fileInfo.isFile())
+    {
+        m_fileInfoLabel->setText(
+            QString("文件: %1, 大小: %2 KB").arg(fileInfo.fileName()).arg(fileInfo.size() / 1024.0, 0, 'f', 2));
+    }
+    else if (fileInfo.isDir())
+    {
         QDir dir(path);
         m_fileInfoLabel->setText(QString("文件夹: %1").arg(dir.dirName()));
     }

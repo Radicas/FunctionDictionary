@@ -9,21 +9,22 @@
 #ifndef FILESELECTORWIDGET_H
 #define FILESELECTORWIDGET_H
 
-#include <QWidget>
-#include <QLineEdit>
-#include <QPushButton>
 #include <QComboBox>
-#include <QLabel>
+#include <QDir>
 #include <QFileDialog>
 #include <QFileInfo>
-#include <QDir>
+#include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QWidget>
 
 /**
  * @brief 解析模式枚举
  */
-enum class ParseMode {
-    SingleFile,     ///< 单文件模式
-    Folder          ///< 文件夹模式
+enum class ParseMode
+{
+    SingleFile,  ///< 单文件模式
+    Folder       ///< 文件夹模式
 };
 
 /**
@@ -34,15 +35,16 @@ enum class ParseMode {
  * - 路径验证
  * - 模式切换（单文件/文件夹）
  */
-class FileSelectorWidget : public QWidget {
+class FileSelectorWidget : public QWidget
+{
     Q_OBJECT
 
-public:
+   public:
     /**
      * @brief 构造函数
      * @param parent 父窗口
      */
-    explicit FileSelectorWidget(QWidget *parent = nullptr);
+    explicit FileSelectorWidget(QWidget* parent = nullptr);
 
     /**
      * @brief 析构函数
@@ -78,7 +80,7 @@ public:
      */
     void setEnabled(bool enabled);
 
-signals:
+   signals:
     /**
      * @brief 路径选择完成信号
      * @param path 选择的路径
@@ -91,7 +93,7 @@ signals:
      */
     void modeChanged(ParseMode mode);
 
-private slots:
+   private slots:
     /**
      * @brief 选择按钮点击槽函数
      */
@@ -103,7 +105,7 @@ private slots:
      */
     void onModeChanged(int index);
 
-private:
+   private:
     /**
      * @brief 设置UI界面
      */
@@ -114,23 +116,23 @@ private:
      * @param path 路径
      * @return 路径是否有效
      */
-    bool validatePath(const QString &path);
+    bool validatePath(const QString& path);
 
     /**
      * @brief 更新文件信息显示
      * @param path 文件或文件夹路径
      */
-    void updateFileInfo(const QString &path);
+    void updateFileInfo(const QString& path);
 
-    QLabel *m_modeLabel;               ///< 模式标签
-    QComboBox *m_modeComboBox;         ///< 模式选择下拉框
-    QLabel *m_pathLabel;               ///< 路径标签
-    QLabel *m_fileInfoLabel;           ///< 文件信息标签
-    QLineEdit *m_pathEdit;             ///< 路径输入框
-    QPushButton *m_selectButton;       ///< 选择按钮
-    
-    QString m_currentPath;             ///< 当前选择的路径
-    ParseMode m_currentMode;           ///< 当前解析模式
+    QLabel* m_modeLabel;          ///< 模式标签
+    QComboBox* m_modeComboBox;    ///< 模式选择下拉框
+    QLabel* m_pathLabel;          ///< 路径标签
+    QLabel* m_fileInfoLabel;      ///< 文件信息标签
+    QLineEdit* m_pathEdit;        ///< 路径输入框
+    QPushButton* m_selectButton;  ///< 选择按钮
+
+    QString m_currentPath;    ///< 当前选择的路径
+    ParseMode m_currentMode;  ///< 当前解析模式
 };
 
-#endif // FILESELECTORWIDGET_H
+#endif  // FILESELECTORWIDGET_H

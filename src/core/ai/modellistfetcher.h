@@ -9,23 +9,24 @@
 #ifndef MODELLISTFETCHER_H
 #define MODELLISTFETCHER_H
 
-#include <QObject>
 #include <QNetworkAccessManager>
+#include <QObject>
 #include <QStringList>
 
 /**
  * @brief 模型列表获取器类
  */
-class ModelListFetcher : public QObject {
+class ModelListFetcher : public QObject
+{
     Q_OBJECT
 
-public:
+   public:
     /**
      * @brief 获取ModelListFetcher的单例实例
      * @return ModelListFetcher的引用
      */
     static ModelListFetcher& instance();
-    
+
     ModelListFetcher(const ModelListFetcher&) = delete;
     ModelListFetcher& operator=(const ModelListFetcher&) = delete;
 
@@ -36,7 +37,7 @@ public:
      */
     void fetchModels(const QString& baseUrl, const QString& apiKey);
 
-signals:
+   signals:
     /**
      * @brief 模型列表获取成功信号
      * @param models 模型列表
@@ -49,14 +50,14 @@ signals:
      */
     void fetchFailed(const QString& error);
 
-private slots:
+   private slots:
     /**
      * @brief 网络请求完成槽函数
      * @param reply 网络回复对象
      */
     void onReplyFinished(QNetworkReply* reply);
 
-private:
+   private:
     /**
      * @brief 构造函数
      * @param parent 父对象

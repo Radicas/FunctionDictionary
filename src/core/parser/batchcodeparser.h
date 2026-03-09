@@ -16,40 +16,42 @@
 #ifndef BATCHCODEPARSER_H
 #define BATCHCODEPARSER_H
 
-#include "core/parser/aicodeparser.h"
-#include "core/interfaces/idatabaserepository.h"
 #include <QObject>
-#include <QString>
-#include <QStringList>
 #include <QQueue>
 #include <QSet>
+#include <QString>
+#include <QStringList>
+#include "core/interfaces/idatabaserepository.h"
+#include "core/parser/aicodeparser.h"
 
 /**
  * @brief 批量解析进度信息
  */
-struct BatchParseProgress {
-    int totalFiles;             ///< 总文件数
-    int processedFiles;         ///< 已处理文件数
-    int successCount;           ///< 成功数量
-    int failedCount;            ///< 失败数量
-    int skippedCount;           ///< 跳过数量
-    QString currentFile;        ///< 当前处理的文件
-    QString currentStage;       ///< 当前阶段
-    QString currentMessage;     ///< 当前消息
+struct BatchParseProgress
+{
+    int totalFiles;          ///< 总文件数
+    int processedFiles;      ///< 已处理文件数
+    int successCount;        ///< 成功数量
+    int failedCount;         ///< 失败数量
+    int skippedCount;        ///< 跳过数量
+    QString currentFile;     ///< 当前处理的文件
+    QString currentStage;    ///< 当前阶段
+    QString currentMessage;  ///< 当前消息
 };
 
 /**
  * @brief 批量解析结果
  */
-struct BatchParseResult {
-    bool success;                       ///< 是否全部成功
-    int totalFiles;                     ///< 总文件数
-    int successCount;                   ///< 成功数量
-    int failedCount;                    ///< 失败数量
-    int skippedCount;                   ///< 跳过数量
-    QVector<FunctionData> allFunctions; ///< 所有提取的函数
-    QStringList failedFiles;            ///< 失败的文件列表
-    QString errorMessage;               ///< 错误信息
+struct BatchParseResult
+{
+    bool success;                        ///< 是否全部成功
+    int totalFiles;                      ///< 总文件数
+    int successCount;                    ///< 成功数量
+    int failedCount;                     ///< 失败数量
+    int skippedCount;                    ///< 跳过数量
+    QVector<FunctionData> allFunctions;  ///< 所有提取的函数
+    QStringList failedFiles;             ///< 失败的文件列表
+    QString errorMessage;                ///< 错误信息
 };
 
 /**
@@ -61,10 +63,11 @@ struct BatchParseResult {
  * - 进度回调
  * - 错误处理和重试
  */
-class BatchCodeParser : public QObject {
+class BatchCodeParser : public QObject
+{
     Q_OBJECT
 
-public:
+   public:
     /**
      * @brief 构造函数
      * @param dbManager 数据库管理器接口（依赖注入）
@@ -140,7 +143,7 @@ public:
      */
     int targetProjectId() const { return m_targetProjectId; }
 
-signals:
+   signals:
     /**
      * @brief 批量解析进度信号
      * @param progress 进度信息
@@ -171,7 +174,7 @@ signals:
      */
     void batchCancelled();
 
-private slots:
+   private slots:
     /**
      * @brief 单个文件解析完成槽函数
      * @param result 解析结果
@@ -191,7 +194,7 @@ private slots:
      */
     void onFileParseProgress(const QString& stage, const QString& message);
 
-private:
+   private:
     /**
      * @brief 递归扫描文件夹
      * @param folderPath 文件夹路径
@@ -222,22 +225,22 @@ private:
      */
     void finishBatch();
 
-    IDatabaseManager* m_dbManager;          ///< 数据库管理器（依赖注入）
-    QQueue<QString> m_fileQueue;            ///< 文件队列
-    QSet<QString> m_processedFiles;         ///< 已处理的文件集合
-    
-    bool m_isParsing;                       ///< 是否正在解析
-    bool m_skipExisting;                    ///< 是否跳过已存在的函数
-    bool m_cancelled;                       ///< 是否已取消
-    
-    QStringList m_allowedExtensions;        ///< 允许的文件扩展名
-    QStringList m_excludeDirectories;       ///< 排除的目录名
-    
-    BatchParseResult m_currentResult;       ///< 当前批量解析结果
-    BatchParseProgress m_currentProgress;   ///< 当前进度
-    QString m_currentFile;                  ///< 当前处理的文件
-    int m_targetProjectId;                  ///< 目标项目ID
-    QString m_projectRootPath;              ///< 项目根路径
+    IDatabaseManager* m_dbManager;   ///< 数据库管理器（依赖注入）
+    QQueue<QString> m_fileQueue;     ///< 文件队列
+    QSet<QString> m_processedFiles;  ///< 已处理的文件集合
+
+    bool m_isParsing;     ///< 是否正在解析
+    bool m_skipExisting;  ///< 是否跳过已存在的函数
+    bool m_cancelled;     ///< 是否已取消
+
+    QStringList m_allowedExtensions;   ///< 允许的文件扩展名
+    QStringList m_excludeDirectories;  ///< 排除的目录名
+
+    BatchParseResult m_currentResult;      ///< 当前批量解析结果
+    BatchParseProgress m_currentProgress;  ///< 当前进度
+    QString m_currentFile;                 ///< 当前处理的文件
+    int m_targetProjectId;                 ///< 目标项目ID
+    QString m_projectRootPath;             ///< 项目根路径
 };
 
-#endif // BATCHCODEPARSER_H
+#endif  // BATCHCODEPARSER_H

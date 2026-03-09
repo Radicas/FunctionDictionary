@@ -18,10 +18,11 @@
  * 
  * 该接口定义了解析服务的标准操作，用于解耦UI层与具体实现。
  */
-class IParseService : public QObject {
+class IParseService : public QObject
+{
     Q_OBJECT
 
-public:
+   public:
     /**
      * @brief 构造函数
      * @param parent 父对象
@@ -75,7 +76,7 @@ public:
      */
     virtual int targetProject() const = 0;
 
-signals:
+   signals:
     /**
      * @brief 解析完成信号
      * @param result 解析结果
@@ -100,4 +101,4 @@ signals:
     void parseCancelled();
 };
 
-#endif // IPARSESERVICE_H
+#endif  // IPARSESERVICE_H

@@ -9,43 +9,45 @@
 #ifndef FUNCTIONDATA_H
 #define FUNCTIONDATA_H
 
-#include <QString>
 #include <QDateTime>
+#include <QString>
 
 /**
  * @brief 函数数据结构
  */
-struct FunctionData {
-    int id;                             ///< 函数ID
-    int projectId;                      ///< 所属项目ID
-    QString key;                        ///< 函数名称
-    QString value;                      ///< 函数介绍（Markdown格式）
-    QDateTime createTime;               ///< 创建时间
-    
-    QString signature;                  ///< 函数签名
-    QString returnType;                 ///< 返回类型
-    QString parameters;                 ///< 参数列表（JSON格式）
-    QString filePath;                   ///< 源文件路径
-    int startLine;                      ///< 起始行号
-    int endLine;                        ///< 结束行号
-    QString language;                   ///< 编程语言
-    QString flowchart;                  ///< 流程图
-    QString sequenceDiagram;            ///< 时序图
-    QString structureDiagram;           ///< 结构图
-    QString aiModel;                    ///< 分析使用的AI模型
-    QDateTime analyzeTime;              ///< 分析时间
-    
+struct FunctionData
+{
+    int id;                ///< 函数ID
+    int projectId;         ///< 所属项目ID
+    QString key;           ///< 函数名称
+    QString value;         ///< 函数介绍（Markdown格式）
+    QDateTime createTime;  ///< 创建时间
+
+    QString signature;         ///< 函数签名
+    QString returnType;        ///< 返回类型
+    QString parameters;        ///< 参数列表（JSON格式）
+    QString filePath;          ///< 源文件路径
+    int startLine;             ///< 起始行号
+    int endLine;               ///< 结束行号
+    QString language;          ///< 编程语言
+    QString flowchart;         ///< 流程图
+    QString sequenceDiagram;   ///< 时序图
+    QString structureDiagram;  ///< 结构图
+    QString aiModel;           ///< 分析使用的AI模型
+    QDateTime analyzeTime;     ///< 分析时间
+
     /**
      * @brief 默认构造函数
      */
     FunctionData()
-        : id(0)
-        , projectId(0)
-        , createTime(QDateTime::currentDateTime())
-        , startLine(0)
-        , endLine(0)
-        , analyzeTime(QDateTime::currentDateTime())
-    {}
+        : id(0),
+          projectId(0),
+          createTime(QDateTime::currentDateTime()),
+          startLine(0),
+          endLine(0),
+          analyzeTime(QDateTime::currentDateTime())
+    {
+    }
 };
 
 #endif

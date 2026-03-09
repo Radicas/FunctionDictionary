@@ -12,21 +12,22 @@
 #ifndef ADDFUNCTIONDIALOG_H
 #define ADDFUNCTIONDIALOG_H
 
+#include <QComboBox>
 #include <QDialog>
-#include <QLineEdit>
-#include <QTextEdit>
-#include <QPushButton>
-#include <QVBoxLayout>
+#include <QFormLayout>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QFormLayout>
-#include <QComboBox>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QTextEdit>
+#include <QVBoxLayout>
 #include "core/interfaces/idatabaserepository.h"
 
-class AddFunctionDialog : public QDialog {
+class AddFunctionDialog : public QDialog
+{
     Q_OBJECT
 
-public:
+   public:
     explicit AddFunctionDialog(IDatabaseManager* dbManager, QWidget* parent = nullptr);
 
     /**
@@ -53,7 +54,7 @@ public:
      */
     void setSelectedProject(int projectId);
 
-private slots:
+   private slots:
     /**
      * @brief 确认按钮点击槽函数
      */
@@ -64,7 +65,7 @@ private slots:
      */
     void onRejectClicked();
 
-private:
+   private:
     /**
      * @brief 初始化界面
      */
@@ -76,11 +77,11 @@ private:
     void loadProjects();
 
     IDatabaseManager* m_dbManager;  ///< 数据库管理器（依赖注入）
-    QLineEdit* m_keyEdit;      ///< 函数名称输入框
-    QTextEdit* m_valueEdit;    ///< 函数介绍文本框
-    QComboBox* m_projectCombo; ///< 项目选择下拉框
-    QPushButton* m_acceptButton; ///< 确认按钮
-    QPushButton* m_cancelButton; ///< 取消按钮
+    QLineEdit* m_keyEdit;           ///< 函数名称输入框
+    QTextEdit* m_valueEdit;         ///< 函数介绍文本框
+    QComboBox* m_projectCombo;      ///< 项目选择下拉框
+    QPushButton* m_acceptButton;    ///< 确认按钮
+    QPushButton* m_cancelButton;    ///< 取消按钮
 };
 
-#endif // ADDFUNCTIONDIALOG_H
+#endif  // ADDFUNCTIONDIALOG_H

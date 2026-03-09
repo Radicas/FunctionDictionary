@@ -1,20 +1,22 @@
 #include "ui/dialogs/addfunctiondialog/addfunctiondialog.h"
-#include "common/logger/logger.h"
 #include <QMessageBox>
+#include "common/logger/logger.h"
 
 AddFunctionDialog::AddFunctionDialog(IDatabaseManager* dbManager, QWidget* parent)
-    : QDialog(parent)
-    , m_dbManager(dbManager)
-    , m_keyEdit(nullptr)
-    , m_valueEdit(nullptr)
-    , m_projectCombo(nullptr)
-    , m_acceptButton(nullptr)
-    , m_cancelButton(nullptr) {
+    : QDialog(parent),
+      m_dbManager(dbManager),
+      m_keyEdit(nullptr),
+      m_valueEdit(nullptr),
+      m_projectCombo(nullptr),
+      m_acceptButton(nullptr),
+      m_cancelButton(nullptr)
+{
     setupUI();
     loadProjects();
 }
 
-void AddFunctionDialog::setupUI() {
+void AddFunctionDialog::setupUI()
+{
     setWindowTitle("增加函数");
     setMinimumSize(500, 450);
 
@@ -55,75 +57,93 @@ void AddFunctionDialog::setupUI() {
     Logger::instance().info("增加函数对话框初始化完成");
 }
 
-void AddFunctionDialog::loadProjects() {
-    if (!m_projectCombo) {
+void AddFunctionDialog::loadProjects()
+{
+    if (!m_projectCombo)
+    {
         return;
     }
 
     m_projectCombo->clear();
-    
+
     QVector<ProjectInfo> projects = m_dbManager->getAllProjects();
-    
+
     ProjectInfo tempProject = m_dbManager->getOrCreateTemporaryProject();
-    
+
     m_projectCombo->addItem("待整理", tempProject.id);
-    
-    for (const ProjectInfo& project : projects) {
-        if (project.rootPath != "__temporary__") {
+
+    for (const ProjectInfo& project : projects)
+    {
+        if (project.rootPath != "__temporary__")
+        {
             m_projectCombo->addItem(project.name, project.id);
         }
     }
-    
-    if (m_projectCombo->count() > 0) {
+
+    if (m_projectCombo->count() > 0)
+    {
         m_projectCombo->setCurrentIndex(0);
     }
 }
 
-QString AddFunctionDialog::getFunctionKey() const {
-    if (m_keyEdit) {
+QString AddFunctionDialog::getFunctionKey() const
+{
+    if (m_keyEdit)
+    {
         return m_keyEdit->text().trimmed();
     }
     return QString();
 }
 
-QString AddFunctionDialog::getFunctionValue() const {
-    if (m_valueEdit) {
+QString AddFunctionDialog::getFunctionValue() const
+{
+    if (m_valueEdit)
+    {
         return m_valueEdit->toPlainText();
     }
     return QString();
 }
 
-int AddFunctionDialog::getProjectId() const {
-    if (m_projectCombo && m_projectCombo->currentIndex() >= 0) {
+int AddFunctionDialog::getProjectId() const
+{
+    if (m_projectCombo && m_projectCombo->currentIndex() >= 0)
+    {
         return m_projectCombo->currentData().toInt();
     }
     return -1;
 }
 
-void AddFunctionDialog::setSelectedProject(int projectId) {
-    if (!m_projectCombo) {
+void AddFunctionDialog::setSelectedProject(int projectId)
+{
+    if (!m_projectCombo)
+    {
         return;
     }
 
-    for (int i = 0; i < m_projectCombo->count(); ++i) {
-        if (m_projectCombo->itemData(i).toInt() == projectId) {
+    for (int i = 0; i < m_projectCombo->count(); ++i)
+    {
+        if (m_projectCombo->itemData(i).toInt() == projectId)
+        {
             m_projectCombo->setCurrentIndex(i);
             return;
         }
     }
 }
 
-void AddFunctionDialog::onAcceptClicked() {
+void AddFunctionDialog::onAcceptClicked()
+{
     QString key = getFunctionKey();
     QString value = getFunctionValue();
 
-    if (key.isEmpty()) {
+    if (key.isEmpty())
+    {
         QMessageBox::warning(this, "警告", "函数名称不能为空！");
         Logger::instance().warning("用户尝试添加空函数名称");
         return;
     }
 
-    if (value.isEmpty()) {
+    if (value.isEmpty())
+    {
         QMessageBox::warning(this, "警告", "函数介绍不能为空！");
         Logger::instance().warning("用户尝试添加空函数介绍");
         return;
@@ -133,7 +153,8 @@ void AddFunctionDialog::onAcceptClicked() {
     accept();
 }
 
-void AddFunctionDialog::onRejectClicked() {
+void AddFunctionDialog::onRejectClicked()
+{
     Logger::instance().info("用户取消添加函数");
     reject();
 }

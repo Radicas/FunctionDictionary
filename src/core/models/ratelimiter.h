@@ -9,10 +9,10 @@
 #ifndef RATELIMITER_H
 #define RATELIMITER_H
 
-#include <QObject>
-#include <QMutex>
-#include <QWaitCondition>
 #include <QElapsedTimer>
+#include <QMutex>
+#include <QObject>
+#include <QWaitCondition>
 
 /**
  * @brief 速率限制器类（令牌桶算法）
@@ -20,10 +20,11 @@
  * 该类实现了令牌桶算法，用于控制请求发送速率，
  * 防止超过API提供商的速率限制。
  */
-class RateLimiter : public QObject {
+class RateLimiter : public QObject
+{
     Q_OBJECT
 
-public:
+   public:
     /**
      * @brief 构造函数
      * @param requestsPerMinute 每分钟允许的请求数
@@ -54,18 +55,18 @@ public:
      */
     int getCurrentTokens() const;
 
-private:
+   private:
     /**
      * @brief 补充令牌
      */
     void refillTokens();
 
-    mutable QMutex m_mutex;           ///< 互斥锁
-    QWaitCondition m_condition;       ///< 等待条件
-    int m_tokens;                     ///< 当前令牌数
-    int m_maxTokens;                  ///< 最大令牌数
-    qint64 m_lastRefillTime;          ///< 上次补充令牌的时间
-    int m_refillRate;                 ///< 补充速率（每秒令牌数）
+    mutable QMutex m_mutex;      ///< 互斥锁
+    QWaitCondition m_condition;  ///< 等待条件
+    int m_tokens;                ///< 当前令牌数
+    int m_maxTokens;             ///< 最大令牌数
+    qint64 m_lastRefillTime;     ///< 上次补充令牌的时间
+    int m_refillRate;            ///< 补充速率（每秒令牌数）
 };
 
-#endif // RATELIMITER_H
+#endif  // RATELIMITER_H
