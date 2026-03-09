@@ -16,6 +16,7 @@ ParseService::ParseService(IDatabaseManager* dbManager, QObject* parent)
     , m_batchParser(new BatchCodeParser(dbManager, this))
     , m_skipExisting(true)
     , m_isParsing(false)
+    , m_isBatchMode(false)
     , m_targetProjectId(-1)
 {
     AICodeParser &aiParser = AICodeParser::instance();
@@ -54,6 +55,7 @@ void ParseService::parseFile(const QString& filePath)
     }
 
     m_isParsing = true;
+    m_isBatchMode = false;
     m_currentFilePath = filePath;
     
     Logger::instance().info("开始解析文件: " + filePath);
@@ -68,6 +70,7 @@ void ParseService::parseFolder(const QString& folderPath, bool recursive)
     }
 
     m_isParsing = true;
+    m_isBatchMode = true;
     
     Logger::instance().info(QString("开始批量解析文件夹: %1, 递归: %2")
                                .arg(folderPath)
@@ -129,6 +132,10 @@ int ParseService::targetProject() const
 
 void ParseService::onAIParseComplete(const AIParseResult& result)
 {
+    if (m_isBatchMode) {
+        return;
+    }
+    
     ParseResult parseResult = processSingleFileResult(result);
     m_isParsing = false;
     emit parseComplete(parseResult);
@@ -136,6 +143,10 @@ void ParseService::onAIParseComplete(const AIParseResult& result)
 
 void ParseService::onAIParseFailed(const QString& error)
 {
+    if (m_isBatchMode) {
+        return;
+    }
+    
     m_isParsing = false;
     Logger::instance().error("AI 解析失败: " + error);
     emit parseFailed(error);
@@ -143,6 +154,10 @@ void ParseService::onAIParseFailed(const QString& error)
 
 void ParseService::onAIParseProgress(const QString& stage, const QString& message)
 {
+    if (m_isBatchMode) {
+        return;
+    }
+    
     ParseProgress progress;
     progress.stage = stage;
     progress.message = message;
@@ -165,6 +180,10 @@ void ParseService::onAIParseProgress(const QString& stage, const QString& messag
 
 void ParseService::onAIParseCancelled()
 {
+    if (m_isBatchMode) {
+        return;
+    }
+    
     m_isParsing = false;
     Logger::instance().info("AI解析已取消");
     emit parseCancelled();
@@ -195,12 +214,14 @@ void ParseService::onBatchComplete(const BatchParseResult& result)
 {
     ParseResult parseResult = processBatchResult(result);
     m_isParsing = false;
+    m_isBatchMode = false;
     emit parseComplete(parseResult);
 }
 
 void ParseService::onBatchFailed(const QString& error)
 {
     m_isParsing = false;
+    m_isBatchMode = false;
     Logger::instance().error("批量解析失败: " + error);
     emit parseFailed(error);
 }
@@ -208,6 +229,7 @@ void ParseService::onBatchFailed(const QString& error)
 void ParseService::onBatchCancelled()
 {
     m_isParsing = false;
+    m_isBatchMode = false;
     Logger::instance().info("批量解析已取消");
     emit parseCancelled();
 }

@@ -140,6 +140,7 @@ private:
     BatchCodeParser* m_batchParser;      ///< 批量解析器（依赖注入）
     bool m_skipExisting;                 ///< 是否跳过已存在的函数
     bool m_isParsing;                    ///< 是否正在解析
+    bool m_isBatchMode;                  ///< 是否处于批量模式
     QString m_currentFilePath;           ///< 当前解析的文件路径
     int m_targetProjectId;               ///< 目标项目ID
 };
