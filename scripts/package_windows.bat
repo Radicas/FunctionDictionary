@@ -12,8 +12,8 @@ cd /d "%PROJECT_ROOT%"
 for %%i in ("%CD%") do set "PROJECT_ROOT=%%~fi"
 
 REM Default configuration
-set "BUILD_CONFIG=Release"
-set "QT_PATH="
+set "BUILD_CONFIG=Debug"
+set "QT_PATH=%Qt6_DIR%"
 set "OUTPUT_DIR=%PROJECT_ROOT%\dist"
 set "PACKAGE_NAME=FunctionDictionary"
 
