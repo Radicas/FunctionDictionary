@@ -1,8 +1,10 @@
 add_library(core_ai STATIC
     aiconfigmanager.h
-    AIConfigManager.cpp
+    aiconfigmanager.cpp
     aiservicemanager.h
-    AIServiceManager.cpp
+    aiservicemanager.cpp
+    modellistfetcher.h
+    modellistfetcher.cpp
 )
 
 target_include_directories(core_ai

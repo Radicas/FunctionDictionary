@@ -96,7 +96,7 @@ void AICodeParser::parseCode(const QString &code, const QString &language,
 
   QString urlStr = buildRequestUrl();
   Logger::instance().info("请求URL: " + urlStr);
-  Logger::instance().info("使用模型: " + config.modelId);
+  Logger::instance().info("使用模型: " + config.defaultModel);
 
   QUrl requestUrl(urlStr);
   QNetworkRequest request(requestUrl);
@@ -222,7 +222,7 @@ void AICodeParser::onReplyFinished() {
       parseAIResponse(aiResponse, m_currentFilePath, m_currentLanguage);
 
   AIConfig config = AIConfigManager::instance().getCurrentConfig();
-  result.aiModel = config.modelId;
+  result.aiModel = config.defaultModel;
 
   if (result.success) {
     emit parseProgress("保存数据", "正在保存解析结果...");
@@ -349,7 +349,7 @@ QJsonObject AICodeParser::buildRequestJson(const QString &prompt) const {
   messagesArray.append(messageObj);
 
   QJsonObject jsonObj;
-  jsonObj["model"] = config.modelId;
+  jsonObj["model"] = config.defaultModel;
   jsonObj["messages"] = messagesArray;
   jsonObj["temperature"] = 0.3;
   jsonObj["max_tokens"] = 16000;

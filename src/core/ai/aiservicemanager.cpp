@@ -309,7 +309,7 @@ void AIServiceManager::onReplyFinished(QNetworkReply* reply) {
     }
     
     AIConfig config = AIConfigManager::instance().getCurrentConfig();
-    response.aiModel = config.modelId;
+    response.aiModel = config.defaultModel;
     response.analyzeTime = QDateTime::currentDateTime();
     
     emit functionAnalysisComplete(response);
@@ -344,7 +344,7 @@ QJsonObject AIServiceManager::buildRequestJson(const QString& prompt) const {
     messagesArray.append(messageObj);
 
     QJsonObject jsonObj;
-    jsonObj["model"] = config.modelId;
+    jsonObj["model"] = config.defaultModel;
     jsonObj["messages"] = messagesArray;
     jsonObj["temperature"] = 0.7;
 
