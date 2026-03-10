@@ -52,7 +52,7 @@
 
 * {
     font-family: "Segoe UI", "SF Pro Display", "Microsoft YaHei UI", sans-serif;
-    font-size: 13px;
+    /* 使用系统默认字体大小，支持高DPI缩放 */
     outline: none;
 }
 
@@ -208,10 +208,11 @@ QToolButton:disabled {
 QPushButton {
     background-color: #FFFFFF;
     border: 1px solid #E5E5E5;
-    border-radius: 8px;
-    padding: 10px 24px;
-    min-width: 80px;
-    min-height: 36px;
+    border-radius: 0.5ex;
+    padding: 0.7ex 1.5ex;
+    /* 使用ex单位，基于字体高度自适应 */
+    min-height: 2.2ex;
+    min-width: 5ex;
     color: #18181B;
     font-weight: 500;
 }
@@ -302,9 +303,10 @@ QPushButton#successButton:hover {
 QLineEdit {
     background-color: #FFFFFF;
     border: 1px solid #E5E5E5;
-    border-radius: 8px;
-    padding: 10px 14px;
-    min-height: 36px;
+    border-radius: 0.5ex;
+    padding: 0.6ex 0.9ex;
+    /* 使用ex单位，基于字体高度自适应 */
+    min-height: 2.2ex;
     color: #18181B;
     selection-background-color: #3B82F6;
     selection-color: #FFFFFF;
@@ -507,7 +509,9 @@ QProgressBar::chunk {
 
 QScrollBar:vertical {
     background-color: transparent;
-    width: 10px;
+    /* 使用em单位，高DPI友好 */
+    width: 0.7em;
+    min-width: 10px;
     margin: 0;
 }
 
@@ -538,7 +542,9 @@ QScrollBar::sub-page:vertical {
 
 QScrollBar:horizontal {
     background-color: transparent;
-    height: 10px;
+    /* 使用em单位，高DPI友好 */
+    height: 0.7em;
+    min-height: 10px;
     margin: 0;
 }
 
@@ -809,10 +815,13 @@ QCheckBox {
 }
 
 QCheckBox::indicator {
-    width: 20px;
-    height: 20px;
+    /* 使用ex单位，基于字体高度自适应 */
+    width: 1.3ex;
+    height: 1.3ex;
+    min-width: 16px;
+    min-height: 16px;
     border: 2px solid #D4D4D8;
-    border-radius: 6px;
+    border-radius: 0.4ex;
     background-color: #FFFFFF;
 }
 
@@ -845,10 +854,13 @@ QRadioButton {
 }
 
 QRadioButton::indicator {
-    width: 20px;
-    height: 20px;
+    /* 使用ex单位，基于字体高度自适应 */
+    width: 1.3ex;
+    height: 1.3ex;
+    min-width: 16px;
+    min-height: 16px;
     border: 2px solid #D4D4D8;
-    border-radius: 10px;
+    border-radius: 0.65ex;
     background-color: #FFFFFF;
 }
 

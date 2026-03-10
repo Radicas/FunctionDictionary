@@ -53,7 +53,7 @@
 
 * {
     font-family: "Segoe UI", "SF Pro Display", "Microsoft YaHei UI", sans-serif;
-    font-size: 13px;
+    /* 使用系统默认字体大小，支持高DPI缩放 */
     outline: none;
 }
 
@@ -211,10 +211,11 @@ QToolButton:disabled {
 QPushButton {
     background-color: #1A1A2E;
     border: 2px solid #252540;
-    border-radius: 6px;
-    padding: 6px 16px;
-    min-width: 60px;
-    min-height: 26px;
+    border-radius: 0.4ex;
+    padding: 0.5ex 1ex;
+    /* 使用ex单位，基于字体高度自适应 */
+    min-height: 1.8ex;
+    min-width: 4ex;
     color: #FFFFFF;
     font-weight: 500;
 }
@@ -307,9 +308,10 @@ QPushButton#successButton:hover {
 QLineEdit {
     background-color: #0A0A0F;
     border: 2px solid #252540;
-    border-radius: 8px;
-    padding: 10px 14px;
-    min-height: 36px;
+    border-radius: 0.5ex;
+    padding: 0.6ex 0.9ex;
+    /* 使用ex单位，基于字体高度自适应 */
+    min-height: 2.2ex;
     color: #FFFFFF;
     selection-background-color: #9D00FF;
     selection-color: #FFFFFF;
@@ -513,9 +515,11 @@ QProgressBar::chunk {
 
 QScrollBar:vertical {
     background-color: #0A0A0F;
-    width: 12px;
+    /* 使用em单位，高DPI友好 */
+    width: 0.8em;
+    min-width: 10px;
     margin: 0;
-    border-radius: 6px;
+    border-radius: 0.4em;
 }
 
 QScrollBar::handle:vertical {
@@ -545,9 +549,11 @@ QScrollBar::sub-page:vertical {
 
 QScrollBar:horizontal {
     background-color: #0A0A0F;
-    height: 12px;
+    /* 使用em单位，高DPI友好 */
+    height: 0.8em;
+    min-height: 10px;
     margin: 0;
-    border-radius: 6px;
+    border-radius: 0.4em;
 }
 
 QScrollBar::handle:horizontal {

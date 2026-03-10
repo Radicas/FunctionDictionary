@@ -8,8 +8,11 @@
 
 #include "ui/mainwindow/mainwindow.h"
 #include <QAbstractItemView>
+#include <QFontMetrics>
+#include <QGuiApplication>
 #include <QMessageBox>
 #include <QRegularExpression>
+#include <QScreen>
 #include <QSplitter>
 #include <QVBoxLayout>
 #include "common/logger/logger.h"
@@ -47,7 +50,13 @@ MainWindow::~MainWindow() {}
 void MainWindow::setupUI()
 {
     setWindowTitle("函数数据库管理系统");
-    setMinimumSize(1000, 700);
+    
+    // 响应式最小尺寸：根据屏幕尺寸动态调整
+    QScreen* screen = QGuiApplication::primaryScreen();
+    QRect screenGeometry = screen->availableGeometry();
+    int minWidth = qMax(800, screenGeometry.width() / 2);
+    int minHeight = qMax(600, screenGeometry.height() / 2);
+    setMinimumSize(minWidth, minHeight);
 
     setupMenuBar();
 
@@ -55,8 +64,12 @@ void MainWindow::setupUI()
     setCentralWidget(centralWidget);
 
     QVBoxLayout* mainLayout = new QVBoxLayout(centralWidget);
-    mainLayout->setContentsMargins(12, 12, 12, 12);
-    mainLayout->setSpacing(12);
+    // 使用字体度量作为基准单位，实现相对布局
+    QFontMetrics fm(font());
+    int baseUnit = fm.height();
+    int margin = qMax(8, baseUnit / 2);
+    mainLayout->setContentsMargins(margin, margin, margin, margin);
+    mainLayout->setSpacing(margin);
 
     QSplitter* splitter = new QSplitter(Qt::Horizontal, this);
     splitter->setObjectName("mainSplitter");
@@ -66,7 +79,9 @@ void MainWindow::setupUI()
     QWidget* leftPanel = new QWidget(this);
     QVBoxLayout* leftLayout = new QVBoxLayout(leftPanel);
     leftLayout->setContentsMargins(0, 0, 0, 0);
-    leftLayout->setSpacing(8);
+    // 使用相对间距
+    int spacing = qMax(4, baseUnit / 3);
+    leftLayout->setSpacing(spacing);
 
     m_searchEdit = new QLineEdit(this);
     m_searchEdit->setObjectName("searchEdit");
@@ -96,9 +111,13 @@ void MainWindow::setupUI()
     QFrame* functionalityPanel = createPanelFrame("功能操作", m_functionalityWidget, "functionalityPanel");
     splitter->addWidget(functionalityPanel);
 
-    splitter->setStretchFactor(0, 1);
-    splitter->setStretchFactor(1, 2);
-    splitter->setStretchFactor(2, 1);
+    splitter->setStretchFactor(0, 2);
+    splitter->setStretchFactor(1, 6);
+    splitter->setStretchFactor(2, 2);
+
+    int totalWidth = 1000;
+    QList<int> initialSizes = {totalWidth * 2 / 10, totalWidth * 6 / 10, totalWidth * 2 / 10};
+    splitter->setSizes(initialSizes);
 
     mainLayout->addWidget(splitter);
 
@@ -179,11 +198,16 @@ QFrame* MainWindow::createPanelFrame(const QString& title, QWidget* content, con
     layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(0);
 
+    int titleHeight = 0;
     if (!title.isEmpty())
     {
         QLabel* titleLabel = new QLabel(title, frame);
         titleLabel->setObjectName("panelTitleLabel");
         titleLabel->setAlignment(Qt::AlignLeft | Qt::AlignVCenter);
+        // 使用字体高度作为基准
+        QFontMetrics fm(font());
+        int titleHeight = qMax(24, fm.height() + 8);
+        titleLabel->setMinimumHeight(titleHeight);
         layout->addWidget(titleLabel);
 
         QFrame* separator = new QFrame(frame);
@@ -191,14 +215,30 @@ QFrame* MainWindow::createPanelFrame(const QString& title, QWidget* content, con
         separator->setFrameShape(QFrame::HLine);
         separator->setFixedHeight(1);
         layout->addWidget(separator);
+
+        titleHeight = titleHeight + 1;
     }
 
     QWidget* contentContainer = new QWidget(frame);
     contentContainer->setObjectName("panelContent");
     QVBoxLayout* contentLayout = new QVBoxLayout(contentContainer);
-    contentLayout->setContentsMargins(8, 8, 8, 8);
+    // 使用相对边距（基于字体高度）
+    QFontMetrics contentFm(font());
+    int contentMargin = qMax(6, contentFm.height() / 2);
+    contentLayout->setContentsMargins(contentMargin, contentMargin, contentMargin, contentMargin);
     contentLayout->addWidget(content);
     layout->addWidget(contentContainer);
+
+    int contentMinWidth = content->minimumWidth();
+    int contentMinHeight = content->minimumHeight();
+    if (contentMinWidth > 0 || contentMinHeight > 0)
+    {
+        // 使用相对计算
+        int extraWidth = contentMargin * 2 + 2;
+        int extraHeight = contentMargin * 2 + titleHeight + 2;
+        frame->setMinimumWidth(qMax(contentMinWidth + extraWidth, contentMinWidth));
+        frame->setMinimumHeight(contentMinHeight + extraHeight);
+    }
 
     return frame;
 }

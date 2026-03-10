@@ -7,6 +7,7 @@
  */
 
 #include "ui/mainwindow/functionalitywidget.h"
+#include <QFontMetrics>
 #include "common/logger/logger.h"
 #include "core/ai/aiconfigmanager.h"
 
@@ -24,8 +25,17 @@ FunctionalityWidget::~FunctionalityWidget() {}
 void FunctionalityWidget::setupUI()
 {
     m_mainLayout = new QVBoxLayout(this);
-    m_mainLayout->setSpacing(15);
-    m_mainLayout->setContentsMargins(10, 10, 10, 10);
+    // 使用字体度量作为基准单位
+    QFontMetrics fm(font());
+    int baseUnit = fm.height();
+    int spacing = qMax(8, baseUnit / 2);
+    int margin = qMax(6, baseUnit / 2);
+    m_mainLayout->setSpacing(spacing);
+    m_mainLayout->setContentsMargins(margin, margin, margin, margin);
+
+    // 响应式最小尺寸
+    setMinimumWidth(qMax(200, baseUnit * 15));
+    setMinimumHeight(qMax(300, baseUnit * 25));
 
     m_fileSelector = new FileSelectorWidget(this);
     m_mainLayout->addWidget(m_fileSelector);

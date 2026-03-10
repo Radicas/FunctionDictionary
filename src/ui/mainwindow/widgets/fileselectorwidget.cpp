@@ -7,6 +7,7 @@
  */
 
 #include "ui/mainwindow/widgets/fileselectorwidget.h"
+#include <QFontMetrics>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include "common/logger/logger.h"
@@ -22,8 +23,16 @@ FileSelectorWidget::~FileSelectorWidget() {}
 void FileSelectorWidget::setupUI()
 {
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
-    mainLayout->setSpacing(10);
+    // 使用字体度量作为基准单位
+    QFontMetrics fm(font());
+    int baseUnit = fm.height();
+    int spacing = qMax(6, baseUnit / 2);
+    mainLayout->setSpacing(spacing);
     mainLayout->setContentsMargins(0, 0, 0, 0);
+
+    // 响应式最小尺寸
+    setMinimumWidth(qMax(180, baseUnit * 12));
+    setMinimumHeight(qMax(100, baseUnit * 8));
 
     m_modeLabel = new QLabel("解析模式", this);
     m_modeLabel->setObjectName("titleLabel");
@@ -32,6 +41,7 @@ void FileSelectorWidget::setupUI()
     m_modeComboBox = new QComboBox(this);
     m_modeComboBox->addItem("单文件", static_cast<int>(ParseMode::SingleFile));
     m_modeComboBox->addItem("文件夹", static_cast<int>(ParseMode::Folder));
+    m_modeComboBox->setMinimumWidth(200);
     connect(m_modeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
             &FileSelectorWidget::onModeChanged);
     mainLayout->addWidget(m_modeComboBox);
@@ -42,16 +52,24 @@ void FileSelectorWidget::setupUI()
 
     m_fileInfoLabel = new QLabel("未选择", this);
     m_fileInfoLabel->setObjectName("fileInfoLabel");
+    m_fileInfoLabel->setMinimumHeight(20);
+    m_fileInfoLabel->setWordWrap(true);
     mainLayout->addWidget(m_fileInfoLabel);
 
     QHBoxLayout* pathLayout = new QHBoxLayout();
     m_pathEdit = new QLineEdit(this);
     m_pathEdit->setPlaceholderText("请选择要解析的文件或文件夹");
     m_pathEdit->setReadOnly(true);
+    m_pathEdit->setMinimumWidth(150);
     pathLayout->addWidget(m_pathEdit);
 
     m_selectButton = new QPushButton("选择", this);
     m_selectButton->setObjectName("fileSelectButton");
+    // 使用相对尺寸
+    int buttonMinWidth = qMax(50, baseUnit * 3);
+    int buttonMinHeight = qMax(24, baseUnit + 6);
+    m_selectButton->setMinimumWidth(buttonMinWidth);
+    m_selectButton->setMinimumHeight(buttonMinHeight);
     connect(m_selectButton, &QPushButton::clicked, this, &FileSelectorWidget::onSelectClicked);
     pathLayout->addWidget(m_selectButton);
 

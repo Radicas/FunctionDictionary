@@ -50,7 +50,7 @@
 
 * {
     font-family: "Consolas", "SF Mono", "Monaco", "Courier New", monospace;
-    font-size: 13px;
+    /* 使用系统默认字体大小，支持高DPI缩放 */
     outline: none;
 }
 
@@ -210,9 +210,10 @@ QPushButton {
     background-color: #2C2F31;
     border: 2px solid #3D4042;
     border-radius: 0px;
-    padding: 6px 14px;
-    min-width: 65px;
-    min-height: 24px;
+    padding: 0.5ex 1ex;
+    /* 使用ex单位，基于字体高度自适应 */
+    min-height: 2ex;
+    min-width: 4.5ex;
     color: #E8E8E8;
     font-weight: 500;
     text-transform: uppercase;
@@ -311,8 +312,9 @@ QLineEdit {
     background-color: #232628;
     border: 2px solid #3D4042;
     border-radius: 0px;
-    padding: 8px 12px;
-    min-height: 32px;
+    padding: 0.5ex 0.8ex;
+    /* 使用ex单位，基于字体高度自适应 */
+    min-height: 2ex;
     color: #E8E8E8;
     selection-background-color: #B87333;
     selection-color: #1A1D1E;
@@ -516,7 +518,9 @@ QProgressBar::chunk {
 
 QScrollBar:vertical {
     background-color: #232628;
-    width: 14px;
+    /* 使用em单位，高DPI友好 */
+    width: 0.9em;
+    min-width: 12px;
     margin: 0;
     border: 1px solid #3D4042;
 }
@@ -549,7 +553,9 @@ QScrollBar::sub-page:vertical {
 
 QScrollBar:horizontal {
     background-color: #232628;
-    height: 14px;
+    /* 使用em单位，高DPI友好 */
+    height: 0.9em;
+    min-height: 12px;
     margin: 0;
     border: 1px solid #3D4042;
 }
