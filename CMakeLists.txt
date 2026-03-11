@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(FunctionDictionary VERSION 1.0.0 LANGUAGES CXX)
+project(CodeAtlas VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -42,12 +42,12 @@ endif()
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 set(CPACK_PACKAGE_DESCRIPTION "函数数据库管理系统")
-set(CPACK_PACKAGE_VENDOR "FunctionDictionary Team")
+set(CPACK_PACKAGE_VENDOR "CodeAtlas Team")
 set(CPACK_PACKAGE_CONTACT "support@example.com")
 
 if(WIN32)
     set(CPACK_GENERATOR "ZIP")
-    set(CPACK_PACKAGE_INSTALL_DIRECTORY "FunctionDictionary")
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "CodeAtlas")
     set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-${PROJECT_VERSION}-Windows")
 endif()
 

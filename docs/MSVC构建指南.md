@@ -24,7 +24,7 @@
 
 ## 概述
 
-本文档详细介绍了如何在Windows环境下使用MSVC（Microsoft Visual C++）编译器构建FunctionDictionary项目。项目采用CMake构建系统，使用Qt6框架开发，支持跨平台编译。
+本文档详细介绍了如何在Windows环境下使用MSVC（Microsoft Visual C++）编译器构建CodeAtlas项目。项目采用CMake构建系统，使用Qt6框架开发，支持跨平台编译。
 
 **项目技术栈：**
 - C++17标准
@@ -215,13 +215,13 @@ where cmake
 
 ```cmd
 git clone <项目仓库地址>
-cd FunctionDictionary
+cd CodeAtlas
 ```
 
 #### 方法二：下载压缩包
 
 1. 下载项目源码压缩包
-2. 解压到目标目录，例如：`D:\Projects\FunctionDictionary`
+2. 解压到目标目录，例如：`D:\Projects\CodeAtlas`
 3. 进入项目目录
 
 ### 依赖项配置
@@ -305,7 +305,7 @@ cmake --build . --config Release -- /m
 #### 方法三：使用MSBuild命令行
 
 ```cmd
-msbuild FunctionDictionary.sln /p:Configuration=Release /m
+msbuild CodeAtlas.sln /p:Configuration=Release /m
 ```
 
 #### 编译输出
@@ -494,7 +494,7 @@ FunctionDB.exe
 
 程序运行后会在应用数据目录创建日志文件：
 ```
-%APPDATA%\FunctionDictionary\logs\function_dictionary.log
+%APPDATA%\CodeAtlas\logs\function_dictionary.log
 ```
 
 查看日志确认无错误信息。
@@ -503,7 +503,7 @@ FunctionDB.exe
 
 数据库文件位置：
 ```
-%APPDATA%\FunctionDictionary\data\functions.db
+%APPDATA%\CodeAtlas\data\functions.db
 ```
 
 ### 6. 依赖项检查
@@ -523,10 +523,10 @@ FunctionDB.exe
 
 ```batch
 @echo off
-REM FunctionDictionary MSVC构建脚本
+REM CodeAtlas MSVC构建脚本
 
 echo ========================================
-echo FunctionDictionary MSVC构建脚本
+echo CodeAtlas MSVC构建脚本
 echo ========================================
 echo.
 
@@ -603,7 +603,7 @@ cmd
 ### D. 项目目录结构
 
 ```
-FunctionDictionary/
+CodeAtlas/
 ├── CMakeLists.txt          # 主CMake配置文件
 ├── README.md               # 项目说明
 ├── VERSIONING.md           # 版本控制规范
@@ -645,11 +645,11 @@ FunctionDictionary/
 如遇到其他问题，请通过以下方式获取帮助：
 
 1. 查看项目README.md文档
-2. 检查日志文件：`%APPDATA%\FunctionDictionary\logs\`
+2. 检查日志文件：`%APPDATA%\CodeAtlas\logs\`
 3. 提交Issue到项目仓库
 
 ---
 
 **文档版本：** 1.0.0  
 **最后更新：** 2026-03-02  
-**适用项目版本：** FunctionDictionary 1.0.0
+**适用项目版本：** CodeAtlas 1.0.0

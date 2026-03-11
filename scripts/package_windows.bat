@@ -1,8 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM FunctionDictionary Windows Package Script
-REM Author: FunctionDictionary Team
+REM CodeAtlas Windows Package Script
+REM Author: CodeAtlas Team
 REM Date: 2026-03-03
 REM Version: 1.0.0
 
@@ -15,7 +15,7 @@ REM Default configuration
 set "BUILD_CONFIG=Debug"
 set "QT_PATH=%Qt6_DIR%"
 set "OUTPUT_DIR=%PROJECT_ROOT%\dist"
-set "PACKAGE_NAME=FunctionDictionary"
+set "PACKAGE_NAME=CodeAtlas"
 
 REM Parse command line arguments
 :parse_args
@@ -34,7 +34,7 @@ goto :show_help
 
 echo.
 echo ========================================
-echo   FunctionDictionary Windows Package
+echo   CodeAtlas Windows Package
 echo ========================================
 echo.
 
@@ -55,7 +55,7 @@ if not exist "%EXE_FILE%" (
     echo [ERROR] Executable not found: %EXE_FILE%
     echo.
     echo Please build the project first:
-    echo   msbuild build\FunctionDictionary.sln /p:Configuration=%BUILD_CONFIG% /m
+    echo   msbuild build\CodeAtlas.sln /p:Configuration=%BUILD_CONFIG% /m
     exit /b 1
 )
 
@@ -151,7 +151,7 @@ REM Create readme
 echo [INFO] Creating readme...
 (
 echo ========================================
-echo   FunctionDictionary
+echo   CodeAtlas
 echo ========================================
 echo.
 echo Version: 1.0.0
@@ -167,7 +167,7 @@ echo     https://aka.ms/vs/17/release/vc_redist.x64.exe
 echo.
 echo [Data Location]
 echo   Database and logs are stored in:
-echo   %%APPDATA%%\FunctionDictionary\
+echo   %%APPDATA%%\CodeAtlas\
 echo.
 echo ========================================
 ) > "%PACKAGE_DIR%\README.txt"

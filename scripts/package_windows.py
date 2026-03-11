@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-FunctionDictionary Windows 打包工具 (Python 版本)
+CodeAtlas Windows 打包工具 (Python 版本)
 根据 build.py 中的路径结构进行打包
 """
 
@@ -92,7 +92,7 @@ def main():
     """主函数"""
     # 解析命令行参数
     parser = argparse.ArgumentParser(
-        description='FunctionDictionary Windows 打包工具',
+        description='CodeAtlas Windows 打包工具',
         formatter_class=argparse.RawTextHelpFormatter
     )
     parser.add_argument(
@@ -113,7 +113,7 @@ def main():
     args = parser.parse_args()
     
     print(f"{Colors.BLUE}========================================{Colors.NC}")
-    print(f"{Colors.BLUE}  FunctionDictionary Windows Package{Colors.NC}")
+    print(f"{Colors.BLUE}  CodeAtlas Windows Package{Colors.NC}")
     print(f"{Colors.BLUE}========================================{Colors.NC}")
     print()
     
@@ -203,7 +203,7 @@ def main():
     
     # 打包目录
     timestamp = get_timestamp()
-    package_name = 'FunctionDictionary'
+    package_name = 'CodeAtlas'
     package_dir = output_dir / f"{package_name}_{build_config}_{timestamp}"
     
     print(f"{Colors.YELLOW}创建打包目录: {package_dir}{Colors.NC}")
@@ -270,7 +270,7 @@ def main():
     try:
         with open(readme_txt, 'w', encoding='utf-8') as f:
             f.write('========================================\n')
-            f.write('  FunctionDictionary\n')
+            f.write('  CodeAtlas\n')
             f.write('========================================\n')
             f.write('\n')
             f.write('Version: 1.0.0\n')
@@ -286,7 +286,7 @@ def main():
             f.write('\n')
             f.write('[Data Location]\n')
             f.write('  Database and logs are stored in:\n')
-            f.write('  %APPDATA%\\FunctionDictionary\\\n')
+            f.write('  %APPDATA%\\CodeAtlas\\\n')
             f.write('\n')
             f.write('========================================\n')
         print(f"{Colors.GREEN}✅ README 文件创建成功{Colors.NC}")

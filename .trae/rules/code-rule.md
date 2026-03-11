@@ -3,7 +3,7 @@
 3. 所有头文件中的函数都需要添加中文注释，包括函数参数、返回值、异常等。使用doxygen风格的注释。
 4. 所有头文件的最上面要加上头文件说明，包括头文件的作用、作者、日期、版本等。使用doxygen风格的注释。
 5. 编码风格符合Google C++ Style Guide，包括命名规则、缩进、空格、换行等。
-6. 源文件名称统一使用小写字母，例如：functiondata.cpp、functiondictionary.cpp等。
+6. 源文件名称统一使用小写字母，例如：functiondata.cpp、CodeAtlas.cpp等。
 7. 类的成员变量需要加上注释说明。
 8. 编写代码时要始终考虑跨平台兼容性。至少要支持MacOS、Windows、Linux三种操作系统。
 9. 代码编译需要同时支持MinGW和MSVC两种编译器。

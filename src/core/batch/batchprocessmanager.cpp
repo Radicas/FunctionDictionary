@@ -332,7 +332,7 @@ void BatchProcessManager::completeBatch()
 
 void BatchProcessManager::saveProcessState()
 {
-    QSettings settings("FunctionDictionary", "BatchProcess");
+    QSettings settings("CodeAtlas", "BatchProcess");
 
     settings.setValue("processedFunctions", QStringList(m_processedFunctions.begin(), m_processedFunctions.end()));
 
@@ -356,7 +356,7 @@ void BatchProcessManager::saveProcessState()
 
 void BatchProcessManager::loadProcessState()
 {
-    QSettings settings("FunctionDictionary", "BatchProcess");
+    QSettings settings("CodeAtlas", "BatchProcess");
 
     if (!settings.contains("processedFunctions"))
     {
@@ -384,7 +384,7 @@ void BatchProcessManager::loadProcessState()
 
 void BatchProcessManager::clearProcessState()
 {
-    QSettings settings("FunctionDictionary", "BatchProcess");
+    QSettings settings("CodeAtlas", "BatchProcess");
     settings.clear();
     settings.sync();
 }

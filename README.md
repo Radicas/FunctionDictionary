@@ -1,10 +1,10 @@
-# FunctionDictionary
+# CodeAtlas
 
 <div align="center">
 
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/FunctionDictionary)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/yourusername/CodeAtlas)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey.svg)](https://github.com/yourusername/FunctionDictionary)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey.svg)](https://github.com/yourusername/CodeAtlas)
 [![C++](https://img.shields.io/badge/C++-17-orange.svg)](https://isocpp.org/)
 [![Qt](https://img.shields.io/badge/Qt-6.0%2B-brightgreen.svg)](https://www.qt.io/)
 
@@ -18,7 +18,7 @@
 
 ## 项目简介
 
-**FunctionDictionary** 是一个跨平台的智能化代码理解和知识管理工具，旨在帮助开发者快速理解开源项目、降低上手难度、积累代码知识资产。通过AI技术自动分析代码函数，生成易懂的说明文档，并将知识持久化存储，形成个人知识库。
+**CodeAtlas** 是一个跨平台的智能化代码理解和知识管理工具，旨在帮助开发者快速理解开源项目、降低上手难度、积累代码知识资产。通过AI技术自动分析代码函数，生成易懂的说明文档，并将知识持久化存储，形成个人知识库。
 
 ### 核心价值
 
@@ -119,8 +119,8 @@ sudo apt-get install qt6-base-dev qt6-webengine-dev cmake build-essential
 
 ```bash
 # 克隆仓库
-git clone https://github.com/yourusername/FunctionDictionary.git
-cd FunctionDictionary
+git clone https://github.com/yourusername/CodeAtlas.git
+cd CodeAtlas
 
 # 创建构建目录
 mkdir build
@@ -138,8 +138,8 @@ make -j$(nproc)
 
 ```powershell
 # 克隆仓库
-git clone https://github.com/yourusername/FunctionDictionary.git
-cd FunctionDictionary
+git clone https://github.com/yourusername/CodeAtlas.git
+cd CodeAtlas
 
 # 创建构建目录
 mkdir build
@@ -175,9 +175,9 @@ mingw32-make
 
 首次运行时，程序会在应用数据目录自动创建数据库和日志文件：
 
-- **macOS**: `~/Library/Application Support/FunctionDictionary/`
-- **Windows**: `%APPDATA%/FunctionDictionary/`
-- **Linux**: `~/.local/share/FunctionDictionary/`
+- **macOS**: `~/Library/Application Support/CodeAtlas/`
+- **Windows**: `%APPDATA%/CodeAtlas/`
+- **Linux**: `~/.local/share/CodeAtlas/`
 
 ## 使用指南
 
@@ -254,7 +254,7 @@ struct FunctionData {
 
 ### C API接口
 
-FunctionDictionary提供C语言API，支持跨语言调用：
+CodeAtlas提供C语言API，支持跨语言调用：
 
 ```c
 #include "api/function_dict_c_api.h"
@@ -337,7 +337,7 @@ lib.fd_destroy(handle)
 ### 目录结构
 
 ```
-FunctionDictionary/
+CodeAtlas/
 ├── src/
 │   ├── api/                    # C语言API接口
 │   ├── app/                    # 应用程序入口
@@ -411,7 +411,7 @@ FunctionDictionary/
 
 1. **Fork 本仓库**
    ```bash
-   git clone https://github.com/yourusername/FunctionDictionary.git
+   git clone https://github.com/yourusername/CodeAtlas.git
    ```
 
 2. **创建特性分支**
@@ -498,7 +498,7 @@ A: 检查AI配置是否正确，确保API密钥有效且网络连接正常。
 ```
 MIT License
 
-Copyright (c) 2026 FunctionDictionary Team
+Copyright (c) 2026 CodeAtlas Team
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -521,9 +521,9 @@ SOFTWARE.
 
 ## 联系方式
 
-- **项目主页**: [https://github.com/yourusername/FunctionDictionary](https://github.com/yourusername/FunctionDictionary)
-- **问题反馈**: [GitHub Issues](https://github.com/yourusername/FunctionDictionary/issues)
-- **功能建议**: [GitHub Discussions](https://github.com/yourusername/FunctionDictionary/discussions)
+- **项目主页**: [https://github.com/yourusername/CodeAtlas](https://github.com/yourusername/CodeAtlas)
+- **问题反馈**: [GitHub Issues](https://github.com/yourusername/CodeAtlas/issues)
+- **功能建议**: [GitHub Discussions](https://github.com/yourusername/CodeAtlas/discussions)
 - **邮件**: support@example.com
 
 ## 致谢
@@ -541,6 +541,6 @@ SOFTWARE.
 
 **如果这个项目对您有帮助，请给一个 ⭐️ Star！**
 
-Made with ❤️ by FunctionDictionary Team
+Made with ❤️ by CodeAtlas Team
 
 </div>
