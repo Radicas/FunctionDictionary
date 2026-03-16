@@ -277,6 +277,28 @@ class DatabaseManager : public IDatabaseManager
      */
     bool checkAndAddMissingColumns();
 
+    /**
+     * @brief 检查数据库是否已初始化，未初始化则设置错误信息
+     * @return 是否已初始化
+     */
+    bool checkInitialized();
+
+    /**
+     * @brief 处理查询执行错误
+     * @param query 执行失败的查询对象
+     * @param operation 操作描述（如"添加函数"、"删除项目"等）
+     * @return false（统一返回 false）
+     */
+    bool handleQueryError(const QSqlQuery& query, const QString& operation);
+
+    /**
+     * @brief 验证字符串参数不为空
+     * @param value 要验证的值
+     * @param paramName 参数名称（用于错误消息）
+     * @return 验证是否通过
+     */
+    bool validateNotEmpty(const QString& value, const QString& paramName);
+
     QSqlDatabase m_db;    ///< 数据库连接
     bool m_initialized;   ///< 初始化标志
     QString m_lastError;  ///< 最后一次错误信息

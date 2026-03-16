@@ -73,6 +73,35 @@ bool DatabaseManager::isInitialized() const
     return m_initialized;
 }
 
+bool DatabaseManager::checkInitialized()
+{
+    if (!m_initialized)
+    {
+        m_lastError = "数据库未初始化";
+        Logger::instance().error(m_lastError);
+        return false;
+    }
+    return true;
+}
+
+bool DatabaseManager::handleQueryError(const QSqlQuery& query, const QString& operation)
+{
+    m_lastError = operation + "失败: " + query.lastError().text();
+    Logger::instance().error(m_lastError);
+    return false;
+}
+
+bool DatabaseManager::validateNotEmpty(const QString& value, const QString& paramName)
+{
+    if (value.trimmed().isEmpty())
+    {
+        m_lastError = paramName + "不能为空";
+        Logger::instance().warning(m_lastError);
+        return false;
+    }
+    return true;
+}
+
 bool DatabaseManager::createTables()
 {
     QSqlQuery query;
@@ -211,17 +240,13 @@ bool DatabaseManager::checkAndAddMissingColumns()
 
 bool DatabaseManager::addFunction(const QString& key, const QString& value)
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return false;
     }
 
-    if (key.trimmed().isEmpty())
+    if (!validateNotEmpty(key, "函数名称"))
     {
-        m_lastError = "函数名称不能为空";
-        Logger::instance().warning(m_lastError);
         return false;
     }
 
@@ -240,9 +265,7 @@ bool DatabaseManager::addFunction(const QString& key, const QString& value)
 
     if (!query.exec())
     {
-        m_lastError = "添加函数失败: " + query.lastError().text();
-        Logger::instance().error(m_lastError);
-        return false;
+        return handleQueryError(query, "添加函数");
     }
 
     Logger::instance().info("添加函数成功: " + key);
@@ -251,10 +274,8 @@ bool DatabaseManager::addFunction(const QString& key, const QString& value)
 
 bool DatabaseManager::deleteFunction(int id)
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return false;
     }
 
@@ -264,9 +285,7 @@ bool DatabaseManager::deleteFunction(int id)
 
     if (!query.exec())
     {
-        m_lastError = "删除函数失败: " + query.lastError().text();
-        Logger::instance().error(m_lastError);
-        return false;
+        return handleQueryError(query, "删除函数");
     }
 
     if (query.numRowsAffected() == 0)
@@ -282,10 +301,8 @@ bool DatabaseManager::deleteFunction(int id)
 
 bool DatabaseManager::deleteFunctions(const QVector<int>& ids)
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return false;
     }
 
@@ -322,10 +339,8 @@ QVector<FunctionData> DatabaseManager::getAllFunctions()
 {
     QVector<FunctionData> functions;
 
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return functions;
     }
 
@@ -357,10 +372,8 @@ FunctionData DatabaseManager::getFunctionById(int id)
     FunctionData data;
     data.id = -1;
 
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return data;
     }
 
@@ -391,10 +404,8 @@ FunctionData DatabaseManager::getFunctionByKey(const QString& key)
     FunctionData data;
     data.id = -1;
 
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return data;
     }
 
@@ -422,7 +433,7 @@ FunctionData DatabaseManager::getFunctionByKey(const QString& key)
 
 bool DatabaseManager::functionExists(const QString& key)
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
         return false;
     }
@@ -446,17 +457,13 @@ QString DatabaseManager::lastError() const
 
 bool DatabaseManager::addFunction(const FunctionData& func)
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return false;
     }
 
-    if (func.key.trimmed().isEmpty())
+    if (!validateNotEmpty(func.key, "函数名称"))
     {
-        m_lastError = "函数名称不能为空";
-        Logger::instance().warning(m_lastError);
         return false;
     }
 
@@ -485,9 +492,7 @@ bool DatabaseManager::addFunction(const FunctionData& func)
 
     if (!query.exec())
     {
-        m_lastError = "添加函数失败: " + query.lastError().text();
-        Logger::instance().error(m_lastError);
-        return false;
+        return handleQueryError(query, "添加函数");
     }
 
     Logger::instance().info("添加函数成功: " + func.key);
@@ -496,10 +501,8 @@ bool DatabaseManager::addFunction(const FunctionData& func)
 
 int DatabaseManager::addFunctionsBatch(const QVector<FunctionData>& functions)
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return 0;
     }
 
@@ -532,10 +535,8 @@ bool DatabaseManager::upsertFunction(const FunctionData& func)
 bool DatabaseManager::saveProcessState(const QString& filePath, const QString& functionName, const QString& status,
                                        const QString& errorMessage)
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return false;
     }
 
@@ -551,9 +552,7 @@ bool DatabaseManager::saveProcessState(const QString& filePath, const QString& f
 
     if (!query.exec())
     {
-        m_lastError = "保存处理状态失败: " + query.lastError().text();
-        Logger::instance().error(m_lastError);
-        return false;
+        return handleQueryError(query, "保存处理状态");
     }
 
     return true;
@@ -563,10 +562,8 @@ QVector<ProcessStateRecord> DatabaseManager::getProcessState(const QString& file
 {
     QVector<ProcessStateRecord> records;
 
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return records;
     }
 
@@ -602,10 +599,8 @@ QVector<ProcessStateRecord> DatabaseManager::getProcessState(const QString& file
 
 bool DatabaseManager::clearProcessState(const QString& filePath)
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return false;
     }
 
@@ -615,9 +610,7 @@ bool DatabaseManager::clearProcessState(const QString& filePath)
 
     if (!query.exec())
     {
-        m_lastError = "清除处理状态失败: " + query.lastError().text();
-        Logger::instance().error(m_lastError);
-        return false;
+        return handleQueryError(query, "清除处理状态");
     }
 
     return true;
@@ -627,10 +620,8 @@ QSet<QString> DatabaseManager::getProcessedFunctions(const QString& filePath)
 {
     QSet<QString> functions;
 
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return functions;
     }
 
@@ -656,24 +647,18 @@ QSet<QString> DatabaseManager::getProcessedFunctions(const QString& filePath)
 
 bool DatabaseManager::addProject(ProjectInfo& project)
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return false;
     }
 
-    if (project.name.trimmed().isEmpty())
+    if (!validateNotEmpty(project.name, "项目名称"))
     {
-        m_lastError = "项目名称不能为空";
-        Logger::instance().warning(m_lastError);
         return false;
     }
 
-    if (project.rootPath.trimmed().isEmpty())
+    if (!validateNotEmpty(project.rootPath, "项目根路径"))
     {
-        m_lastError = "项目根路径不能为空";
-        Logger::instance().warning(m_lastError);
         return false;
     }
 
@@ -696,9 +681,7 @@ bool DatabaseManager::addProject(ProjectInfo& project)
 
     if (!query.exec())
     {
-        m_lastError = "添加项目失败: " + query.lastError().text();
-        Logger::instance().error(m_lastError);
-        return false;
+        return handleQueryError(query, "添加项目");
     }
 
     project.id = query.lastInsertId().toInt();
@@ -708,10 +691,8 @@ bool DatabaseManager::addProject(ProjectInfo& project)
 
 bool DatabaseManager::updateProject(const ProjectInfo& project)
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return false;
     }
 
@@ -725,9 +706,7 @@ bool DatabaseManager::updateProject(const ProjectInfo& project)
 
     if (!query.exec())
     {
-        m_lastError = "更新项目失败: " + query.lastError().text();
-        Logger::instance().error(m_lastError);
-        return false;
+        return handleQueryError(query, "更新项目");
     }
 
     Logger::instance().info("更新项目成功: " + project.name);
@@ -736,10 +715,8 @@ bool DatabaseManager::updateProject(const ProjectInfo& project)
 
 bool DatabaseManager::deleteProject(int projectId)
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return false;
     }
 
@@ -776,10 +753,8 @@ QVector<ProjectInfo> DatabaseManager::getAllProjects()
 {
     QVector<ProjectInfo> projects;
 
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return projects;
     }
 
@@ -812,10 +787,8 @@ ProjectInfo DatabaseManager::getProjectById(int projectId)
     ProjectInfo project;
     project.id = -1;
 
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return project;
     }
 
@@ -843,7 +816,7 @@ ProjectInfo DatabaseManager::getProjectById(int projectId)
 
 bool DatabaseManager::projectPathExists(const QString& rootPath)
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
         return false;
     }
@@ -864,10 +837,8 @@ QVector<FunctionData> DatabaseManager::getFunctionsByProject(int projectId)
 {
     QVector<FunctionData> functions;
 
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return functions;
     }
 
@@ -902,10 +873,8 @@ QVector<FunctionData> DatabaseManager::getFunctionsByProject(int projectId)
 
 bool DatabaseManager::deleteFunctionsByProject(int projectId)
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return false;
     }
 
@@ -915,9 +884,7 @@ bool DatabaseManager::deleteFunctionsByProject(int projectId)
 
     if (!query.exec())
     {
-        m_lastError = "删除项目函数失败: " + query.lastError().text();
-        Logger::instance().error(m_lastError);
-        return false;
+        return handleQueryError(query, "删除项目函数");
     }
 
     Logger::instance().info("删除项目函数成功，项目ID: " + QString::number(projectId));
@@ -926,7 +893,7 @@ bool DatabaseManager::deleteFunctionsByProject(int projectId)
 
 bool DatabaseManager::functionExistsByKeyAndPath(const QString& key, const QString& filePath)
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
         return false;
     }
@@ -946,10 +913,8 @@ bool DatabaseManager::functionExistsByKeyAndPath(const QString& key, const QStri
 
 bool DatabaseManager::clearAllData()
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return false;
     }
 
@@ -990,10 +955,8 @@ ProjectInfo DatabaseManager::getOrCreateTemporaryProject()
     ProjectInfo tempProject;
     tempProject.id = -1;
 
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return tempProject;
     }
 
@@ -1031,7 +994,7 @@ ProjectInfo DatabaseManager::getOrCreateTemporaryProject()
 
 bool DatabaseManager::isTemporaryProject(int projectId)
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
         return false;
     }
@@ -1050,10 +1013,8 @@ bool DatabaseManager::isTemporaryProject(int projectId)
 
 bool DatabaseManager::updateFunctionProject(int functionId, int newProjectId)
 {
-    if (!m_initialized)
+    if (!checkInitialized())
     {
-        m_lastError = "数据库未初始化";
-        Logger::instance().error(m_lastError);
         return false;
     }
 
@@ -1064,9 +1025,7 @@ bool DatabaseManager::updateFunctionProject(int functionId, int newProjectId)
 
     if (!query.exec())
     {
-        m_lastError = "更新函数项目失败: " + query.lastError().text();
-        Logger::instance().error(m_lastError);
-        return false;
+        return handleQueryError(query, "更新函数项目");
     }
 
     if (query.numRowsAffected() == 0)
