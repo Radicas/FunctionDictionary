@@ -189,8 +189,8 @@ def main():
     parser.add_argument(
         '--build-type', '-b',
         choices=['Debug', 'Release'],
-        default='Release',
-        help='构建类型 (默认: Release)'
+        default='Debug',
+        help='构建类型 (默认: Debug)'
     )
     parser.add_argument(
         '--clean', '-C',
